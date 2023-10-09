@@ -1,24 +1,42 @@
-export const canvas = document.getElementById("game");
-export const ctx = canvas.getContext("webgl");
 
 export class Jarmer {
-    static mobile = false;
+    static #mobile = false;
+    static #canvas = null;
+    static #ctx = null;
 
+    static get isMobile() {
+        return this.#mobile;
+    }
+    
+    static getCanvas(id) {
+    	return this.#canvas[id];
+    }
+    
+    static getContext(id) {
+    	return this.#ctx[id];
+    }
+    
     static async init() {
-        await this.initShaders();
-
+    	this.#canvas = {};
+    	this.#ctx = {};
+    
         await Cursor.init();
         await Keyboard.init();
+        await Shaders.init();
     }
-    static async resize(width, height) {
-        canvas.width = width;
-        canvas.height = height;
+    
+    static async prepare(id) {
+    	this.#canvas[id] = document.getElementById(id);
+    	this.#ctx[id] = this.#canvas[id].getContext("webgl");
+    
+    	await Cursor.prepare(id);
+    	await Keyboard.prepare(id);
+    	
+    	await this.#initShaderDefault(id);
+        await this.#initShaderTexture(id);	
     }
-    static async initShaders() {
-        await this.initShaderDefault();
-        await this.initShaderTexture();
-    }
-    static async initShaderDefault() {
+    
+    static async #initShaderDefault(id) {
         let vSource = "";
         let fSource = "";
 
@@ -42,9 +60,9 @@ export class Jarmer {
         fSource += "gl_FragColor = ucolor;\n";
         fSource += "}\n";
 
-        Shaders.default = new Shader(vSource, fSource);
+        Shaders.default[id] = new Shader(id, vSource, fSource);
     }
-    static async initShaderTexture() {
+    static async #initShaderTexture(id) {
         let vSource = "";
         let fSource = "";
 
@@ -74,17 +92,25 @@ export class Jarmer {
         fSource += "gl_FragColor = texture2D(uimage, vtexcoord) * ucolor;\n";
         fSource += "}";
 
-        Shaders.texture = new Shader(vSource, fSource);
+        Shaders.texture[id] = new Shader(id, vSource, fSource);
     }
 }
 
 export class Shaders {
     static default = null;
     static texture = null;
+    
+    static async init() {
+    	this.default = {};
+    	this.texture = {};
+    }
 }
 
 export class Camera {
-    static async render() {
+    static async render(id) {
+    	const ctx = Jarmer.getContext(id);
+    	const canvas = Jarmer.getCanvas(id);
+    
         ctx.enable(ctx.BLEND);
         ctx.blendFunc(ctx.SRC_ALPHA, ctx.ONE_MINUS_SRC_ALPHA);
         ctx.viewport(0, 0, canvas.width, canvas.height);
@@ -98,9 +124,15 @@ export class Cursor {
     static y = 0;
     static down = false;
     static up = false;
-
+    
     static async init() {
-        if (Jarmer.mobile) {
+    
+    }
+
+    static async prepare(id) {
+    	const canvas = Jarmer.getCanvas(id);
+    
+        if (Jarmer.isMobile) {
             canvas.addEventListener("touchstart", function(e) {
                 Cursor.down = true;
                 Cursor.x = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
@@ -173,6 +205,8 @@ export class Keyboard {
     }
 
     static async init() {
+        this.#states = [];
+
         this.addState(Keys.up);
         this.addState(Keys.down);
         this.addState(Keys.left);
@@ -199,6 +233,11 @@ export class Keyboard {
             }
         });
     }
+    
+    static async prepare(id) {
+    
+    }
+    
     static async update() {
         for (let i=0; i<Keyboard.#states.length; i++) {
             Keyboard.#states[i].up = false;
@@ -214,13 +253,13 @@ export class Keyboard {
     }
 }
 
-const Keys = {
-    any: "Any",
-    up: "ArrowUp",
-    down: "ArrowDown",
-    left: "ArrowLeft" ,
-    right: "ArrowRight",
-    space: "Space"
+export class Keys {
+    static any = "Any";
+    static up = "ArrowUp";
+    static down = "ArrowDown";
+    static left = "ArrowLeft";
+    static right = "ArrowRight";
+    static space = "Space";
 }
 
 /* MATH */
@@ -307,6 +346,44 @@ export class Utils {
 }
 
 /* ASSETS */
+export class Shader {
+    program = null;
+
+    constructor(id, vsource, fsource) {
+        this.#init(id, vsource, fsource);
+    }
+
+    #init(id, vsource, fsource) {
+    	const ctx = Jarmer.getContext(id);
+        const vshader = ctx.createShader(ctx.VERTEX_SHADER);
+        const fshader = ctx.createShader(ctx.FRAGMENT_SHADER);
+        this.program = ctx.createProgram();
+
+        ctx.shaderSource(vshader, vsource);
+        ctx.shaderSource(fshader, fsource);
+        ctx.compileShader(vshader);
+        ctx.compileShader(fshader);
+
+        const status1 = ctx.getShaderParameter(vshader, ctx.COMPILE_STATUS);
+        const status2 = ctx.getShaderParameter(fshader, ctx.COMPILE_STATUS);
+
+        if (status1 === false) {
+            console.error("GLSL compile error occured");
+            console.error(ctx.getShaderInfoLog(vshader));
+        }
+        if (status2 === false) {
+            console.error("GLSL compile error occured");
+            console.error(ctx.getShaderInfoLog(fshader));
+        }
+
+        ctx.attachShader(this.program, vshader);
+        ctx.attachShader(this.program, fshader);
+        ctx.linkProgram(this.program);
+        ctx.deleteShader(vshader);
+        ctx.deleteShader(fshader);
+    }
+}
+
 export class Sprite {
     #texture = null;
     #vbuffer = null;
@@ -325,8 +402,16 @@ export class Sprite {
     #totalVertices = [];
     #totalTexCoords = [];
 
-    constructor(url, frameWidth, frameHeight, offsetX, offsetY, scaleX, scaleY) {
-        this.#shader = Shaders.texture;
+    get framesHor() {
+        return this.#framesHor;
+    }
+
+    get framesVert() {
+        return this.#framesVert;
+    }
+
+    constructor(id, url, frameWidth, frameHeight, offsetX, offsetY, scaleX, scaleY) {
+        this.#shader = Shaders.texture[id];
 
         this.#frameWidth = frameWidth;
         this.#frameHeight = frameHeight;
@@ -335,31 +420,40 @@ export class Sprite {
         this.#scaleX = scaleX;
         this.#scaleY = scaleY;
 
-        this.#load(url);
+        this.#load(id, url);
     }
 
-    #load(url) {
+    #load(id, url) {
         let img = new Image();
         img.src = url;
         img.onload = () => {
-            const texture = ctx.createTexture();
-
-            ctx.bindTexture(ctx.TEXTURE_2D, texture);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
-            ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, img);
-
             this.width = img.width;
             this.height = img.height;
             this.#framesHor = this.width / this.#frameWidth;
             this.#framesVert = this.height / this.#frameHeight;
-            this.#texture = texture;
-            this.#init();
+
+			this.#generateTexture(id, img);
+            this.#generateBuffers(id);
         }
     }
-    #init() {
+    
+    #generateTexture(id, img) {
+    	const ctx = Jarmer.getContext(id);   	
+    	const texture = ctx.createTexture();
+    	
+        ctx.bindTexture(ctx.TEXTURE_2D, texture);
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+        ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, img);
+        
+        this.#texture = texture;
+    }
+    
+    #generateBuffers(id) {
+    	const ctx = Jarmer.getContext(id);
+    	
         this.#vbuffer = ctx.createBuffer();
         this.#tcbuffer = ctx.createBuffer();
 
@@ -416,7 +510,10 @@ export class Sprite {
         ctx.vertexAttribPointer(texcoordAttribLocation, 2, ctx.FLOAT, false, 0, 0);
     }
 
-    render(x, y, frameHor, frameVert, angle, r, g, b, a) {
+    async render(id, x, y, frameHor, frameVert, angle, r, g, b, a) {
+    	const ctx = Jarmer.getContext(id);
+    	const canvas = Jarmer.getCanvas(id);
+    	
         if (!this.#texture) {
             return;
         }
@@ -452,66 +549,31 @@ export class Sprite {
     }
 }
 
-export class Shader {
-    program = null;
-
-    constructor(vsource, fsource) {
-        this.#init(vsource, fsource);
-    }
-
-    #init(vsource, fsource) {
-        const vshader = ctx.createShader(ctx.VERTEX_SHADER);
-        const fshader = ctx.createShader(ctx.FRAGMENT_SHADER);
-        this.program = ctx.createProgram();
-
-        ctx.shaderSource(vshader, vsource);
-        ctx.shaderSource(fshader, fsource);
-        ctx.compileShader(vshader);
-        ctx.compileShader(fshader);
-
-        const status1 = ctx.getShaderParameter(vshader, ctx.COMPILE_STATUS);
-        const status2 = ctx.getShaderParameter(fshader, ctx.COMPILE_STATUS);
-
-        if (status1 === false) {
-            console.error("GLSL compile error occured");
-            console.error(ctx.getShaderInfoLog(vshader));
-        }
-        if (status2 === false) {
-            console.error("GLSL compile error occured");
-            console.error(ctx.getShaderInfoLog(fshader));
-        }
-
-        ctx.attachShader(this.program, vshader);
-        ctx.attachShader(this.program, fshader);
-        ctx.linkProgram(this.program);
-        ctx.deleteShader(vshader);
-        ctx.deleteShader(fshader);
-    }
-}
-
 export class Polygon {
     #shader = null;
     #buffer = null;
     #vertices = [];
 
-    constructor(vertices) {
-        this.#buffer = ctx.createBuffer();
-        this.#shader = Shaders.default;
+    constructor(id, vertices) {
+        this.#shader = Shaders.default[id];
         this.#vertices = vertices;
 
-        this.#init();
+        this.#generateBuffers(id);
     }
 
-    #init() {
-        let positionAttribLocation = ctx.getAttribLocation(this.#shader.program, "aposition");
+    #generateBuffers(id) {
+    	const ctx = Jarmer.getContext(id);
+        const positionAttribLocation = ctx.getAttribLocation(this.#shader.program, "aposition");
 
+		this.#buffer = ctx.createBuffer();
         ctx.enableVertexAttribArray(positionAttribLocation);
         ctx.bindBuffer(ctx.ARRAY_BUFFER, this.#buffer);
         ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(this.#vertices), ctx.STATIC_DRAW);
         ctx.vertexAttribPointer(positionAttribLocation, 2, ctx.FLOAT, false, 0, 0);
     }
 
-    render(x, y, angle, r, g, b, a, polygonMode = ctx.TRIANGLES) {
+    render(id, x, y, angle, r, g, b, a, polygonMode = ctx.TRIANGLES) {
+    	const ctx = Jarmer.getContext(id);
         const cos = Math.cos(MathHelper.toRad(angle + 90));
         const sin = Math.sin(MathHelper.toRad(angle + 90));
 
