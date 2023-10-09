@@ -1,4 +1,3 @@
-
 export class Jarmer {
     static #mobile = false;
     static #canvas = null;
@@ -7,35 +6,35 @@ export class Jarmer {
     static get isMobile() {
         return this.#mobile;
     }
-    
+
     static getCanvas(id) {
-    	return this.#canvas[id];
+        return this.#canvas[id];
     }
-    
+
     static getContext(id) {
-    	return this.#ctx[id];
+        return this.#ctx[id];
     }
-    
+
     static async init() {
-    	this.#canvas = {};
-    	this.#ctx = {};
-    
+        this.#canvas = {};
+        this.#ctx = {};
+
         await Cursor.init();
         await Keyboard.init();
         await Shaders.init();
     }
-    
+
     static async prepare(id) {
-    	this.#canvas[id] = document.getElementById(id);
-    	this.#ctx[id] = this.#canvas[id].getContext("webgl");
-    
-    	await Cursor.prepare(id);
-    	await Keyboard.prepare(id);
-    	
-    	await this.#initShaderDefault(id);
-        await this.#initShaderTexture(id);	
+        this.#canvas[id] = document.getElementById(id);
+        this.#ctx[id] = this.#canvas[id].getContext("webgl");
+
+        await Cursor.prepare(id);
+        await Keyboard.prepare(id);
+
+        await this.#initShaderDefault(id);
+        await this.#initShaderTexture(id);
     }
-    
+
     static async #initShaderDefault(id) {
         let vSource = "";
         let fSource = "";
@@ -62,6 +61,7 @@ export class Jarmer {
 
         Shaders.default[id] = new Shader(id, vSource, fSource);
     }
+
     static async #initShaderTexture(id) {
         let vSource = "";
         let fSource = "";
@@ -99,18 +99,18 @@ export class Jarmer {
 export class Shaders {
     static default = null;
     static texture = null;
-    
+
     static async init() {
-    	this.default = {};
-    	this.texture = {};
+        this.default = {};
+        this.texture = {};
     }
 }
 
 export class Camera {
     static async render(id) {
-    	const ctx = Jarmer.getContext(id);
-    	const canvas = Jarmer.getCanvas(id);
-    
+        const ctx = Jarmer.getContext(id);
+        const canvas = Jarmer.getCanvas(id);
+
         ctx.enable(ctx.BLEND);
         ctx.blendFunc(ctx.SRC_ALPHA, ctx.ONE_MINUS_SRC_ALPHA);
         ctx.viewport(0, 0, canvas.width, canvas.height);
@@ -120,61 +120,82 @@ export class Camera {
 
 /* INPUT */
 export class Cursor {
-    static x = 0;
-    static y = 0;
-    static down = false;
-    static up = false;
-    
+    static #x = null;
+    static #y = null;
+    static #down = null;
+    static #up = null;
+
+    static getX(id) {
+        return this.#x[id];
+    }
+
+    static getY(id) {
+        return this.#y[id];
+    }
+
+    static isDown(id) {
+        return this.#down[id];
+    }
+
+    static isUp(id) {
+        return this.#up[id];
+    }
+
     static async init() {
-    
+        this.#x = {};
+        this.#y = {};
+        this.#up = {};
+        this.#down = {};
     }
 
     static async prepare(id) {
-    	const canvas = Jarmer.getCanvas(id);
-    
+        const canvas = Jarmer.getCanvas(id);
+
         if (Jarmer.isMobile) {
-            canvas.addEventListener("touchstart", function(e) {
-                Cursor.down = true;
-                Cursor.x = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
-                Cursor.y = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+            canvas.addEventListener("touchstart", function (e) {
+                Cursor.#down[id] = true;
+                Cursor.#x[id] = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
+                Cursor.#y[id] = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
             });
-            canvas.addEventListener("touchmove", function(e) {
-                Cursor.x = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
-                Cursor.y = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+            canvas.addEventListener("touchmove", function (e) {
+                Cursor.#x[id] = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
+                Cursor.#y[id] = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
             });
-            canvas.addEventListener("touchend", function(e) {
-                Cursor.x = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
-                Cursor.y = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
-                Cursor.down = false;
-                Cursor.up = true;
+            canvas.addEventListener("touchend", function (e) {
+                Cursor.#x[id] = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
+                Cursor.#y[id] = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+                Cursor.#down[id] = false;
+                Cursor.#up[id] = true;
             });
         } else {
-            canvas.addEventListener("mousedown", function(e) {
-                Cursor.down = true;
-                Cursor.x = e.clientX - canvas.getBoundingClientRect().left;
-                Cursor.y = e.clientY - canvas.getBoundingClientRect().top;
+            canvas.addEventListener("mousedown", function (e) {
+                Cursor.#down[id] = true;
+                Cursor.#x[id] = e.clientX - canvas.getBoundingClientRect().left;
+                Cursor.#y[id] = e.clientY - canvas.getBoundingClientRect().top;
             });
-            canvas.addEventListener("mousemove", function(e) {
-                Cursor.x = e.clientX - canvas.getBoundingClientRect().left;
-                Cursor.y = e.clientY - canvas.getBoundingClientRect().top;
+            canvas.addEventListener("mousemove", function (e) {
+                Cursor.#x[id] = e.clientX - canvas.getBoundingClientRect().left;
+                Cursor.#y[id] = e.clientY - canvas.getBoundingClientRect().top;
             });
-            canvas.addEventListener("mouseup", function(e) {
-                Cursor.x = e.clientX - canvas.getBoundingClientRect().left;
-                Cursor.y = e.clientY - canvas.getBoundingClientRect().top;
-                Cursor.down = false;
-                Cursor.up = true;
+            canvas.addEventListener("mouseup", function (e) {
+                Cursor.#x[id] = e.clientX - canvas.getBoundingClientRect().left;
+                Cursor.#y[id] = e.clientY - canvas.getBoundingClientRect().top;
+                Cursor.#down[id] = false;
+                Cursor.#up[id] = true;
             });
         }
     }
-    static async update() {
-        this.up = false;
+
+    static async update(id) {
+        this.#up[id] = false;
     }
 }
+
 export class Keyboard {
     static #states = [];
 
     static keyDown(key) {
-        for (let i=0; i<Keyboard.#states.length; i++) {
+        for (let i = 0; i < Keyboard.#states.length; i++) {
             const state = Keyboard.#states[i];
 
             if (key === "Any" && state.down) {
@@ -188,8 +209,9 @@ export class Keyboard {
 
         return false;
     }
+
     static keyUp(key) {
-        for (let i=0; i<Keyboard.#states.length; i++) {
+        for (let i = 0; i < Keyboard.#states.length; i++) {
             const state = Keyboard.#states[i];
 
             if (key === "Any" && state.up) {
@@ -213,8 +235,8 @@ export class Keyboard {
         this.addState(Keys.right);
         this.addState(Keys.space);
 
-        window.addEventListener("keydown", function(e) {
-            for (let i=0; i<Keyboard.#states.length; i++) {
+        window.addEventListener("keydown", function (e) {
+            for (let i = 0; i < Keyboard.#states.length; i++) {
                 const state = Keyboard.#states[i];
 
                 if (state.key === e.key) {
@@ -222,8 +244,8 @@ export class Keyboard {
                 }
             }
         });
-        window.addEventListener("keyup", function(e) {
-            for (let i=0; i<Keyboard.#states.length; i++) {
+        window.addEventListener("keyup", function (e) {
+            for (let i = 0; i < Keyboard.#states.length; i++) {
                 const state = Keyboard.#states[i];
 
                 if (state.key === e.key) {
@@ -233,13 +255,13 @@ export class Keyboard {
             }
         });
     }
-    
+
     static async prepare(id) {
-    
+
     }
-    
+
     static async update() {
-        for (let i=0; i<Keyboard.#states.length; i++) {
+        for (let i = 0; i < Keyboard.#states.length; i++) {
             Keyboard.#states[i].up = false;
         }
     };
@@ -267,6 +289,7 @@ export class MathHelper {
     static toRad(deg) {
         return deg * Math.PI / 180;
     }
+
     static toDeg(rad) {
         return rad / Math.PI * 180;
     }
@@ -282,28 +305,30 @@ export class MathHelper {
 
         return theta;
     }
+
     static degreesBetweenVectors(x1, y1, x2, y2) {
         return this.toDeg(this.radiansBetweenVectors(x1, y1, x2, y2));
     }
+
     static distanceBetweenVectors(x1, y1, x2, y2) {
         const x = x1 - x2;
-	    const y = y1 - y2;
+        const y = y1 - y2;
 
-	    return Math.sqrt((x * x) + (y * y));    
+        return Math.sqrt((x * x) + (y * y));
     }
 }
 
- /* PHYSICS */
+/* PHYSICS */
 export class Physics {
     static Collision = {
-        rectangle: function(x1,y1, w1, h1, x2, y2, w2, h2)	{
+        rectangle: function (x1, y1, w1, h1, x2, y2, w2, h2) {
             return x1 + w1 > x2 & x1 < x2 + w2 & y1 + h1 > y2 & y1 < y2 + h2;
         },
-    
-        circle: function(x1, y1, r1, x2, y2, r2) {
+
+        circle: function (x1, y1, r1, x2, y2, r2) {
             const distance = MathHelper.distanceBetweenVectors(x1, y1, x2, y2);
             const length = r1 + r2;
-    
+
             return distance < length;
         }
     }
@@ -321,6 +346,7 @@ export class Utils {
 
         return output;
     }
+
     static hexToRGBA(hex) {
         let r = 0;
         let g = 0;
@@ -354,7 +380,7 @@ export class Shader {
     }
 
     #init(id, vsource, fsource) {
-    	const ctx = Jarmer.getContext(id);
+        const ctx = Jarmer.getContext(id);
         const vshader = ctx.createShader(ctx.VERTEX_SHADER);
         const fshader = ctx.createShader(ctx.FRAGMENT_SHADER);
         this.program = ctx.createProgram();
@@ -432,33 +458,33 @@ export class Sprite {
             this.#framesHor = this.width / this.#frameWidth;
             this.#framesVert = this.height / this.#frameHeight;
 
-			this.#generateTexture(id, img);
+            this.#generateTexture(id, img);
             this.#generateBuffers(id);
         }
     }
-    
+
     #generateTexture(id, img) {
-    	const ctx = Jarmer.getContext(id);   	
-    	const texture = ctx.createTexture();
-    	
+        const ctx = Jarmer.getContext(id);
+        const texture = ctx.createTexture();
+
         ctx.bindTexture(ctx.TEXTURE_2D, texture);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
         ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, img);
-        
+
         this.#texture = texture;
     }
-    
+
     #generateBuffers(id) {
-    	const ctx = Jarmer.getContext(id);
-    	
+        const ctx = Jarmer.getContext(id);
+
         this.#vbuffer = ctx.createBuffer();
         this.#tcbuffer = ctx.createBuffer();
 
-        for (let frameVert=0; frameVert<this.#framesVert; frameVert++) {
-            for (let frameHor=0; frameHor<this.#framesHor; frameHor++) {
+        for (let frameVert = 0; frameVert < this.#framesVert; frameVert++) {
+            for (let frameHor = 0; frameHor < this.#framesHor; frameHor++) {
                 const width = (this.width * this.#scaleX) / this.#framesHor;
                 const height = (this.height * this.#scaleY) / this.#framesVert;
 
@@ -511,9 +537,9 @@ export class Sprite {
     }
 
     async render(id, x, y, frameHor, frameVert, angle, r, g, b, a) {
-    	const ctx = Jarmer.getContext(id);
-    	const canvas = Jarmer.getCanvas(id);
-    	
+        const ctx = Jarmer.getContext(id);
+        const canvas = Jarmer.getCanvas(id);
+
         if (!this.#texture) {
             return;
         }
@@ -562,10 +588,10 @@ export class Polygon {
     }
 
     #generateBuffers(id) {
-    	const ctx = Jarmer.getContext(id);
+        const ctx = Jarmer.getContext(id);
         const positionAttribLocation = ctx.getAttribLocation(this.#shader.program, "aposition");
 
-		this.#buffer = ctx.createBuffer();
+        this.#buffer = ctx.createBuffer();
         ctx.enableVertexAttribArray(positionAttribLocation);
         ctx.bindBuffer(ctx.ARRAY_BUFFER, this.#buffer);
         ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(this.#vertices), ctx.STATIC_DRAW);
@@ -573,7 +599,7 @@ export class Polygon {
     }
 
     render(id, x, y, angle, r, g, b, a, polygonMode = ctx.TRIANGLES) {
-    	const ctx = Jarmer.getContext(id);
+        const ctx = Jarmer.getContext(id);
         const cos = Math.cos(MathHelper.toRad(angle + 90));
         const sin = Math.sin(MathHelper.toRad(angle + 90));
 
