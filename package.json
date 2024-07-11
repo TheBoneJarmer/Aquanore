@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/TheBoneJarmer/jarmerjs/issues"
   },
-  "homepage": "https://github.com/TheBoneJarmer/jarmerjs#readme"
+  "homepage": "https://github.com/TheBoneJarmer/jarmerjs#readme",
+  "devDependencies": {
+    "vite": "^5.3.3"
+  }
 }
