@@ -7,6 +7,7 @@ import {Color} from "../main/color";
 
 let poly: Polygon = null;
 let pos: Vector2 = new Vector2(32, 32);
+let friction: Vector2 = new Vector2(1, 1);
 
 Jarmer.init();
 Jarmer.onLoad = () => {
@@ -29,22 +30,34 @@ Jarmer.onLoad = () => {
     ];
 
     poly = new Polygon(verts, texcoords);
+    pos.x = window.innerWidth / 2;
+    pos.y = window.innerHeight / 2;
 };
 Jarmer.onUpdate = (dt: number) => {
-    if (Keyboard.keyDown(Keys.Up)) {
-        pos.y -= dt / 10.0;
+    const speed = dt / 10.0;
+    //const speed = 4;
+
+    pos.x += friction.x * speed;
+    pos.y += friction.y * speed;
+
+    if (pos.x < 0) {
+        pos.x = 0;
+        friction.x = 1;
     }
 
-    if (Keyboard.keyDown(Keys.Down)) {
-        pos.y += dt / 10.0;
+    if (pos.y < 0) {
+        pos.y = 0;
+        friction.y = 1;
     }
 
-    if (Keyboard.keyDown(Keys.Left)) {
-        pos.x -= dt / 10.0;
+    if (pos.x > window.innerWidth - 32) {
+        pos.x = window.innerWidth - 32;
+        friction.x = -1;
     }
 
-    if (Keyboard.keyDown(Keys.Right)) {
-        pos.x += dt / 10.0;
+    if (pos.y > window.innerHeight - 32) {
+        pos.y = window.innerHeight - 32;
+        friction.y = -1;
     }
 };
 Jarmer.onRender = () => {

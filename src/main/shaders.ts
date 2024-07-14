@@ -21,7 +21,7 @@ export class Shaders {
     }
 
     private static initPolygon() {
-        let vSource = "precision mediump float;\n" +
+        let vSource = "precision highp float;\n" +
             "\n" +
             "attribute vec2 a_vertex;\n" +
             "attribute vec2 a_texcoord;\n" +
@@ -46,7 +46,7 @@ export class Shaders {
             "    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);\n" +
             "}"
 
-        let fSource = "precision mediump float;\n" +
+        let fSource = "precision highp float;\n" +
             "varying vec2 v_texcoord;\n" +
             "uniform sampler2D u_texture;\n" +
             "uniform int u_texture_active;\n" +

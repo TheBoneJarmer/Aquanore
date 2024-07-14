@@ -49,6 +49,8 @@ export class Jarmer {
     }
 
     public static run() {
+        this._lastTime = 0;
+
         if (this.onLoad != null) {
             this.onLoad();
         }
