@@ -2,7 +2,7 @@ import {Keyboard} from "./keyboard";
 import {Shaders} from "./shaders";
 import {Renderer} from "./renderer";
 
-export class Jarmer {
+export class Aquanore {
     private static _ctx: WebGL2RenderingContext = null;
     private static _canvas: HTMLCanvasElement = null;
     private static _lastTime: number;
@@ -84,9 +84,9 @@ export class Jarmer {
     }
 
     private static callback(time: number) {
-        Jarmer.update(time);
-        Jarmer.render();
+        Aquanore.update(time);
+        Aquanore.render();
 
-        requestAnimationFrame(Jarmer.callback);
+        requestAnimationFrame(Aquanore.callback);
     }
 }

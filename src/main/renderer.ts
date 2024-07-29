@@ -1,7 +1,7 @@
 import {Shader} from "./shader";
 import {Shaders} from "./shaders";
 import {Polygon} from "./polygon";
-import {Jarmer} from "./jarmer";
+import {Aquanore} from "./aquanore";
 import {Vector2} from "./vector2";
 import {Color} from "./color";
 import {MathHelper} from "./mathhelper";
@@ -27,7 +27,7 @@ export class Renderer {
         this._shaderSprite = Shaders.sprite;
         this._shaderPolygon = Shaders.polygon;
 
-        Jarmer.ctx.useProgram(null);
+        Aquanore.ctx.useProgram(null);
     }
 
     public static switchShader(shader: Shader): boolean {
@@ -40,7 +40,7 @@ export class Renderer {
         }
 
         this._shader = shader;
-        Jarmer.ctx.useProgram(this._shader.id);
+        Aquanore.ctx.useProgram(this._shader.id);
 
         return true;
     }
@@ -48,7 +48,7 @@ export class Renderer {
     public static drawPolygon(polygon: Polygon, texture: any, pos: Vector2, scale: Vector2, origin: Vector2, offset: Vector2, angle: number, flipHor: boolean, flipVert: boolean, color: Color) {
         this.switchShader(this._shaderPolygon);
 
-        const gl = Jarmer.ctx;
+        const gl = Aquanore.ctx;
         const cos = Math.cos(MathHelper.radians(angle + 90));
         const sin = Math.sin(MathHelper.radians(angle + 90));
 

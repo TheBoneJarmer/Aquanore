@@ -1,4 +1,4 @@
-import {Jarmer} from "./jarmer";
+import {Aquanore} from "./aquanore";
 
 export class Polygon {
     private readonly _vertices: number[];
@@ -44,7 +44,7 @@ export class Polygon {
     }
 
     private generateBuffers() {
-        const gl = Jarmer.ctx;
+        const gl = Aquanore.ctx;
 
         this._vao = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();

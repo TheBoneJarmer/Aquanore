@@ -1,5 +1,4 @@
-import {Jarmer} from "../main/jarmer";
-import {Keyboard, Keys} from "../main/keyboard";
+import {Aquanore} from "../main/aquanore";
 import {Polygon} from "../main/polygon";
 import {Renderer} from "../main/renderer";
 import {Vector2} from "../main/vector2";
@@ -9,8 +8,8 @@ let poly: Polygon = null;
 let pos: Vector2 = new Vector2(32, 32);
 let friction: Vector2 = new Vector2(1, 1);
 
-Jarmer.init();
-Jarmer.onLoad = () => {
+Aquanore.init();
+Aquanore.onLoad = () => {
     const verts = [
         0, 0,
         32, 0,
@@ -33,7 +32,7 @@ Jarmer.onLoad = () => {
     pos.x = window.innerWidth / 2;
     pos.y = window.innerHeight / 2;
 };
-Jarmer.onUpdate = (dt: number) => {
+Aquanore.onUpdate = (dt: number) => {
     const speed = dt / 10.0;
     //const speed = 4;
 
@@ -60,7 +59,7 @@ Jarmer.onUpdate = (dt: number) => {
         friction.y = -1;
     }
 };
-Jarmer.onRender = () => {
+Aquanore.onRender = () => {
     const scale = new Vector2(1, 1);
     const origin = new Vector2(0, 0);
     const offset = new Vector2(0, 0);
@@ -68,4 +67,4 @@ Jarmer.onRender = () => {
 
     Renderer.drawPolygon(poly, null, pos, scale, origin, offset, 0, false, false, color);
 };
-Jarmer.run();
+Aquanore.run();

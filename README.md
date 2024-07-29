@@ -34,7 +34,7 @@ npm install jarmerjs
     <canvas id="game" width="1024" height="768"></canvas>
     <script type="module" src="jarmer.js"></script>
     <script type="module">
-        import { Jarmer, Camera, Cursor, Polygon } from "./jarmer.js";
+        import { Aquanore, Camera, Cursor, Polygon } from "./jarmer.js";
         
         let shape = null;
         let angle = 0;
@@ -42,7 +42,7 @@ npm install jarmerjs
         let size = 64;
         
         async function init() {
-            await Jarmer.init();
+            await Aquanore.init();
             
             shape = new Polygon([
                 (-size / 2), -(size / 2),
@@ -82,7 +82,7 @@ npm install jarmerjs
             requestAnimationFrame(loop);
         }
         async function resize() {
-            await Jarmer.resize(window.innerWidth, window.innerHeight);
+            await Aquanore.resize(window.innerWidth, window.innerHeight);
         }
         
         window.addEventListener("load", async () => {
