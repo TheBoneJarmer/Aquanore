@@ -1,23 +1,24 @@
 {
-  "name": "jarmerjs",
-  "version": "1.1.0",
-  "description": "JarmerJS is a light-weight 2D WebGL framework covering the utmost basics for a HTML5 game",
+  "name": "aquanore",
+  "version": "1.0.0",
+  "description": "Aquanore is a light-weight 2D WebGL framework covering the utmost basics for a HTML5 game",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TheBoneJarmer/jarmerjs.git"
+    "url": "git+https://github.com/TheBoneJarmer/aquanore.git"
   },
   "keywords": [
     "html5",
     "webgl",
-    "jarmer",
+    "aquanore",
+    "typescript",
     "2d"
   ],
   "author": "Ruben Labruyere",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TheBoneJarmer/jarmerjs/issues"
+    "url": "https://github.com/TheBoneJarmer/aquanore/issues"
   },
-  "homepage": "https://github.com/TheBoneJarmer/jarmerjs#readme",
+  "homepage": "https://github.com/TheBoneJarmer/aquanore#readme",
   "devDependencies": {
     "typescript": "^5.5.4",
     "vite": "^5.3.3"
