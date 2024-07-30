@@ -1,4 +1,4 @@
-import {Aquanore} from "../main/aquanore";
+import {Aquanore} from "../main/index";
 import {Polygon} from "../main/polygon";
 import {Renderer} from "../main/renderer";
 import {Vector2} from "../main/vector2";
