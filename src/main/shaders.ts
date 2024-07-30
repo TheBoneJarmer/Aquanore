@@ -1,26 +1,20 @@
 import {Shader} from "./shader";
 
 export class Shaders {
-    private static _polygon: Shader;
-    private static _sprite: Shader;
+    private static _default: Shader;
 
-    public static get polygon(): Shader {
-        return this._polygon;
-    }
-
-    public static get sprite(): Shader {
-        return this._sprite;
+    public static get default(): Shader {
+        return this._default;
     }
 
     private constructor() {
     }
 
     public static init() {
-        this.initPolygon();
-        this.initSprite();
+        this.initDefault();
     }
 
-    private static initPolygon() {
+    private static initDefault() {
         let vSource = "precision highp float;\n" +
             "\n" +
             "attribute vec2 a_vertex;\n" +
@@ -73,39 +67,6 @@ export class Shaders {
             "    gl_FragColor = final_color;\n" +
             "}"
 
-        this._polygon = new Shader(vSource, fSource);
-    }
-
-    private static initSprite() {
-        let vSource = "";
-        let fSource = "";
-
-        vSource += "attribute vec2 aposition;\n";
-        vSource += "attribute vec2 atexcoord;\n";
-        vSource += "uniform vec2 uresolution;\n";
-        vSource += "uniform vec2 urotation;\n";
-        vSource += "uniform vec2 utranslation;\n";
-        vSource += "varying vec2 vtexcoord;\n";
-        vSource += "\n";
-        vSource += "void main() {\n";
-        vSource += "vec2 rotatedPosition = vec2(aposition.x * urotation.y + aposition.y * urotation.x, aposition.y * urotation.y - aposition.x * urotation.x);\n";
-        vSource += "vec2 zeroToOne = (rotatedPosition + utranslation) / uresolution;\n";
-        vSource += "vec2 zeroToTwo = zeroToOne * 2.0;\n";
-        vSource += "vec2 clipSpace = zeroToTwo - 1.0;\n";
-        vSource += "\n";
-        vSource += "vtexcoord = atexcoord;\n";
-        vSource += "\n";
-        vSource += "gl_Position = vec4(clipSpace.x, -clipSpace.y, 0, 1);\n";
-        vSource += "}\n";
-
-        fSource += "precision mediump float;\n";
-        fSource += "uniform sampler2D uimage;\n";
-        fSource += "uniform vec4 ucolor;\n";
-        fSource += "varying vec2 vtexcoord;\n";
-        fSource += "void main() {\n";
-        fSource += "gl_FragColor = texture2D(uimage, vtexcoord) * ucolor;\n";
-        fSource += "}";
-
-        this._sprite = new Shader(vSource, fSource);
+        this._default = new Shader(vSource, fSource);
     }
 }

@@ -5,27 +5,19 @@ import {Aquanore} from "./aquanore";
 import {Vector2} from "./vector2";
 import {Color} from "./color";
 import {MathHelper} from "./mathhelper";
+import {Texture} from "./texture";
+import {Sprite} from "./sprite";
 
 export class Renderer {
     private static _shader: Shader;
-    private static _shaderPolygon: Shader;
-    private static _shaderSprite: Shader;
-
-    public static set shaderPolygon(val: Shader) {
-        this._shaderPolygon = val;
-    }
-
-    public static set shaderSprite(val: Shader) {
-        this._shaderSprite = val;
-    }
+    private static _shaderDefault: Shader;
 
     private constructor() {
     }
 
     public static init() {
         this._shader = null;
-        this._shaderSprite = Shaders.sprite;
-        this._shaderPolygon = Shaders.polygon;
+        this._shaderDefault = Shaders.default;
 
         Aquanore.ctx.useProgram(null);
     }
@@ -45,8 +37,20 @@ export class Renderer {
         return true;
     }
 
-    public static drawPolygon(polygon: Polygon, texture: any, pos: Vector2, scale: Vector2, origin: Vector2, offset: Vector2, angle: number, flipHor: boolean, flipVert: boolean, color: Color) {
-        this.switchShader(this._shaderPolygon);
+    public static drawSprite(sprite: Sprite, pos: Vector2, scale: Vector2, origin: Vector2, frameHor: number, frameVert: number, angle: number, flipHor: boolean, flipVert: boolean, color: Color) {
+        const offset = new Vector2(0,0);
+        offset.x = (1.0 / sprite.framesHor) * frameHor;
+        offset.y = (1.0 / sprite.framesVert) * frameVert;
+
+        this.drawPolygon(sprite.poly, sprite.tex, pos, scale, origin, offset, angle, flipHor, flipVert, color);
+    }
+
+    public static drawPolygon(polygon: Polygon, texture: Texture, pos: Vector2, scale: Vector2, origin: Vector2, offset: Vector2, angle: number, flipHor: boolean, flipVert: boolean, color: Color) {
+        if (!polygon) {
+            return;
+        }
+
+        this.switchShader(this._shaderDefault);
 
         const gl = Aquanore.ctx;
         const cos = Math.cos(MathHelper.radians(angle + 90));
@@ -63,6 +67,11 @@ export class Renderer {
         gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_flip_vert"), flipVert ? 1 : 0);
         gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
         gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_texture_active"), texture == null ? 0 : 1);
+
+        if (texture != null) {
+            gl.bindTexture(gl.TEXTURE_2D, texture.id);
+            gl.activeTexture(gl.TEXTURE0);
+        }
 
         gl.drawArrays(gl.TRIANGLES, 0, polygon.vertices.length / 2);
         gl.activeTexture(gl.TEXTURE0);

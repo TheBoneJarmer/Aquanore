@@ -1,70 +1,78 @@
-import {Aquanore} from "../main/index";
-import {Polygon} from "../main/polygon";
+import {Aquanore, Keyboard, Keys} from "../main/index";
 import {Renderer} from "../main/renderer";
 import {Vector2} from "../main/vector2";
 import {Color} from "../main/color";
+import {Sprite} from "../main/sprite";
 
-let poly: Polygon = null;
-let pos: Vector2 = new Vector2(32, 32);
-let friction: Vector2 = new Vector2(1, 1);
+let sprite: Sprite = null;
+let pos: Vector2 = new Vector2(64, 64);
+let goal = new Vector2(64, 64);
+let frame = 0;
+let frameTimer = 0;
+let direction = 0;
+let index = 3;
 
 Aquanore.init();
 Aquanore.onLoad = () => {
-    const verts = [
-        0, 0,
-        32, 0,
-        0, 32,
-        32, 0,
-        0, 32,
-        32, 32
-    ];
-
-    const texcoords = [
-        0, 0,
-        1, 0,
-        0, 1,
-        1, 0,
-        0, 1,
-        1, 1
-    ];
-
-    poly = new Polygon(verts, texcoords);
-    pos.x = window.innerWidth / 2;
-    pos.y = window.innerHeight / 2;
+    sprite = new Sprite("npc.png", 16, 16);
 };
 Aquanore.onUpdate = (dt: number) => {
     const speed = dt / 10.0;
-    //const speed = 4;
 
-    pos.x += friction.x * speed;
-    pos.y += friction.y * speed;
+    if (goal.x == pos.x && goal.y == pos.y) {
+        if (Keyboard.keyDown(Keys.Down)) {
+            direction = 0;
+            goal.y += 64;
+        }
 
-    if (pos.x < 0) {
-        pos.x = 0;
-        friction.x = 1;
+        if (Keyboard.keyDown(Keys.Up)) {
+            direction = 1;
+            goal.y -= 64;
+        }
+
+        if (Keyboard.keyDown(Keys.Left)) {
+            direction = 3;
+            goal.x -= 64;
+        }
+
+        if (Keyboard.keyDown(Keys.Right)) {
+            direction = 2;
+            goal.x += 64;
+        }
+    } else {
+        frameTimer++;
+
+        if (frameTimer === 8) {
+            frame++;
+            frameTimer = 0;
+        }
+
+        if (frame == 4) {
+            frame = 0;
+        }
     }
 
-    if (pos.y < 0) {
-        pos.y = 0;
-        friction.y = 1;
+    if (pos.x > goal.x + speed) {
+        pos.x -= speed;
+    } else if (pos.x < goal.x - speed) {
+        pos.x += speed;
+    } else {
+        pos.x = goal.x;
     }
 
-    if (pos.x > window.innerWidth - 32) {
-        pos.x = window.innerWidth - 32;
-        friction.x = -1;
-    }
-
-    if (pos.y > window.innerHeight - 32) {
-        pos.y = window.innerHeight - 32;
-        friction.y = -1;
+    if (pos.y > goal.y + speed) {
+        pos.y -= speed;
+    } else if (pos.y < goal.y - speed) {
+        pos.y += speed;
+    } else {
+        pos.y = goal.y;
     }
 };
 Aquanore.onRender = () => {
-    const scale = new Vector2(1, 1);
+    const scale = new Vector2(4, 4);
     const origin = new Vector2(0, 0);
-    const offset = new Vector2(0, 0);
     const color = new Color(255, 255, 255, 255);
 
-    Renderer.drawPolygon(poly, null, pos, scale, origin, offset, 0, false, false, color);
+    Renderer.drawSprite(sprite, pos, scale, origin, (direction * 4) + frame, index, 0, false, false, color);
 };
 Aquanore.run();
