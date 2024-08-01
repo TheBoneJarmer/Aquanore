@@ -1,6 +1,7 @@
 import {Keyboard} from "./keyboard";
 import {Shaders} from "./shaders";
 import {Renderer} from "./renderer";
+import {Cursor} from "./cursor";
 
 export class Aquanore {
     private static _ctx: WebGL2RenderingContext = null;
@@ -30,6 +31,7 @@ export class Aquanore {
         Keyboard.init();
         Shaders.init();
         Renderer.init();
+        Cursor.init();
     }
 
     private static initCanvas() {
@@ -67,6 +69,7 @@ export class Aquanore {
         }
 
         Keyboard.update();
+        Cursor.update();
     }
 
     private static render() {

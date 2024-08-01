@@ -1,3 +1,5 @@
+import {Aquanore} from "./aquanore";
+
 export class Cursor {
     private static _states: number[] = [];
     private static _x: number = 0;
@@ -6,8 +8,30 @@ export class Cursor {
     private static _prevY: number = 0;
     private static _moveX: number = 0;
     private static _moveY: number = 0;
-    private static _scrollX: number = 0;
-    private static _scrollY: number = 0;
+
+    public static get x(): number {
+        return this._x;
+    }
+
+    public static get y(): number {
+        return this._y;
+    }
+
+    public static get prevX(): number {
+        return this._prevX;
+    }
+
+    public static get prevY(): number {
+        return this._prevY;
+    }
+
+    public static get moveX(): number {
+        return this._moveX;
+    }
+
+    public static get moveY(): number {
+        return this._moveY;
+    }
 
     public static init() {
         this.initStates();
@@ -17,23 +41,84 @@ export class Cursor {
         for (let i=0; i<10; i++) {
             this._states[i] = 0;
         }
+
+        this.initListeners();
     }
 
     private static initListeners() {
+        const canvas = Aquanore.canvas;
+
         window.addEventListener("touchstart", function (e) {
-            this.down[id] = true;
-            Cursor.#x[id] = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
-            Cursor.#y[id] = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+            Cursor._states[0] = 1;
+            Cursor._x = e.changedTouches[0].clientX - Aquanore.canvas.getBoundingClientRect().left;
+            Cursor._y = e.changedTouches[0].clientY - Aquanore.canvas.getBoundingClientRect().top;
         });
         window.addEventListener("touchmove", function (e) {
-            Cursor.#x[id] = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
-            Cursor.#y[id] = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+            Cursor._prevX = Cursor._x;
+            Cursor._prevY = Cursor._y;
+            Cursor._x = e.changedTouches[0].clientX - Aquanore.canvas.getBoundingClientRect().left;
+            Cursor._y = e.changedTouches[0].clientY - Aquanore.canvas.getBoundingClientRect().top;
+            Cursor._moveX = Cursor._prevX - Cursor._x;
+            Cursor._moveY = Cursor._prevY - Cursor._y;
         });
         window.addEventListener("touchend", function (e) {
-            Cursor.#x[id] = e.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
-            Cursor.#y[id] = e.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
-            Cursor.#down[id] = false;
-            Cursor.#up[id] = true;
+            if (Cursor._states[0] === 2) {
+                Cursor._states[0] = 3;
+            }
+
+            Cursor._x = e.changedTouches[0].clientX - Aquanore.canvas.getBoundingClientRect().left;
+            Cursor._y = e.changedTouches[0].clientY - Aquanore.canvas.getBoundingClientRect().top;
         });
+
+        window.addEventListener("mousedown", function (e) {
+            Cursor._states[e.button] = 1;
+            Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
+            Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+        });
+        window.addEventListener("mousemove", function (e) {
+            Cursor._prevX = Cursor._x;
+            Cursor._prevY = Cursor._y;
+            Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
+            Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+            Cursor._moveX = Cursor._prevX - Cursor._x;
+            Cursor._moveY = Cursor._prevY - Cursor._y;
+        });
+        window.addEventListener("mouseup", function (e) {
+            if (Cursor._states[e.button] === 2) {
+                Cursor._states[e.button] = 3;
+            }
+
+            Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
+            Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+        });
+    }
+
+    public static update() {
+        this._moveX = 0;
+        this._moveY = 0;
+
+        for (let i=0; i<this._states.length; i++) {
+            const state = this._states[i];
+
+            if (state === 1) {
+                this._states[i] = 2;
+            }
+
+            if (state === 3) {
+                this._states[i] = 0;
+            }
+        }
+    }
+
+    public static isButtonDown(button: number): boolean {
+        return this._states[button] > 0 && this._states[button] < 3;
+    }
+
+    public static isButtonUp(button: number): boolean {
+        return this._states[button] == 3;
+    }
+
+    public static isButtonPressed(button: number): boolean {
+        return this._states[button] == 1;
     }
 }

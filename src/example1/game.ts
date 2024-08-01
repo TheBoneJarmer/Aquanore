@@ -3,6 +3,7 @@ import {Renderer} from "../main/renderer";
 import {Vector2} from "../main/vector2";
 import {Color} from "../main/color";
 import {Sprite} from "../main/sprite";
+import {Cursor} from "../main/cursor";
 
 let sprite: Sprite = null;
 let pos: Vector2 = new Vector2(64, 64);
