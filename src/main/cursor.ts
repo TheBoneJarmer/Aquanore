@@ -46,36 +46,12 @@ export class Cursor {
     }
 
     private static initListeners() {
-        const canvas = Aquanore.canvas;
-
-        window.addEventListener("touchstart", function (e) {
-            Cursor._states[0] = 1;
-            Cursor._x = e.changedTouches[0].clientX - Aquanore.canvas.getBoundingClientRect().left;
-            Cursor._y = e.changedTouches[0].clientY - Aquanore.canvas.getBoundingClientRect().top;
-        });
-        window.addEventListener("touchmove", function (e) {
-            Cursor._prevX = Cursor._x;
-            Cursor._prevY = Cursor._y;
-            Cursor._x = e.changedTouches[0].clientX - Aquanore.canvas.getBoundingClientRect().left;
-            Cursor._y = e.changedTouches[0].clientY - Aquanore.canvas.getBoundingClientRect().top;
-            Cursor._moveX = Cursor._prevX - Cursor._x;
-            Cursor._moveY = Cursor._prevY - Cursor._y;
-        });
-        window.addEventListener("touchend", function (e) {
-            if (Cursor._states[0] === 2) {
-                Cursor._states[0] = 3;
-            }
-
-            Cursor._x = e.changedTouches[0].clientX - Aquanore.canvas.getBoundingClientRect().left;
-            Cursor._y = e.changedTouches[0].clientY - Aquanore.canvas.getBoundingClientRect().top;
-        });
-
-        window.addEventListener("mousedown", function (e) {
+        window.addEventListener("pointerdown", function (e) {
             Cursor._states[e.button] = 1;
             Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
             Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
         });
-        window.addEventListener("mousemove", function (e) {
+        window.addEventListener("pointermove", function (e) {
             Cursor._prevX = Cursor._x;
             Cursor._prevY = Cursor._y;
             Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
@@ -83,13 +59,17 @@ export class Cursor {
             Cursor._moveX = Cursor._prevX - Cursor._x;
             Cursor._moveY = Cursor._prevY - Cursor._y;
         });
-        window.addEventListener("mouseup", function (e) {
+        window.addEventListener("pointerup", function (e) {
             if (Cursor._states[e.button] === 2) {
                 Cursor._states[e.button] = 3;
             }
 
             Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
             Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+        });
+
+        window.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
         });
     }
 
