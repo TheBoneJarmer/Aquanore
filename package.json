@@ -28,9 +28,6 @@
   "files": [
     "/dist"
   ],
-  "scripts": {
-    "build": "tsc"
-  },
   "dependencies": {
     "@capacitor/android": "^6.1.1",
     "@capacitor/core": "^6.1.1"
