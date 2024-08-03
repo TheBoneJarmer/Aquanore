@@ -7,3 +7,6 @@ export * from './renderer';
 export * from './shader';
 export * from './shaders';
 export * from './vector2';
+export * from './sprite';
+export * from './cursor';
+export * from './texture';
