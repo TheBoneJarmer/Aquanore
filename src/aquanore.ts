@@ -1,11 +1,18 @@
-import {Keyboard} from "./keyboard";
+import {Keyboard, Keys} from "./keyboard";
 import {Shaders} from "./shaders";
 import {Renderer} from "./renderer";
 import {Cursor} from "./cursor";
 
+export class AquanoreOptions {
+    public autoResize: boolean = true;
+    public width: number = window.innerWidth;
+    public height: number = window.innerHeight;
+}
+
 export class Aquanore {
     private static _ctx: WebGL2RenderingContext = null;
     private static _canvas: HTMLCanvasElement = null;
+    private static _options: AquanoreOptions = null;
     private static _lastTime: number;
 
     public static get ctx() {
@@ -19,12 +26,15 @@ export class Aquanore {
     public static onUpdate: Function = null;
     public static onRender: Function = null;
     public static onLoad: Function = null;
+    public static onResize: Function = null;
 
     private constructor() {
 
     }
 
-    public static init() {
+    public static init(options: AquanoreOptions) {
+        this._options = options;
+
         this.initCanvas();
         this.initListeners();
 
@@ -36,17 +46,23 @@ export class Aquanore {
 
     private static initCanvas() {
         this._canvas = document.createElement("canvas");
-        this._canvas.width = window.innerWidth;
-        this._canvas.height = window.innerHeight;
-        this._ctx = this._canvas.getContext("webgl2");
-
+        this._canvas.width = this._options.width;
+        this._canvas.height = this._options.height;
         document.body.appendChild(this._canvas);
+
+        this._ctx = this._canvas.getContext("webgl2");
     }
 
     private static initListeners() {
         window.addEventListener("resize", (e) => {
-            this._canvas.width = window.innerWidth;
-            this._canvas.height = window.innerHeight;
+            if (this._options.autoResize) {
+                this._canvas.width = window.innerWidth;
+                this._canvas.height = window.innerHeight;
+            }
+
+            if (this.onResize != null) {
+                this.onResize(window.innerWidth, window.innerHeight);
+            }
         });
     }
 
