@@ -41,13 +41,14 @@ Go to the [docs](./docs/aquanore.md)
 ```
 
 ```js
-import {Aquanore, Polygon, Renderer, Color, Vector2} from "aquanore";
+import {Aquanore, Polygon, Renderer, Color, Vector2, AquanoreOptions} from "aquanore";
 
 let polygon = null;
 let angle = 0;
 
 // Initialize everything. Must. be. ran. before anything else!
-Aquanore.init();
+const options = new AquanoreOptions();
+Aquanore.init(options);
 
 // Assign the onLoad event with a callback function which will is ran before the game loop. Use this to load content and state initialization.
 Aquanore.onLoad = () => {
