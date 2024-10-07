@@ -50,10 +50,7 @@ export class Shaders {
             "uniform vec4 u_color;\n" +
             "\n" +
             "void main() {\n" +
-            "    vec2 final_texcoord = v_texcoord;\n" +
-            "    vec4 final_color = texture2D(u_texture, final_texcoord);\n" +
-            "\n" +
-            "    gl_FragColor = final_color;\n" +
+            "    gl_FragColor = texture2D(u_texture, v_texcoord) * u_color;\n" +
             "}"
 
         this._font = new Shader(vSource, fSource);

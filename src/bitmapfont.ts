@@ -27,6 +27,10 @@ export class BitmapFont {
         return this._tex;
     }
 
+    public get glyphs() {
+        return this._glyphs;
+    }
+
     public get vao() {
         return this._vao;
     }
@@ -88,13 +92,14 @@ export class BitmapFont {
             this._glyphs[glyph.id] = glyph;
         }
 
+        // TODO: Make this cleaner
         // Wait for the texture to have loaded
         let timer = 0;
 
         while (this._tex.id == null) {
             timer++;
 
-            if (timer == 10000000) {
+            if (timer == 10000000000) {
                 throw new Error("Font parsing timed out because it takes too long to load the texture. Are you sure the png file exists and is in the same folder as the .fnt file?");
             }
         }
@@ -104,13 +109,17 @@ export class BitmapFont {
     }
 
     private generateBufferData(): void {
-        let i = 0;
+        for (let i=0; i<1024 * 64; i++) {
+            this._vertices[i] = 0;
+            this._texcoords[i] = 0;
+        }
 
         for (let glyph of this._glyphs) {
             if (!glyph) {
                 continue;
             }
 
+            const i = glyph.id * 12;
             const tcX = glyph.x / this._tex.width;
             const tcY = glyph.y / this._tex.height;
             const tcW = glyph.width / this._tex.width;
@@ -141,8 +150,6 @@ export class BitmapFont {
             this._texcoords[i + 9] = tcY + tcH;
             this._texcoords[i + 10] = tcX + tcW;
             this._texcoords[i + 11] = tcY + tcH;
-
-            i += 12;
         }
     }
 
