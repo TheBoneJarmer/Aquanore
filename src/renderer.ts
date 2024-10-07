@@ -10,14 +10,14 @@ import {Sprite} from "./sprite";
 
 export class Renderer {
     private static _shader: Shader;
-    private static _shaderDefault: Shader;
+    private static _shaderSprite: Shader;
 
     private constructor() {
     }
 
     public static init() {
         this._shader = null;
-        this._shaderDefault = Shaders.default;
+        this._shaderSprite = Shaders.polygon;
 
         Aquanore.ctx.useProgram(null);
     }
@@ -50,7 +50,7 @@ export class Renderer {
             return;
         }
 
-        this.switchShader(this._shaderDefault);
+        this.switchShader(this._shaderSprite);
 
         const gl = Aquanore.ctx;
         const cos = Math.cos(MathHelper.radians(angle + 90));

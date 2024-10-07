@@ -1,9 +1,9 @@
 import {Aquanore} from "./aquanore";
 
 export class Texture {
-    private readonly _image: HTMLImageElement;
-    private _id: WebGLTexture;
-    private _onLoad: Function;
+    private readonly _image: HTMLImageElement = null;
+    private _id: WebGLTexture = null;
+    private _onLoad: Function = null;
 
     public get id(): WebGLTexture {
         return this._id;
