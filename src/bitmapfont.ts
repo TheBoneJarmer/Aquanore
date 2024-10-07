@@ -23,6 +23,10 @@ export class BitmapFont {
     private _vboTexcoords: WebGLBuffer;
     private _vao: WebGLVertexArrayObject;
 
+    public get tex() {
+        return this._tex;
+    }
+
     public get vao() {
         return this._vao;
     }
@@ -85,8 +89,14 @@ export class BitmapFont {
         }
 
         // Wait for the texture to have loaded
-        while (this._tex.id == null) {
+        let timer = 0;
 
+        while (this._tex.id == null) {
+            timer++;
+
+            if (timer == 10000000) {
+                throw new Error("Font parsing timed out because it takes too long to load the texture. Are you sure the png file exists and is in the same folder as the .fnt file?");
+            }
         }
 
         this.generateBufferData();
@@ -101,9 +111,10 @@ export class BitmapFont {
                 continue;
             }
 
-            const tcW = 1.0 / this._tex.width;
-            const tcH = 1.0 / this._tex.height;
-            const tcX =
+            const tcX = glyph.x / this._tex.width;
+            const tcY = glyph.y / this._tex.height;
+            const tcW = glyph.width / this._tex.width;
+            const tcH = glyph.height / this._tex.height;
 
             this._vertices[i + 0] = 0;
             this._vertices[i + 1] = 0;
@@ -117,6 +128,19 @@ export class BitmapFont {
             this._vertices[i + 9] = glyph.height;
             this._vertices[i + 10] = glyph.width;
             this._vertices[i + 11] = glyph.height;
+
+            this._texcoords[i + 0] = tcX;
+            this._texcoords[i + 1] = tcY;
+            this._texcoords[i + 2] = tcX + tcW;
+            this._texcoords[i + 3] = tcY;
+            this._texcoords[i + 4] = tcX;
+            this._texcoords[i + 5] = tcY + tcH;
+            this._texcoords[i + 6] = tcX + tcW;
+            this._texcoords[i + 7] = tcY;
+            this._texcoords[i + 8] = tcX;
+            this._texcoords[i + 9] = tcY + tcH;
+            this._texcoords[i + 10] = tcX + tcW;
+            this._texcoords[i + 11] = tcY + tcH;
 
             i += 12;
         }

@@ -7,17 +7,20 @@ import {Color} from "./color";
 import {MathHelper} from "./mathhelper";
 import {Texture} from "./texture";
 import {Sprite} from "./sprite";
+import {BitmapFont} from "./bitmapfont";
 
 export class Renderer {
     private static _shader: Shader;
-    private static _shaderSprite: Shader;
+    private static _shaderPolygon: Shader;
+    private static _shaderFont: Shader;
 
     private constructor() {
     }
 
     public static init() {
         this._shader = null;
-        this._shaderSprite = Shaders.polygon;
+        this._shaderPolygon = Shaders.polygon;
+        this._shaderFont = Shaders.font;
 
         Aquanore.ctx.useProgram(null);
     }
@@ -50,7 +53,7 @@ export class Renderer {
             return;
         }
 
-        this.switchShader(this._shaderSprite);
+        this.switchShader(this._shaderPolygon);
 
         const gl = Aquanore.ctx;
         const cos = Math.cos(MathHelper.radians(angle + 90));
@@ -76,6 +79,28 @@ export class Renderer {
         gl.drawArrays(gl.TRIANGLES, 0, polygon.vertices.length / 2);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindVertexArray(null);
+    }
+
+    public static drawText(font: BitmapFont, text:string, pos: Vector2, scale: Vector2, color: Color) {
+        if (!font) {
+            return;
+        }
+
+        this.switchShader(this._shaderFont);
+
+        const gl = Aquanore.ctx;
+
+        gl.bindVertexArray(font.vao);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_translation"), pos.x, pos.y);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
+        gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
+
+        gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
+        gl.activeTexture(gl.TEXTURE0);
+
         gl.bindVertexArray(null);
     }
 }
