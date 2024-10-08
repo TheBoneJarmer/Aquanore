@@ -103,3 +103,5 @@ Now we have our basic project template, let's run it to see how it works. Open a
 If you click on the link you should get a black screen with nothing in it. And if you open the developer tools (in my case in FireFox I just press F12) you should see a console log mentioning vite is running. If this is the case, congratz! You just got your first empty game project up and running!
 
 ![FireFox debug](images/empty.png "Empty game project")
+
+To make it easier for you I already provided a [template](../template/) folder in the root of this repository. You can always just use that folder.
