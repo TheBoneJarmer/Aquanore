@@ -40,28 +40,21 @@ export class BitmapFont {
             throw new Error("Please provide the path without the extension");
         }
 
-        this.loadSprite(path);
-        this.loadGlyphs(path);
-    }
-
-    private loadSprite(path: string): void {
         this._tex = new Texture(path + ".png");
-    }
+        this._tex.onLoad = async () => {
+            try {
+                const res = await fetch(path + ".fnt");
 
-    private loadGlyphs(path: string): void {
-        fetch(path + ".fnt")
-            .then((res) => {
                 if (res.status == 200) {
-                    res.text().then((body) => {
-                        this.parseGlyphs(body);
-                    });
+                    const body = await res.text();
+                    this.parseGlyphs(body);
                 } else {
                     console.error("Failed to load font '" + path + "'. Http response returned status " + res.status);
                 }
-            })
-            .catch((err) => {
-                console.error("Failed to load font '" + path + "': " + err);
-            });
+            } catch (ex) {
+                console.error(ex);
+            }
+        }
     }
 
     private parseGlyphs(data: string): void {
@@ -90,18 +83,6 @@ export class BitmapFont {
             }
 
             this._glyphs[glyph.id] = glyph;
-        }
-
-        // TODO: Make this cleaner
-        // Wait for the texture to have loaded
-        let timer = 0;
-
-        while (this._tex.id == null) {
-            timer++;
-
-            if (timer == 10000000000) {
-                throw new Error("Font parsing timed out because it takes too long to load the texture. Are you sure the png file exists and is in the same folder as the .fnt file?");
-            }
         }
 
         this.generateBufferData();
