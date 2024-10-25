@@ -82,7 +82,7 @@ export class Renderer {
         gl.bindVertexArray(null);
     }
 
-    public static drawText(font: BitmapFont, text:string, pos: Vector2, scale: Vector2, color: Color) {
+    public static drawText(font: BitmapFont, text:string, pos: Vector2, color: Color) {
         if (!font) {
             return;
         }
@@ -92,7 +92,7 @@ export class Renderer {
         const gl = Aquanore.ctx;
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), 1, 1);
         gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
         gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
         gl.activeTexture(gl.TEXTURE0);
