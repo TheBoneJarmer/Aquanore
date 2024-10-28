@@ -46,12 +46,14 @@ export class Cursor {
     }
 
     private static initListeners() {
-        window.addEventListener("pointerdown", function (e) {
+        const cnv = Aquanore.canvas;
+    
+        cnv.addEventListener("pointerdown", function (e) {
             Cursor._states[e.button] = 1;
             Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
             Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
         });
-        window.addEventListener("pointermove", function (e) {
+        cnv.addEventListener("pointermove", function (e) {
             Cursor._prevX = Cursor._x;
             Cursor._prevY = Cursor._y;
             Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
@@ -59,7 +61,7 @@ export class Cursor {
             Cursor._moveX = Cursor._prevX - Cursor._x;
             Cursor._moveY = Cursor._prevY - Cursor._y;
         });
-        window.addEventListener("pointerup", function (e) {
+        cnv.addEventListener("pointerup", function (e) {
             if (Cursor._states[e.button] === 2) {
                 Cursor._states[e.button] = 3;
             }
@@ -68,7 +70,7 @@ export class Cursor {
             Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
         });
 
-        window.addEventListener("contextmenu", (e) => {
+        cnv.addEventListener("contextmenu", (e) => {
             e.preventDefault();
         });
     }
