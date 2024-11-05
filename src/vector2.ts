@@ -24,7 +24,7 @@ export class Vector2 {
     }
 
     public static distance(v1: Vector2, v2: Vector2): number {
-        let x = v1.x - v2.y;
+        let x = v1.x - v2.x;
         let y = v1.y - v2.y;
 
         return Math.sqrt((x * x) + (y * y));
