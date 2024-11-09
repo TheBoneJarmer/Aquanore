@@ -2,25 +2,25 @@ import {Polygon} from "./polygon";
 import {Texture} from "./texture";
 
 export class Sprite {
-    private _poly: Polygon;
-    private _tex: Texture;
-    private _frameWidth: number;
-    private _frameHeight: number;
+    private _poly: Polygon | null = null;
+    private _tex: Texture | null = null;
+    private _frameWidth: number = 0;
+    private _frameHeight: number = 0;
 
-    get poly(): Polygon {
+    get poly(): Polygon | null {
         return this._poly;
     }
 
-    get tex(): Texture {
+    get tex(): Texture | null {
         return this._tex;
     }
 
-    public get width(): number {
-        return this._tex.width;
+    public get width(): number | undefined {
+        return this._tex?.width;
     }
 
-    public get height(): number {
-        return this._tex.height;
+    public get height(): number | undefined {
+        return this._tex?.height;
     }
 
     public get frameWidth(): number {
@@ -32,10 +32,18 @@ export class Sprite {
     }
 
     public get framesHor(): number {
+        if (!this.width) {
+            return 0;
+        }
+
         return this.width / this.frameWidth;
     }
 
     public get framesVert(): number {
+        if (!this.height) {
+            return 0;
+        }
+
         return this.height / this.frameHeight;
     }
 

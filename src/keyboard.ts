@@ -188,7 +188,7 @@ export class Keyboard {
     }
 
     /* HELPER FUNCTIONS */
-    private static getStateByKey(key: Keys): KeyboardState {
+    private static getStateByKey(key: Keys): KeyboardState | null {
         for (let state of this._states) {
             if (state.key == key) {
                 return state;
@@ -198,7 +198,7 @@ export class Keyboard {
         return null;
     }
 
-    private static getStateByCode(code: string): KeyboardState {
+    private static getStateByCode(code: string): KeyboardState | null {
         for (let state of this._states) {
             if (state.code == code) {
                 return state;

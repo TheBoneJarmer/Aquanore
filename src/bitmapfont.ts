@@ -1,27 +1,26 @@
-import {Sprite} from "./sprite";
 import {Aquanore} from "./aquanore";
 import {Texture} from "./texture";
 
 export class Glyph {
-    public id: number;
-    public x: number;
-    public y: number;
-    public width: number;
-    public height: number;
-    public xoffset: number;
-    public yoffset: number;
-    public xadvance: number;
+    public id: number = 0;
+    public x: number = 0;
+    public y: number = 0;
+    public width: number = 0;
+    public height: number = 0;
+    public xoffset: number = 0;
+    public yoffset: number = 0;
+    public xadvance: number = 0;
 }
 
 export class BitmapFont {
-    private _tex: Texture = null;
+    private _tex: Texture | null = null;
     private _vertices: number[] = [];
     private _texcoords: number[] = [];
     private _glyphs: Glyph[] = [];
 
-    private _vboVertices: WebGLBuffer;
-    private _vboTexcoords: WebGLBuffer;
-    private _vao: WebGLVertexArrayObject;
+    private _vboVertices: WebGLBuffer | null = null;
+    private _vboTexcoords: WebGLBuffer | null = null;
+    private _vao: WebGLVertexArrayObject | null = null;
 
     public get tex() {
         return this._tex;
@@ -90,7 +89,7 @@ export class BitmapFont {
     }
 
     private generateBufferData(): void {
-        for (let i=0; i<1024 * 64; i++) {
+        for (let i = 0; i < 1024 * 64; i++) {
             this._vertices[i] = 0;
             this._texcoords[i] = 0;
         }
@@ -101,10 +100,10 @@ export class BitmapFont {
             }
 
             const i = glyph.id * 12;
-            const tcX = glyph.x / this._tex.width;
-            const tcY = glyph.y / this._tex.height;
-            const tcW = glyph.width / this._tex.width;
-            const tcH = glyph.height / this._tex.height;
+            const tcX = glyph.x / this._tex!.width;
+            const tcY = glyph.y / this._tex!.height;
+            const tcW = glyph.width / this._tex!.width;
+            const tcH = glyph.height / this._tex!.height;
 
             this._vertices[i + 0] = 0;
             this._vertices[i + 1] = 0;
@@ -135,7 +134,7 @@ export class BitmapFont {
     }
 
     private generateBuffers(): void {
-        const gl = Aquanore.ctx;
+        const gl = Aquanore.ctx!;
 
         this._vao = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();

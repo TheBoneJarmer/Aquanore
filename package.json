@@ -25,11 +25,8 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "/dist"
-  ],
-  "dependencies": {
-    "@capacitor/android": "^6.1.1",
-    "@capacitor/core": "^6.1.1"
-  }
+  ]
 }

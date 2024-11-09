@@ -46,28 +46,28 @@ export class Cursor {
     }
 
     private static initListeners() {
-        const cnv = Aquanore.canvas;
+        const cnv = Aquanore.canvas!;
     
-        cnv.addEventListener("pointerdown", function (e) {
+        cnv.addEventListener("pointerdown", (e) => {
             Cursor._states[e.button] = 1;
-            Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
-            Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+            Cursor._x = e.clientX - cnv.getBoundingClientRect().left;
+            Cursor._y = e.clientY - cnv.getBoundingClientRect().top;
         });
-        cnv.addEventListener("pointermove", function (e) {
+        cnv.addEventListener("pointermove", (e) => {
             Cursor._prevX = Cursor._x;
             Cursor._prevY = Cursor._y;
-            Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
-            Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+            Cursor._x = e.clientX - cnv.getBoundingClientRect().left;
+            Cursor._y = e.clientY - cnv.getBoundingClientRect().top;
             Cursor._moveX = Cursor._prevX - Cursor._x;
             Cursor._moveY = Cursor._prevY - Cursor._y;
         });
-        cnv.addEventListener("pointerup", function (e) {
+        cnv.addEventListener("pointerup", (e) => {
             if (Cursor._states[e.button] === 2) {
                 Cursor._states[e.button] = 3;
             }
 
-            Cursor._x = e.clientX - Aquanore.canvas.getBoundingClientRect().left;
-            Cursor._y = e.clientY - Aquanore.canvas.getBoundingClientRect().top;
+            Cursor._x = e.clientX - cnv.getBoundingClientRect().left;
+            Cursor._y = e.clientY - cnv.getBoundingClientRect().top;
         });
 
         cnv.addEventListener("contextmenu", (e) => {

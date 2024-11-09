@@ -1,19 +1,27 @@
 import {Aquanore} from "./aquanore";
 
 export class Texture {
-    private readonly _image: HTMLImageElement = null;
-    private _id: WebGLTexture = null;
-    private _onLoad: Function = null;
+    private _image: HTMLImageElement | null = null;
+    private _id: WebGLTexture | null = null;
+    private _onLoad: Function | null = null;
 
-    public get id(): WebGLTexture {
+    public get id(): WebGLTexture | null {
         return this._id;
     }
 
     public get width(): number {
+        if (!this._image) {
+            return 0;
+        }
+
         return this._image.width;
     }
 
     public get height(): number {
+        if (!this._image) {
+            return 0;
+        }
+
         return this._image.height;
     }
 
@@ -24,7 +32,7 @@ export class Texture {
     public constructor(path: string) {
         const img = new Image();
         img.src = path;
-        img.onload = (e) => {
+        img.onload = () => {
             this.generateTexture();
 
             if (this._onLoad) {
@@ -36,7 +44,7 @@ export class Texture {
     }
 
     private generateTexture() {
-        const ctx = Aquanore.ctx;
+        const ctx = Aquanore.ctx!;
         const texture = ctx.createTexture();
 
         ctx.bindTexture(ctx.TEXTURE_2D, texture);
@@ -44,7 +52,7 @@ export class Texture {
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
-        ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, this._image);
+        ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, this._image!);
 
         this._id = texture;
     }

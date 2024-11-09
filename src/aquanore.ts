@@ -1,4 +1,4 @@
-import {Keyboard, Keys} from "./keyboard";
+import {Keyboard} from "./keyboard";
 import {Shaders} from "./shaders";
 import {Renderer} from "./renderer";
 import {Cursor} from "./cursor";
@@ -10,10 +10,10 @@ export class AquanoreOptions {
 }
 
 export class Aquanore {
-    private static _ctx: WebGL2RenderingContext = null;
-    private static _canvas: HTMLCanvasElement = null;
-    private static _options: AquanoreOptions = null;
-    private static _lastTime: number;
+    private static _ctx: WebGL2RenderingContext | null = null;
+    private static _canvas: HTMLCanvasElement | null = null;
+    private static _options: AquanoreOptions | null = null;
+    private static _lastTime: number = 0;
 
     public static get ctx() {
         return this._ctx;
@@ -23,10 +23,10 @@ export class Aquanore {
         return this._canvas;
     }
 
-    public static onUpdate: Function = null;
-    public static onRender: Function = null;
-    public static onLoad: Function = null;
-    public static onResize: Function = null;
+    public static onUpdate: Function | null = null;
+    public static onRender: Function | null = null;
+    public static onLoad: Function | null = null;
+    public static onResize: Function | null = null;
 
     private constructor() {
 
@@ -46,8 +46,8 @@ export class Aquanore {
 
     private static initCanvas() {
         this._canvas = document.createElement("canvas");
-        this._canvas.width = this._options.width;
-        this._canvas.height = this._options.height;
+        this._canvas.width = this._options!.width;
+        this._canvas.height = this._options!.height;
         document.body.appendChild(this._canvas);
 
         this._ctx = this._canvas.getContext("webgl2");
@@ -55,9 +55,9 @@ export class Aquanore {
 
     private static initListeners() {
         window.addEventListener("resize", (e) => {
-            if (this._options.autoResize) {
-                this._canvas.width = window.innerWidth;
-                this._canvas.height = window.innerHeight;
+            if (this._options!.autoResize) {
+                this._canvas!.width = window.innerWidth;
+                this._canvas!.height = window.innerHeight;
             }
 
             if (this.onResize != null) {
@@ -89,11 +89,12 @@ export class Aquanore {
     }
 
     private static render() {
-        const gl = this._ctx;
+        const gl = this._ctx!
+        const ctx = this._canvas!;
 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.viewport(0, 0, this._canvas.width, this._canvas.height);
+        gl.viewport(0, 0, ctx.width, ctx.height);
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
