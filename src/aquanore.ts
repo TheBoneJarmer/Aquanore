@@ -66,29 +66,29 @@ export class Aquanore {
         });
     }
 
-    public static run() {
+    public static async run() {
         this._lastTime = 0;
 
         if (this.onLoad != null) {
-            this.onLoad();
+            await this.onLoad();
         }
 
         this.callback(0);
     }
 
-    private static update(time: number) {
+    private static async update(time: number) {
         const deltaTime = time - this._lastTime;
         this._lastTime = time;
 
         if (this.onUpdate != null) {
-            this.onUpdate(deltaTime);
+            await this.onUpdate(deltaTime);
         }
 
         Keyboard.update();
         Cursor.update();
     }
 
-    private static render() {
+    private static async render() {
         const gl = this._ctx!
         const ctx = this._canvas!;
 
@@ -99,13 +99,13 @@ export class Aquanore {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         if (this.onRender != null) {
-            this.onRender();
+            await this.onRender();
         }
     }
 
-    private static callback(time: number) {
-        Aquanore.update(time);
-        Aquanore.render();
+    private static async callback(time: number) {
+        await Aquanore.update(time);
+        await Aquanore.render();
 
         requestAnimationFrame(Aquanore.callback);
     }
