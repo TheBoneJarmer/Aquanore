@@ -46,6 +46,7 @@ export class Aquanore {
 
     private static initCanvas() {
         this._canvas = document.createElement("canvas");
+        this._canvas.style.touchAction = "none";
         this._canvas.width = this._options!.width;
         this._canvas.height = this._options!.height;
         document.body.appendChild(this._canvas);

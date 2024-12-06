@@ -108,13 +108,13 @@ export class Renderer {
                 continue;
             }
 
-            let textX = pos.x + glyph.xoffset + advance;
-            let textY = pos.y + glyph.yoffset;
+            let textX = pos.x + glyph.xoffset * scale.x + advance;
+            let textY = pos.y + glyph.yoffset * scale.y;
 
             gl.uniform2f(gl.getUniformLocation(this._shader!.id, "u_translation"), textX, textY);
             gl.drawArrays(gl.TRIANGLES, index * 6, 6);
 
-            advance += glyph.xadvance;
+            advance += glyph.xadvance * scale.x;
         }
 
         gl.activeTexture(gl.TEXTURE0);
