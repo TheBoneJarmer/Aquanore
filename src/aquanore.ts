@@ -2,6 +2,7 @@ import {Keyboard} from "./keyboard";
 import {Shaders} from "./shaders";
 import {Renderer} from "./renderer";
 import {Cursor} from "./cursor";
+import {Color} from "./color";
 
 export class AquanoreOptions {
     public autoResize: boolean = true;
@@ -14,7 +15,7 @@ export class Aquanore {
     private static _canvas: HTMLCanvasElement | null = null;
     private static _options: AquanoreOptions | null = null;
     private static _lastTime: number = 0;
-
+    
     public static get ctx() {
         return this._ctx;
     }
@@ -27,6 +28,7 @@ export class Aquanore {
     public static onRender: Function | null = null;
     public static onLoad: Function | null = null;
     public static onResize: Function | null = null;
+    public static clearColor: Color = new Color(0, 0, 0, 255);
 
     private constructor() {
 
@@ -92,11 +94,16 @@ export class Aquanore {
     private static async render() {
         const gl = this._ctx!
         const ctx = this._canvas!;
+        
+        const r = this.clearColor.r / 255.0;
+        const g = this.clearColor.g / 255.0;
+        const b = this.clearColor.b / 255.0;
+        const a = this.clearColor.a / 255.0;
 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.viewport(0, 0, ctx.width, ctx.height);
-        gl.clearColor(0, 0, 0, 1);
+        gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         if (this.onRender != null) {
