@@ -4,9 +4,9 @@ export class Polygon {
     private readonly _vertices: number[];
     private readonly _texcoords: number[];
 
-    private _vboVertices: WebGLBuffer | null = null;
-    private _vboTexcoords: WebGLBuffer | null = null;
-    private _vao: WebGLVertexArrayObject | null = null;
+    private _vboVertices: WebGLBuffer = null;
+    private _vboTexcoords: WebGLBuffer = null;
+    private _vao: WebGLVertexArrayObject = null;
 
     public get vao() {
         return this._vao;
@@ -44,7 +44,7 @@ export class Polygon {
     }
 
     private generateBuffers() {
-        const gl = Aquanore.ctx!;
+        const gl = Aquanore.webGLContext!;
 
         this._vao = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();

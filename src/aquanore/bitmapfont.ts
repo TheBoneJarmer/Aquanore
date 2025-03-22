@@ -13,14 +13,14 @@ export class Glyph {
 }
 
 export class BitmapFont {
-    private _tex: Texture | null = null;
+    private _tex: Texture = null;
     private _vertices: number[] = [];
     private _texcoords: number[] = [];
     private _glyphs: Glyph[] = [];
 
-    private _vboVertices: WebGLBuffer | null = null;
-    private _vboTexcoords: WebGLBuffer | null = null;
-    private _vao: WebGLVertexArrayObject | null = null;
+    private _vboVertices: WebGLBuffer = null;
+    private _vboTexcoords: WebGLBuffer = null;
+    private _vao: WebGLVertexArrayObject = null;
 
     public get tex() {
         return this._tex;
@@ -134,7 +134,7 @@ export class BitmapFont {
     }
 
     private generateBuffers(): void {
-        const gl = Aquanore.ctx!;
+        const gl = Aquanore.webGLContext!;
 
         this._vao = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();

@@ -1,11 +1,11 @@
 import {Aquanore} from "./aquanore";
 
 export class Texture {
-    private _image: HTMLImageElement | null = null;
-    private _id: WebGLTexture | null = null;
-    private _onLoad: Function | null = null;
+    private _image: HTMLImageElement = null;
+    private _id: WebGLTexture = null;
+    private _onLoad: Function = null;
 
-    public get id(): WebGLTexture | null {
+    public get id(): WebGLTexture {
         return this._id;
     }
 
@@ -44,7 +44,7 @@ export class Texture {
     }
 
     private generateTexture() {
-        const ctx = Aquanore.ctx!;
+        const ctx = Aquanore.webGLContext!;
         const texture = ctx.createTexture();
 
         ctx.bindTexture(ctx.TEXTURE_2D, texture);

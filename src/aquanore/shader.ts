@@ -8,14 +8,14 @@ export class Shader {
     }
 
     public constructor(vSource: string, fSource: string) {
-        const vShader = this.compileShader(vSource, Aquanore.ctx!.VERTEX_SHADER);
-        const fShader = this.compileShader(fSource, Aquanore.ctx!.FRAGMENT_SHADER);
+        const vShader = this.compileShader(vSource, Aquanore.webGLContext!.VERTEX_SHADER);
+        const fShader = this.compileShader(fSource, Aquanore.webGLContext!.FRAGMENT_SHADER);
 
         this._program = this.compileProgram(vShader, fShader);
     }
 
     private compileProgram(vShader: WebGLShader, fShader: WebGLShader): WebGLProgram {
-        const gl = Aquanore.ctx!;
+        const gl = Aquanore.webGLContext!;
 
         const program = gl.createProgram()!;
         gl.attachShader(program, vShader);
@@ -28,7 +28,7 @@ export class Shader {
     }
 
     private compileShader(source: string, type: GLenum): WebGLShader {
-        const gl = Aquanore.ctx!;
+        const gl = Aquanore.webGLContext!;
         const shader = gl.createShader(type)!;
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
