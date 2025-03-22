@@ -11,3 +11,4 @@ export * from './sprite';
 export * from './cursor';
 export * from './texture';
 export * from './bitmapfont';
+export * from './audio';
