@@ -5,7 +5,7 @@ import { Keyboard, Keys } from "../../aquanore/keyboard";
 import { Renderer } from "../../aquanore/renderer";
 import { Sprite } from "../../aquanore/sprite";
 import { Vector2 } from "../../aquanore/vector2";
-import { Audio, Sound, SoundInstance } from "../helloworld/audio";
+import { Audio, Sound, SoundInstance } from "../../aquanore/audio";
 
 let voice: Sound;
 let ambient: Sound;
