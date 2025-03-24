@@ -134,7 +134,7 @@ export class BitmapFont {
     }
 
     private generateBuffers(): void {
-        const gl = Aquanore.webGLContext!;
+        const gl = Aquanore.ctx!;
 
         this._vao = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();

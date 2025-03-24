@@ -44,7 +44,7 @@ export class Polygon {
     }
 
     private generateBuffers() {
-        const gl = Aquanore.webGLContext!;
+        const gl = Aquanore.ctx!;
 
         this._vao = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();

@@ -49,6 +49,14 @@ export class SoundInstance {
         this._gainNode.gain.value = value;
     }
 
+    public get loop(): boolean {
+        return this._srcNode.loop;
+    }
+
+    public set loop(value: boolean) {
+        this._srcNode.loop = value;
+    }
+
     constructor(srcNode: AudioBufferSourceNode, gainNode: GainNode) {
         this._gainNode = gainNode;
         this._srcNode = srcNode;
@@ -61,10 +69,6 @@ export class SoundInstance {
 
     public stop() {
         this._srcNode.stop();
-    }
-
-    public loop(loop: boolean) {
-        this._srcNode.loop = loop;
     }
 }
 

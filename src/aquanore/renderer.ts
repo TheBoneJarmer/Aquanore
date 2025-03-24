@@ -30,7 +30,7 @@ export class Renderer {
         this._shaderPolygon = Shaders.polygon;
         this._shaderFont = Shaders.font;
 
-        Aquanore.webGLContext.useProgram(null);
+        Aquanore.ctx.useProgram(null);
     }
 
     public static switchShader(shader: Shader): boolean {
@@ -43,7 +43,7 @@ export class Renderer {
         }
 
         this._shader = shader;
-        Aquanore.webGLContext.useProgram(this._shader.id);
+        Aquanore.ctx.useProgram(this._shader.id);
 
         return true;
     }
@@ -63,7 +63,7 @@ export class Renderer {
 
         this.switchShader(this._shaderPolygon);
 
-        const gl = Aquanore.webGLContext;
+        const gl = Aquanore.ctx;
         const cos = Math.cos(MathHelper.radians(angle + 90));
         const sin = Math.sin(MathHelper.radians(angle + 90));
 
@@ -97,7 +97,7 @@ export class Renderer {
 
         this.switchShader(this._shaderFont);
 
-        const gl = Aquanore.webGLContext;
+        const gl = Aquanore.ctx;
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);

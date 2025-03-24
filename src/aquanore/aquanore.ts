@@ -16,7 +16,7 @@ export class Aquanore {
     private static _options: AquanoreOptions = null;
     private static _lastTime: number = 0;
     
-    public static get webGLContext() {
+    public static get ctx() {
         if (this._ctx == null) {
             this._ctx = this._canvas.getContext("webgl2");
         }
@@ -98,7 +98,7 @@ export class Aquanore {
     }
 
     private static async render() {
-        const gl = this.webGLContext
+        const gl = this.ctx
         const ctx = this.canvas;
         
         const r = this.clearColor.r / 255.0;

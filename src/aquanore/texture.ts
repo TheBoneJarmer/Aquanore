@@ -44,7 +44,7 @@ export class Texture {
     }
 
     private generateTexture() {
-        const ctx = Aquanore.webGLContext!;
+        const ctx = Aquanore.ctx!;
         const texture = ctx.createTexture();
 
         ctx.bindTexture(ctx.TEXTURE_2D, texture);
