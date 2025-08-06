@@ -13,5 +13,14 @@
             "internalConsoleOptions": "neverOpen",
             "args": []
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "02 - Audio",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/02-audio",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
+        }
     ]
 }

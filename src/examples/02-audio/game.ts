@@ -1,11 +1,14 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Color } from "../../aquanore/color";
 import { Cursor } from "../../aquanore/cursor";
-import { Keyboard, Keys } from "../../aquanore/keyboard";
 import { Renderer } from "../../aquanore/renderer";
 import { Sprite } from "../../aquanore/sprite";
 import { Vector2 } from "../../aquanore/vector2";
-import { Audio, Sound, SoundInstance } from "../../aquanore/audio";
+import { Sound } from "../../aquanore/sound";
+import { SoundInstance } from "../../aquanore/sound-instance";
+import { Audio } from "../../aquanore/audio";
+import { Keyboard } from "../../aquanore/keyboard";
+import { Keys } from "../../aquanore/enums";
 
 let voice: Sound;
 let ambient: Sound;
@@ -27,7 +30,7 @@ Aquanore.onUpdate = async (dt: number) => {
 
         if (Cursor.x >= x && Cursor.y >= y && Cursor.x < x + sprite.width && Cursor.y < y + sprite.height) {
             handle = await Audio.play(ambient);
-            handle.loop(true);
+            handle.loop = true;
 
             setTimeout(async () => {
                 await Audio.play(voice);
