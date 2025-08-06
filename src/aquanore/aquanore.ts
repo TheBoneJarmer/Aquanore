@@ -1,8 +1,9 @@
-import {Keyboard} from "./keyboard";
-import {Shaders} from "./shaders";
-import {Renderer} from "./renderer";
-import {Cursor} from "./cursor";
-import {Color} from "./color";
+import { Keyboard } from "./keyboard";
+import { Shaders } from "./shaders";
+import { Renderer } from "./renderer";
+import { Cursor } from "./cursor";
+import { Color } from "./color";
+import { Joystick } from "./joystick";
 
 export class AquanoreOptions {
     public autoResize: boolean = true;
@@ -15,7 +16,7 @@ export class Aquanore {
     private static _canvas: HTMLCanvasElement = null;
     private static _options: AquanoreOptions = null;
     private static _lastTime: number = 0;
-    
+
     public static get ctx() {
         if (this._ctx == null) {
             this._ctx = this._canvas.getContext("webgl2");
@@ -52,6 +53,7 @@ export class Aquanore {
         Shaders.init();
         Renderer.init();
         Cursor.init();
+        Joystick.init();
     }
 
     private static initCanvas() {
@@ -59,6 +61,7 @@ export class Aquanore {
         this._canvas.style.touchAction = "none";
         this._canvas.width = this._options.width;
         this._canvas.height = this._options.height;
+
         document.body.appendChild(this._canvas);
     }
 
@@ -100,7 +103,7 @@ export class Aquanore {
     private static async render() {
         const gl = this.ctx
         const ctx = this.canvas;
-        
+
         const r = this.clearColor.r / 255.0;
         const g = this.clearColor.g / 255.0;
         const b = this.clearColor.b / 255.0;
@@ -112,7 +115,7 @@ export class Aquanore {
         gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        if (this.onRender != null) {
+        if (this.onRender != null) {        
             await this.onRender();
         }
     }

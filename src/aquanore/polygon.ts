@@ -1,4 +1,4 @@
-import {Aquanore} from "./aquanore";
+import { Aquanore } from "./aquanore";
 
 export class Polygon {
     private readonly _vertices: number[];
@@ -12,11 +12,11 @@ export class Polygon {
         return this._vao;
     }
 
-    get vertices(): number[] {
+    public get vertices(): number[] {
         return this._vertices;
     }
 
-    get texcoords(): number[] {
+    public get texcoords(): number[] {
         return this._texcoords;
     }
 
@@ -64,5 +64,20 @@ export class Polygon {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
+    }
+
+    /* CONSTRUCTION FUNCTIONS */
+    public static square(size: number) {
+        const vertices = [0, 0, size, 0, 0, size, size, 0, 0, size, size, size];
+        const texcoords = [0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1];
+
+        return new Polygon(vertices, texcoords);
+    }
+
+    public static rectangle(width: number, height: number) {
+        const vertices = [0, 0, width, 0, 0, height, width, 0, 0, height, width, height];
+        const texcoords = [0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1];
+
+        return new Polygon(vertices, texcoords);
     }
 }
