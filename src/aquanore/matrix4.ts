@@ -279,10 +279,28 @@ export class Matrix4 implements IClonable<Matrix4> {
         return result;
     }
 
-    public static perspective(m: Matrix4, fov: number, aspect: number, near: number, far: number): Matrix4 {
-        let result = m.clone();
-        
+    public static frustum(left: number, right: number, top: number, bottom: number, near: number, far: number): Matrix4 {
+        const x = right - left;
+        const y = bottom - top;
+        const z = far - near;
 
-        return result;
+        const m = this.identity();
+        m.x1 = near * 2 / x;
+        m.y2 = near * 2 / y;
+        m.x3 = (right + left) / x;
+        m.y3 = (bottom + top) / y;
+        m.z3 = -(far + near) / z;
+        m.w3 = -1;
+        m.z4 = -(far * near * 2) / z;
+
+        return m;
+    }
+
+    public static perspective(fov: number, aspect: number, near: number, far: number): Matrix4 {
+        const topRate = near * Math.tan(fov * Math.PI / 360);
+        const widthRate = topRate * aspect;
+
+        const m = this.frustum(-widthRate, widthRate, -topRate, topRate, near, far);
+        return m;
     }
 }

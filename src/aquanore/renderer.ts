@@ -175,9 +175,6 @@ export class Renderer {
         const width = Aquanore.canvas.clientWidth;
         const height = Aquanore.canvas.clientHeight;
 
-        let m = Matrix4.identity();
-        m = Matrix4.perspective(m, fov, width / height, near, far);
-
-        return m;
+        return Matrix4.perspective(fov, width / height, near, far);
     }
 }
