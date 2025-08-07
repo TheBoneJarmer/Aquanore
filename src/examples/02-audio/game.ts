@@ -51,7 +51,7 @@ Aquanore.onUpdate = async (dt: number) => {
     }
 };
 
-Aquanore.onRender = () => {
+Aquanore.onRender2D = () => {
     const x = innerWidth / 2 - sprite.width / 2;
     const y = innerHeight / 2 - sprite.height / 2;
 

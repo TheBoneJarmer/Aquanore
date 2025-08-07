@@ -1,4 +1,6 @@
-export class Vector2 {
+import { IClonable } from "./interfaces/iclonable";
+
+export class Vector2 implements IClonable<Vector2> {
     private _x: number;
     private _y: number;
 
@@ -21,6 +23,10 @@ export class Vector2 {
     public constructor(x: number, y: number) {
         this._x = x;
         this._y = y;
+    }
+
+    public clone(): Vector2 {
+        return new Vector2(this._x, this._y);
     }
 
     public static distance(v1: Vector2, v2: Vector2): number {

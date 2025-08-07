@@ -8,11 +8,15 @@ import { MathHelper } from "./mathhelper";
 import { Texture } from "./texture";
 import { Sprite } from "./sprite";
 import { BitmapFont } from "./bitmapfont";
+import { Vector3 } from "./vector3";
+import { Matrix4 } from "./matrix4";
+import { Camera } from "./camera";
 
 export class Renderer {
     private static _shader: Shader = null;
     private static _shaderPolygon: Shader = null;
     private static _shaderFont: Shader = null;
+    private static _shaderModel: Shader = null;
 
     public static set shaderPolygon(value: Shader) {
         this._shaderPolygon = value;
@@ -22,6 +26,10 @@ export class Renderer {
         this._shaderFont = value;
     }
 
+    public static set shaderModel(value: Shader) {
+        this._shaderModel = value;
+    }
+
     private constructor() {
     }
 
@@ -29,6 +37,7 @@ export class Renderer {
         this._shader = null;
         this._shaderPolygon = Shaders.polygon;
         this._shaderFont = Shaders.font;
+        this._shaderModel = Shaders.model;
 
         Aquanore.ctx.useProgram(null);
     }
@@ -136,5 +145,39 @@ export class Renderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindVertexArray(null);
+    }
+
+    /* HELPER FUNCTIONS */
+    private static generateModelMatrix(pos: Vector3, rot: Vector3, scale: Vector3): Matrix4 {
+        let m = Matrix4.identity();
+        m = Matrix4.scale(m, scale.x, scale.y, scale.z);
+        m = Matrix4.translate(m, pos.x, pos.y, pos.z);
+        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
+
+        return m;
+    }
+
+    private static generateViewMatrix(camera: Camera): Matrix4 {
+        const pos = camera.position;
+        const rot = camera.rotation;
+
+        let m = Matrix4.identity();
+        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
+        m = Matrix4.translate(m, pos.x, pos.y, pos.z);
+
+        return m;
+    }
+
+    private static generateProjectionMatrix(camera: Camera): Matrix4 {
+        const fov = camera.fov;
+        const near = camera.near;
+        const far = camera.far;
+        const width = Aquanore.canvas.clientWidth;
+        const height = Aquanore.canvas.clientHeight;
+
+        let m = Matrix4.identity();
+        m = Matrix4.perspective(m, fov, width / height, near, far);
+
+        return m;
     }
 }

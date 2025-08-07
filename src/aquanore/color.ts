@@ -1,4 +1,6 @@
-export class Color {
+import { IClonable } from "./interfaces/iclonable";
+
+export class Color implements IClonable<Color> {
     private _r: number;
     private _g: number;
     private _b: number;
@@ -36,10 +38,14 @@ export class Color {
         this._a = value;
     }
 
-    public constructor(r: number, g: number, b: number, a: number) {
+    public constructor(r: number = 0, g: number = 0, b: number = 0, a: number = 255) {
         this._r = r;
         this._g = g;
         this._b = b;
         this._a = a;
+    }
+
+    public clone(): Color {
+        return new Color(this._r, this._g, this._b, this._a);
     }
 }

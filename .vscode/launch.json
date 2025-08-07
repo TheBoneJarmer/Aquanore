@@ -21,6 +21,15 @@
             "cwd": "${workspaceFolder}/src/examples/02-audio",
             "internalConsoleOptions": "neverOpen",
             "args": []
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "03 - Cube",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/03-cube",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
         }
     ]
 }

@@ -17,7 +17,7 @@ Aquanore.onUpdate = (dt: number) => {
     angle += dt * 0.1;
 };
 
-Aquanore.onRender = () => {
+Aquanore.onRender2D = () => {
     const pos = new Vector2(innerWidth / 2, innerHeight / 2);
     const scale = new Vector2(1, 1);
     const origin = new Vector2(32, 32);

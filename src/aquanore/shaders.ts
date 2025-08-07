@@ -1,8 +1,9 @@
-import {Shader} from "./shader";
+import { Shader } from "./shader";
 
 export class Shaders {
     private static _polygon: Shader;
     private static _font: Shader;
+    private static _model: Shader;
 
     public static get polygon(): Shader {
         return this._polygon;
@@ -12,12 +13,17 @@ export class Shaders {
         return this._font;
     }
 
+    public static get model(): Shader {
+        return this._model;
+    }
+
     private constructor() {
     }
 
     public static init() {
         this.initPolygon();
         this.initFont();
+        this.initModel();
     }
 
     private static initFont() {
@@ -110,5 +116,33 @@ export class Shaders {
             "}"
 
         this._polygon = new Shader(vSource, fSource);
+    }
+
+    private static initModel() {
+        let vSource = "precision highp float;\n" +
+            "\n" +
+            "attribute vec3 a_vertex;\n" +
+            "attribute vec3 a_normal;\n" +
+            "attribute vec2 a_texcoord;\n" +
+            "\n" +
+            "uniform mat4 u_model;\n" +
+            "uniform mat4 u_view;\n" +
+            "uniform mat4 u_projection;\n" +
+            "\n" +
+            "void main() {\n" +
+            "   mat4 mat_mvp = u_projection * u_view * u_model;\n" +
+            //"   mat3 mat_normal = mat3(transpose(inverse(u_model)));\n" +
+            "\n" +
+            "   gl_Position = mat_mvp * vec4(a_vertex, 1.0);\n" +
+            "}";
+
+        let fSource = "precision highp float;\n" +
+            "\n" +
+            "void main() {\n" +
+            "   vec4 result = vec4(1,1,1,1);\n" +
+            "   gl_FragColor = result;\n" +
+            "}";
+
+        this._model = new Shader(vSource, fSource);
     }
 }
