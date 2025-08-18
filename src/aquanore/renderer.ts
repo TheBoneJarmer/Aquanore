@@ -11,6 +11,7 @@ import { BitmapFont } from "./bitmapfont";
 import { Vector3 } from "./vector3";
 import { Matrix4 } from "./matrix4";
 import { Camera } from "./camera";
+import { Model } from "./model";
 
 export class Renderer {
     private static _shader: Shader = null;
@@ -105,6 +106,32 @@ export class Renderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindVertexArray(null);
+    }
+
+    public static drawModel(model: Model, camera: Camera, pos: Vector3, rot: Vector3, scale: Vector3) {
+        if (!model) {
+            return;
+        }
+
+        if (this.switchShader(this._shaderModel)) {
+            // Process all lights
+        }
+
+        const gl = Aquanore.ctx;
+        const matView = this.generateViewMatrix(camera);
+        const matProjection = this.generateProjectionMatrix(camera);
+        const matModel = this.generateModelMatrix(pos, rot, scale);
+
+        gl.uniformMatrix4fv(gl.getUniformLocation(this._shader.id, "u_projection"), false, matProjection.values);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this._shader.id, "u_view"), false, matView.values);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this._shader.id, "u_model"), false, matModel.values);
+
+        // Render mesh per mesh
+        for (let mesh of model.meshes) {
+            gl.bindVertexArray(mesh.vao);
+            gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
+            gl.bindVertexArray(null);
+        }
     }
 
     public static drawText(font: BitmapFont, text: string, pos: Vector2, scale: Vector2, color: Color) {

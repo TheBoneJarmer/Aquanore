@@ -141,13 +141,7 @@ export class Matrix4 implements IClonable<Matrix4> {
     }
 
     constructor(values: number[] = []) {
-        const identity = Matrix4.identity();
-
-        if (values == null || values.length < 16) {
-            this._array = identity.values;
-        } else {
-            this._array = values;
-        }
+        this._array = values;
     }
 
     public clone(): Matrix4 {

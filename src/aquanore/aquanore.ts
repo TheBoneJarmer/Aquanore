@@ -94,7 +94,7 @@ export class Aquanore {
         this._lastTime = time;
 
         if (this.onUpdate != null) {
-            await this.onUpdate(deltaTime);
+            await this.onUpdate(deltaTime / 1000.0);
         }
 
         Keyboard.update();
