@@ -69,7 +69,7 @@ export class Mesh {
             throw new Error("Vertices cannot be null");
         }
 
-        if (vertices == null) {
+        if (normals == null) {
             throw new Error("Normals cannot be null");
         }
 
@@ -77,9 +77,25 @@ export class Mesh {
             throw new Error("Texcoords cannot be null");
         }
 
-        // if (vertices.length % 3 == 1) {
-        //     throw new Error("Incorrect vertices count");
-        // }
+        if (vertices.length % 3 == 1) {
+            throw new Error("Incorrect vertex count");
+        }
+
+        if (normals.length % 3 == 1) {
+            throw new Error("Incorrect normal count");
+        }
+
+        if (texcoords.length % 2 == 1) {
+            throw new Error("Incorrect texcoord count");
+        }
+
+        if (normals.length != vertices.length) {
+            throw new Error("Normal array length mismatch.");
+        }
+
+        if (vertices.length / 3 != texcoords.length / 2) {
+            throw new Error("Texcoord array length mismatch.");
+        }
 
         this._vertices = vertices;
         this._texcoords = texcoords;

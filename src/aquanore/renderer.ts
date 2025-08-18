@@ -7,7 +7,6 @@ import { Color } from "./color";
 import { MathHelper } from "./mathhelper";
 import { Texture } from "./texture";
 import { Sprite } from "./sprite";
-import { BitmapFont } from "./bitmapfont";
 import { Vector3 } from "./vector3";
 import { Matrix4 } from "./matrix4";
 import { Camera } from "./camera";
@@ -16,15 +15,10 @@ import { Model } from "./model";
 export class Renderer {
     private static _shader: Shader = null;
     private static _shaderPolygon: Shader = null;
-    private static _shaderFont: Shader = null;
     private static _shaderModel: Shader = null;
 
     public static set shaderPolygon(value: Shader) {
         this._shaderPolygon = value;
-    }
-
-    public static set shaderFont(value: Shader) {
-        this._shaderFont = value;
     }
 
     public static set shaderModel(value: Shader) {
@@ -37,7 +31,6 @@ export class Renderer {
     public static init() {
         this._shader = null;
         this._shaderPolygon = Shaders.polygon;
-        this._shaderFont = Shaders.font;
         this._shaderModel = Shaders.model;
 
         Aquanore.ctx.useProgram(null);
@@ -134,46 +127,6 @@ export class Renderer {
         }
     }
 
-    public static drawText(font: BitmapFont, text: string, pos: Vector2, scale: Vector2, color: Color) {
-        if (!font) {
-            return;
-        }
-
-        this.switchShader(this._shaderFont);
-
-        const gl = Aquanore.ctx;
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
-        gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
-        gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindVertexArray(font.vao);
-
-        let advance = 0;
-
-        for (let c of text) {
-            const index = c.charCodeAt(0);
-            const glyph = font.glyphs[index];
-
-            if (!glyph) {
-                continue;
-            }
-
-            let textX = pos.x + glyph.xoffset * scale.x + advance;
-            let textY = pos.y + glyph.yoffset * scale.y;
-
-            gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_translation"), textX, textY);
-            gl.drawArrays(gl.TRIANGLES, index * 6, 6);
-
-            advance += glyph.xadvance * scale.x;
-        }
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        gl.bindVertexArray(null);
-    }
-
     /* HELPER FUNCTIONS */
     private static generateModelMatrix(pos: Vector3, rot: Vector3, scale: Vector3): Matrix4 {
         let m = Matrix4.identity();
@@ -199,9 +152,8 @@ export class Renderer {
         const fov = camera.fov;
         const near = camera.near;
         const far = camera.far;
-        const width = Aquanore.canvas.clientWidth;
-        const height = Aquanore.canvas.clientHeight;
+        const aspect = camera.aspect;
 
-        return Matrix4.perspective(fov, width / height, near, far);
+        return Matrix4.perspective(fov, aspect, near, far);
     }
 }

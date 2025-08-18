@@ -7,6 +7,7 @@ export class Camera {
     private _fov: number;
     private _near: number;
     private _far: number;
+    private _aspect: number;
 
     public get position() {
         return this._position;
@@ -48,11 +49,20 @@ export class Camera {
         this._far = value;
     }
 
-    constructor() {
+    public get aspect(): number {
+        return this._aspect;
+    }
+
+    public set aspect(value: number) {
+        this._aspect = value;
+    }
+
+    constructor(fov: number, aspect: number, near: number, far: number) {
         this._position = new Vector3();
         this._rotation = new Vector3();
-        this._fov = 60.0;
-        this._near = 0.001;
-        this._far = 1000.0;
+        this._fov = fov;
+        this._near = near;
+        this._far = far;
+        this._aspect = aspect;
     }
 }

@@ -5,7 +5,7 @@ export * from './mathhelper';
 export * from './polygon';
 export * from './renderer';
 export * from './shader';
-export * from './shaders';
+export * from './shaders_old';
 export * from './vector2';
 export * from './sprite';
 export * from './cursor';

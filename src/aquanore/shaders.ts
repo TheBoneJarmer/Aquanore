@@ -1,148 +1,20 @@
 import { Shader } from "./shader";
+import { ShaderSources } from "./shader-sources";
 
 export class Shaders {
     private static _polygon: Shader;
-    private static _font: Shader;
     private static _model: Shader;
 
     public static get polygon(): Shader {
         return this._polygon;
     }
 
-    public static get font(): Shader {
-        return this._font;
-    }
-
     public static get model(): Shader {
         return this._model;
     }
 
-    private constructor() {
-    }
-
     public static init() {
-        this.initPolygon();
-        this.initFont();
-        this.initModel();
-    }
-
-    private static initFont() {
-        let vSource = "precision highp float;\n" +
-            "\n" +
-            "attribute vec2 a_vertex;\n" +
-            "attribute vec2 a_texcoord;\n" +
-            "\n" +
-            "uniform vec2 u_resolution;\n" +
-            "uniform vec2 u_rotation;\n" +
-            "uniform vec2 u_translation;\n" +
-            "uniform vec2 u_scale;\n" +
-            "varying vec2 v_texcoord;\n" +
-            "\n" +
-            "void main() {\n" +
-            "    vec2 vertex = a_vertex;\n" +
-            "    vertex = vertex * u_scale;\n" +
-            "    vertex = vec2(vertex.x * u_rotation.y + vertex.y * u_rotation.x, vertex.y * u_rotation.y - vertex.x * u_rotation.x);\n" +
-            "    vertex = vertex + u_translation;\n" +
-            "    vertex = vertex / u_resolution;\n" +
-            "    vertex = (vertex * 2.0) - 1.0;\n" +
-            "    v_texcoord = a_texcoord;\n" +
-            "    \n" +
-            "    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);\n" +
-            "}"
-
-        let fSource = "precision highp float;\n" +
-            "varying vec2 v_texcoord;\n" +
-            "uniform sampler2D u_texture;\n" +
-            "uniform vec4 u_color;\n" +
-            "\n" +
-            "void main() {\n" +
-            "    gl_FragColor = texture2D(u_texture, v_texcoord) * u_color;\n" +
-            "}"
-
-        this._font = new Shader(vSource, fSource);
-    }
-
-    private static initPolygon() {
-        let vSource = "precision highp float;\n" +
-            "\n" +
-            "attribute vec2 a_vertex;\n" +
-            "attribute vec2 a_texcoord;\n" +
-            "\n" +
-            "uniform vec2 u_resolution;\n" +
-            "uniform vec2 u_rotation;\n" +
-            "uniform vec2 u_translation;\n" +
-            "uniform vec2 u_scale;\n" +
-            "uniform vec2 u_origin;\n" +
-            "uniform vec2 u_offset;\n" +
-            "varying vec2 v_texcoord;\n" +
-            "\n" +
-            "void main() {\n" +
-            "    vec2 vertex = a_vertex - u_origin;\n" +
-            "    vertex = vertex * u_scale;\n" +
-            "    vertex = vec2(vertex.x * u_rotation.y + vertex.y * u_rotation.x, vertex.y * u_rotation.y - vertex.x * u_rotation.x);\n" +
-            "    vertex = vertex + u_translation;\n" +
-            "    vertex = vertex / u_resolution;\n" +
-            "    vertex = (vertex * 2.0) - 1.0;\n" +
-            "    v_texcoord = a_texcoord + u_offset;\n" +
-            "    \n" +
-            "    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);\n" +
-            "}"
-
-        let fSource = "precision highp float;\n" +
-            "varying vec2 v_texcoord;\n" +
-            "uniform sampler2D u_texture;\n" +
-            "uniform int u_texture_active;\n" +
-            "uniform int u_flip_hor;\n" +
-            "uniform int u_flip_vert;\n" +
-            "uniform vec4 u_color;\n" +
-            "\n" +
-            "void main() {\n" +
-            "    vec4 final_color = u_color;\n" +
-            "    vec2 final_texcoord = v_texcoord;\n" +
-            "\n" +
-            "    if (u_flip_hor == 1) {\n" +
-            "        final_texcoord.x *= -1.0;\n" +
-            "    }\n" +
-            "\n" +
-            "    if (u_flip_vert == 1) {\n" +
-            "        final_texcoord.y *= -1.0;\n" +
-            "    }\n" +
-            "\n" +
-            "    if (u_texture_active == 1) {\n" +
-            "        final_color *= texture2D(u_texture, final_texcoord);\n" +
-            "    }\n" +
-            "\n" +
-            "    gl_FragColor = final_color;\n" +
-            "}"
-
-        this._polygon = new Shader(vSource, fSource);
-    }
-
-    private static initModel() {
-        let vSource = "precision highp float;\n" +
-            "\n" +
-            "attribute vec3 a_vertex;\n" +
-            "attribute vec3 a_normal;\n" +
-            "attribute vec2 a_texcoord;\n" +
-            "\n" +
-            "uniform mat4 u_model;\n" +
-            "uniform mat4 u_view;\n" +
-            "uniform mat4 u_projection;\n" +
-            "\n" +
-            "void main() {\n" +
-            "   mat4 mat_mvp = u_projection * u_view * u_model;\n" +
-            //"   mat3 mat_normal = mat3(transpose(inverse(u_model)));\n" +
-            "\n" +
-            "   gl_Position = mat_mvp * vec4(a_vertex, 1.0);\n" +
-            "}";
-
-        let fSource = "precision highp float;\n" +
-            "\n" +
-            "void main() {\n" +
-            "   vec4 result = vec4(1,1,1,1);\n" +
-            "   gl_FragColor = result;\n" +
-            "}";
-
-        this._model = new Shader(vSource, fSource);
+        this._polygon = new Shader(ShaderSources.POLYGON_V, ShaderSources.POLYGON_F);
+        this._model = new Shader(ShaderSources.MODEL_V, ShaderSources.MODEL_F);
     }
 }
