@@ -42,7 +42,7 @@ export class Light {
 
     constructor(type: LightType) {
         this._type = type;
-        this._source = new Vector3(0.5, 0.5, -0.5);
+        this._source = new Vector3(1,1,1);
         this._color = new Color(255, 255, 255);
         this._enabled = true;
     }

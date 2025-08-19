@@ -37,7 +37,7 @@ function watch(file, curr, prev) {
             return;
         }
 
-        console.log(stdout.join());
+        console.log(stdout.join(""));
     });
 
     prc.stdout.on("error", (err) => {
@@ -59,7 +59,7 @@ function watch(file, curr, prev) {
             return;
         }
 
-        console.error(stderr.join());
+        console.error(stderr.join(""));
     });
 
     prc.stderr.on("error", (err) => {
@@ -67,9 +67,7 @@ function watch(file, curr, prev) {
     });
 
     prc.on("close", (code) => {
-        if (code == 0) {
-            console.log(`Updated ${file}`);
-        } else {
+        if (code != 0) {
             console.error(`Failed to update shaders (${code})`);
         }
     });

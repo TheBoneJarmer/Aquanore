@@ -9,18 +9,19 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat3 u_normal;
 
-varying vec2 texcoord;
-varying vec3 vertex;
-varying vec3 normal;
-varying vec3 frag;
+varying vec2 v_texcoord;
+varying vec3 v_vertex;
+varying vec3 v_normal;
+varying vec3 v_frag;
 
 void main() {
-    mat4 mat_mvp = u_projection * u_view * u_model;
+    mat4 mvp = u_projection * u_view * u_model;
+    vec4 pos = vec4(a_vertex, 1.0);
 
-    texcoord = a_texcoord;
-    vertex = a_vertex;
-    normal = a_normal;
-    frag = vec3(u_model * vec4(a_vertex, 1.0));
+    v_texcoord = a_texcoord;
+    v_vertex = a_vertex;
+    v_normal = u_normal * a_normal;
+    v_frag = vec3(u_model * pos);
 
-    gl_Position = mat_mvp * vec4(a_vertex, 1.0);
+    gl_Position = mvp * pos;
 }

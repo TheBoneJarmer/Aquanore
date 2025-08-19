@@ -1,7 +1,8 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Camera } from "../../aquanore/camera";
 import { Cursor } from "../../aquanore/cursor";
-import { LightType } from "../../aquanore/enums";
+import { Keys, LightType } from "../../aquanore/enums";
+import { Keyboard } from "../../aquanore/keyboard";
 import { Light } from "../../aquanore/light";
 import { Model } from "../../aquanore/model";
 import { Renderer } from "../../aquanore/renderer";
@@ -27,21 +28,23 @@ Aquanore.onLoad = () => {
 
     model = Model.cube(1);
     model.meshes[0].material.diffuseMap = new Texture("./rock.png");
-    model.meshes[0].calculateNormals();
+    //model.meshes[0].calculateNormals();
 
     lights[0] = new Light(LightType.DIRECTIONAL);
 };
 
 Aquanore.onUpdate = (dt: number) => {
+    const speed = dt * 0.05;
+
     cam.position.z = -5;
     cam.aspect = innerWidth / innerHeight;
 
-    if (Cursor.isButtonDown(0)) {
-        rot.x -= Cursor.moveY * 0.001;
-        rot.y -= Cursor.moveX * 0.001;
-    }
+    if (Keyboard.keyDown(Keys.A)) rot.y -= speed;
+    if (Keyboard.keyDown(Keys.D)) rot.y += speed;
+    if (Keyboard.keyDown(Keys.W)) rot.x -= speed;
+    if (Keyboard.keyDown(Keys.S)) rot.x += speed;
 
-    if (Cursor.isButtonPressed(2)) {
+    if (Keyboard.keyPressed(Keys.R)) {
         rot.x = 0;
         rot.y = 0;
     }

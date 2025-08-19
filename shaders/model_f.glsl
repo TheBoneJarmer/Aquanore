@@ -30,19 +30,27 @@ uniform Material u_material;
 uniform Light u_light[100];
 uniform int u_light_count;
 
-varying vec3 vertex;
-varying vec3 normal;
-varying vec2 texcoord;
-varying vec3 frag;
+varying vec3 v_vertex;
+varying vec3 v_normal;
+varying vec2 v_texcoord;
+varying vec3 v_frag;
 
-vec4 calc_dir_light(Light light) {
+vec3 calc_dir_light(Light light) {
+    vec3 normal = normalize(v_normal);
     vec3 light_dir = normalize(light.source);
     float light_diff = max(dot(normal, light_dir), 0.0);
 
     vec4 ambient = u_material.ambient * light.color;
     vec4 diffuse = u_material.diffuse * light_diff * light.color;
 
-    return ambient + diffuse;
+    if (u_material.diffuse_map.enabled) {
+        vec4 color = texture2D(u_material.diffuse_map.data, v_texcoord);
+
+        ambient *= color;
+        diffuse *= color;
+    }
+
+    return vec3(ambient + diffuse);
 }
 
 void main() {
@@ -58,7 +66,7 @@ void main() {
         }
 
         if (u_light[i].type == DIRECTIONAL_LIGHT) {
-            result += calc_dir_light(u_light[i]);
+            result.xyz += calc_dir_light(u_light[i]);
         }
     }
 

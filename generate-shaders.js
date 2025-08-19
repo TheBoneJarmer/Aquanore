@@ -10,7 +10,7 @@ for (let file of files) {
     const content = await read(`./shaders/${file}`);
     const name = shaderName(file);
 
-    write(`\tpublic static readonly ${name} = \"${content}\";`)
+    write(`\tpublic static readonly ${name} = \"${content}\";`);
 }
 
 await write("};");
