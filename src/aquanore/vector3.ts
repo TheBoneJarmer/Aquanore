@@ -67,4 +67,21 @@ export class Vector3 implements IClonable<Vector3> {
     public static dot(v1: Vector3, v2: Vector3): number {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
+
+    /* BASIC MATH */
+    public static add(v1: Vector3, v2: Vector3): Vector3 {
+        return new Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.y);
+    }
+
+    public static sub(v1: Vector3, v2: Vector3): Vector3 {
+        return new Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+    }
+
+    public static mult(v1: Vector3, v2: Vector3): Vector3 {
+        return new Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
+    }
+
+    public static div(v1: Vector3, v2: Vector3): Vector3 {
+        return new Vector3(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
+    }
 }

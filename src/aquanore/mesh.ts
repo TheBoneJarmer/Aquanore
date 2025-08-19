@@ -3,10 +3,11 @@ import { Material } from "./material";
 import { Vector3 } from "./vector3";
 
 export class Mesh {
-    private readonly _vertices: number[];
-    private readonly _texcoords: number[];
-    private readonly _normals: number[];
-    private readonly _indices: number[];
+    private _vertices: number[];
+    private _texcoords: number[];
+    private _normals: number[];
+    private _indices: number[];
+
     private _position: Vector3;
     private _rotation: Vector3;
     private _scale: Vector3;
@@ -151,6 +152,51 @@ export class Mesh {
 
         gl.bindVertexArray(null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    }
+
+    public calculateNormals() {
+        const gl = Aquanore.ctx;
+        const vertices = [];
+        const normals = [];
+
+        this._normals = [];
+
+        for (let i = 0; i < this._vertices.length; i += 3) {
+            const v = new Vector3();
+            v.x = this._vertices[i];
+            v.y = this._vertices[i + 1];
+            v.z = this._vertices[i + 2];
+
+            vertices.push(v);
+        }
+
+        for (let i = 0; i < vertices.length; i += 3) {
+            const v1 = vertices[i];
+            const v2 = vertices[i + 1];
+            const v3 = vertices[i + 2];
+
+            const a = Vector3.sub(v2, v1);
+            const b = Vector3.sub(v3, v1);
+            const n = Vector3.normalized(Vector3.cross(a, b));
+
+            normals.push(n);
+            normals.push(n);
+            normals.push(n);
+        }
+
+        for (let v of normals) {
+            this._normals.push(v.x);
+            this._normals.push(v.y);
+            this._normals.push(v.z);
+        }
+
+        gl.bindVertexArray(this._vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboNormals);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._normals), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(1);
+        gl.bindVertexArray(null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 }

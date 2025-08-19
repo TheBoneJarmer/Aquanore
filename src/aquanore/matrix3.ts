@@ -29,51 +29,51 @@ export class Matrix3 implements IClonable<Matrix3> {
     }
 
     public get x2(): number {
-        return this._array[4];
+        return this._array[3];
     }
 
     public set x2(value: number) {
-        this._array[4] = value;
+        this._array[3] = value;
     }
 
     public get y2(): number {
-        return this._array[5];
+        return this._array[4];
     }
 
     public set y2(value: number) {
-        this._array[5] = value;
+        this._array[4] = value;
     }
 
     public get z2(): number {
-        return this._array[6];
+        return this._array[5];
     }
 
     public set z2(value: number) {
-        this._array[6] = value;
+        this._array[5] = value;
     }
 
     public get x3(): number {
-        return this._array[8];
+        return this._array[6];
     }
 
     public set x3(value: number) {
-        this._array[8] = value;
+        this._array[6] = value;
     }
 
     public get y3(): number {
-        return this._array[9];
+        return this._array[7];
     }
 
     public set y3(value: number) {
-        this._array[9] = value;
+        this._array[7] = value;
     }
 
     public get z3(): number {
-        return this._array[10];
+        return this._array[8];
     }
 
     public set z3(value: number) {
-        this._array[10] = value;
+        this._array[8] = value;
     }
 
     public get values(): number[] {
@@ -120,84 +120,141 @@ export class Matrix3 implements IClonable<Matrix3> {
         return new Matrix3(values);
     }
 
+    public static transpose(mat: Matrix3): Matrix3 {
+        const x2 = mat.y1;
+        const x3 = mat.z1;
+        const y1 = mat.x2;
+        const y3 = mat.z2;
+        const z1 = mat.x3;
+        const z2 = mat.y3;
+
+        const result = mat.clone();
+        result.y1 = y1;
+        result.z1 = z1;
+        result.x2 = x2;
+        result.z2 = z2;
+        result.x3 = x3;
+        result.y3 = y3;
+
+        return result;
+    }
+
+    public static inverse(mat: Matrix3): Matrix3 {
+        const a = mat.x1 * mat.y2 * mat.z3 + mat.y1 * mat.z2 * mat.x3 + mat.z1 * mat.x2 * mat.y3;
+        const b = mat.z1 * mat.y2 * mat.x3 - mat.y1 * mat.x2 * mat.z3 - mat.x1 * mat.z2 * mat.y3;
+        const detm = a - b;
+
+        if (detm == 0) {
+            return mat.clone();
+        }
+
+        const kx1 = mat.y2 * mat.z3 - mat.z2 * mat.y3;
+        const kx2 = mat.x2 * mat.z3 - mat.z2 * mat.x3;
+        const kx3 = mat.x2 * mat.y3 - mat.y2 * mat.x3;
+        
+        const ky1 = mat.y1 * mat.z3 - mat.z1 * mat.y3;
+        const ky2 = mat.x1 * mat.z3 - mat.z1 * mat.x3;
+        const ky3 = mat.x1 * mat.y3 - mat.y1 * mat.x3;
+        
+        const kz1 = mat.y1 * mat.z2 - mat.z1 * mat.y2;
+        const kz2 = mat.x1 * mat.z2 - mat.z1 * mat.x2;
+        const kz3 = mat.x1 * mat.y2 - mat.y1 * mat.x2;
+
+        const q = 1 / detm;
+        const result = mat.clone();
+        result.x1 = q * kx1;
+        result.y1 = -q * ky1;
+        result.z1 = q * kz1;
+
+        result.x2 = -q * kx2;
+        result.y2 = q * ky2;
+        result.z2 = -q * kz2;
+
+        result.x3 = q * kx3;
+        result.y3 = -q * ky3;
+        result.z3 = q * kz3;
+
+        return result;
+    }
+
     /*
     rotate(angle) {
-		if (angle === 0) return this;
+        if (angle === 0) return this;
 
-		const d = angle * Math.PI / 180;
-		const sin = Math.sin(d), cos = Math.cos(d);
+        const d = angle * Math.PI / 180;
+        const sin = Math.sin(d), cos = Math.cos(d);
 
-		const m2a1 = cos, m2b1 = sin;
-		const m2a2 = -sin, m2b2 = cos;
+        const m2a1 = cos, m2b1 = sin;
+        const m2a2 = -sin, m2b2 = cos;
 
-		const a1 = this.a1 * m2a1 + this.a2 * m2b1;
-		const b1 = this.b1 * m2a1 + this.b2 * m2b1;
-		const c1 = this.c1 * m2a1 + this.c2 * m2b1;
+        const a1 = this.a1 * m2a1 + this.a2 * m2b1;
+        const b1 = this.b1 * m2a1 + this.b2 * m2b1;
+        const c1 = this.c1 * m2a1 + this.c2 * m2b1;
 
-		const a2 = this.a1 * m2a2 + this.a2 * m2b2;
-		const b2 = this.b1 * m2a2 + this.b2 * m2b2;
-		const c2 = this.c1 * m2a2 + this.c2 * m2b2;
+        const a2 = this.a1 * m2a2 + this.a2 * m2b2;
+        const b2 = this.b1 * m2a2 + this.b2 * m2b2;
+        const c2 = this.c1 * m2a2 + this.c2 * m2b2;
 
-		this.a1 = a1; this.b1 = b1; this.c1 = c1;
-		this.a2 = a2; this.b2 = b2; this.c2 = c2;
+        this.a1 = a1; this.b1 = b1; this.c1 = c1;
+        this.a2 = a2; this.b2 = b2; this.c2 = c2;
 
-		return this;
-	}
+        return this;
+    }
 
-	translate(x, y) {
-		this.a3 += this.a1 * x + this.a2 * y;
-		this.b3 += this.b1 * x + this.b2 * y;
-		this.c3 += this.c1 * x + this.c2 * y;
+    translate(x, y) {
+        this.a3 += this.a1 * x + this.a2 * y;
+        this.b3 += this.b1 * x + this.b2 * y;
+        this.c3 += this.c1 * x + this.c2 * y;
 
-		return this;
-	}
+        return this;
+    }
 
     scale(x, y) {
-		if (x === 1 && y === 1) return this;
+        if (x === 1 && y === 1) return this;
 
-		this.a1 *= x; this.b1 *= x; this.c1 *= x;
-		this.a2 *= y; this.b2 *= y; this.c2 *= y;
+        this.a1 *= x; this.b1 *= x; this.c1 *= x;
+        this.a2 *= y; this.b2 *= y; this.c2 *= y;
 
-		return this;
-	}
+        return this;
+    }
 
     inverse() {
-		const detM
-			= this.a1 * this.b2 * this.c3 + this.b1 * this.c2 * this.a3 + this.c1 * this.a2 * this.b3
-			- this.c1 * this.b2 * this.a3 - this.b1 * this.a2 * this.c3 - this.a1 * this.c2 * this.b3;
+        const detM
+            = this.a1 * this.b2 * this.c3 + this.b1 * this.c2 * this.a3 + this.c1 * this.a2 * this.b3
+            - this.c1 * this.b2 * this.a3 - this.b1 * this.a2 * this.c3 - this.a1 * this.c2 * this.b3;
 
-		if (detM === 0) return this.clone();
+        if (detM === 0) return this.clone();
 
-		const ka1 = this.b2 * this.c3 - this.c2 * this.b3;
-		const ka2 = this.a2 * this.c3 - this.c2 * this.a3;
-		const ka3 = this.a2 * this.b3 - this.b2 * this.a3;
+        const ka1 = this.b2 * this.c3 - this.c2 * this.b3;
+        const ka2 = this.a2 * this.c3 - this.c2 * this.a3;
+        const ka3 = this.a2 * this.b3 - this.b2 * this.a3;
 
-		const kb1 = this.b1 * this.c3 - this.c1 * this.b3;
-		const kb2 = this.a1 * this.c3 - this.c1 * this.a3;
-		const kb3 = this.a1 * this.b3 - this.b1 * this.a3;
+        const kb1 = this.b1 * this.c3 - this.c1 * this.b3;
+        const kb2 = this.a1 * this.c3 - this.c1 * this.a3;
+        const kb3 = this.a1 * this.b3 - this.b1 * this.a3;
 
-		const kc1 = this.b1 * this.c2 - this.c1 * this.b2;
-		const kc2 = this.a1 * this.c2 - this.c1 * this.a2;
-		const kc3 = this.a1 * this.b2 - this.b1 * this.a2;
+        const kc1 = this.b1 * this.c2 - this.c1 * this.b2;
+        const kc2 = this.a1 * this.c2 - this.c1 * this.a2;
+        const kc3 = this.a1 * this.b2 - this.b1 * this.a2;
 
-		const q = 1 / detM, m = new Matrix3();
-		m.a1 = q * ka1; m.b1 = -q * kb1; m.c1 = q * kc1;
-		m.a2 = -q * ka2; m.b2 = q * kb2; m.c2 = -q * kc2;
-		m.a3 = q * ka3, m.b3 = -q * kb3, m.c3 = q * kc3;
+        const q = 1 / detM, m = new Matrix3();
+        m.a1 = q * ka1; m.b1 = -q * kb1; m.c1 = q * kc1;
+        m.a2 = -q * ka2; m.b2 = q * kb2; m.c2 = -q * kc2;
+        m.a3 = q * ka3, m.b3 = -q * kb3, m.c3 = q * kc3;
 
-		return m;
-	}
+        return m;
+    }
 
     transpose() {
-		const a2 = this.b1, a3 = this.c1;
-		const b1 = this.a2, b3 = this.c2;
-		const c1 = this.a3, c2 = this.b3;
+        const a2 = this.b1, a3 = this.c1;
+        const b1 = this.a2, b3 = this.c2;
+        const c1 = this.a3, c2 = this.b3;
 
-		this.b1 = b1; this.c1 = c1;
-		this.a2 = a2; this.c2 = c2;
-		this.a3 = a3; this.b3 = b3;
+        this.b1 = b1; this.c1 = c1;
+        this.a2 = a2; this.c2 = c2;
+        this.a3 = a3; this.b3 = b3;
 
-		return this;
-	}
+        return this;
+    }
     */
 }

@@ -12,6 +12,7 @@ import { Matrix4 } from "./matrix4";
 import { Camera } from "./camera";
 import { Model } from "./model";
 import { Light } from "./light";
+import { Matrix3 } from "./matrix3";
 
 export class Renderer {
     private static _shader: Shader = null;
@@ -125,39 +126,45 @@ export class Renderer {
         const gl = Aquanore.ctx;
         const shader = this._shader;
 
-        shader.umat4("u_projection", this.generateProjectionMatrix(camera));
-        shader.umat4("u_view", this.generateViewMatrix(camera));
-        shader.umat4("u_model", this.generateModelMatrix(pos, rot, scale));
+        const matProjection = this.generateProjectionMatrix(camera);
+        const matView = this.generateViewMatrix(camera);
+        const matModel = this.generateModelMatrix(pos, rot, scale);
+        const matNormal = this.generateNormalMatrix(matModel);
+
+        shader.umat4("u_projection", matProjection);
+        shader.umat4("u_view", matView);
+        shader.umat4("u_model", matModel);
+        shader.umat3("u_normal", matNormal);
 
         // Render mesh per mesh
         for (let mesh of model.meshes) {
-            const mat = mesh.material;
+            const material = mesh.material;
 
-            shader.ucolor("u_material.diffuse", mat.diffuse);
-            shader.ucolor("u_material.ambient", mat.ambient);
-            shader.ucolor("u_material.specular", mat.specular);
+            shader.ucolor("u_material.diffuse", material.diffuse);
+            shader.ucolor("u_material.ambient", material.ambient);
+            shader.ucolor("u_material.specular", material.specular);
 
-            if (mat.diffuseMap != null) {
+            if (material.diffuseMap != null) {
                 gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, mat.diffuseMap.id);
+                gl.bindTexture(gl.TEXTURE_2D, material.diffuseMap.id);
 
                 shader.u1b("u_material.diffuse_map.enabled", true);
             } else {
                 shader.u1b("u_material.diffuse_map.enabled", false);
             }
 
-            if (mat.ambientMap != null) {
+            if (material.ambientMap != null) {
                 gl.activeTexture(gl.TEXTURE1);
-                gl.bindTexture(gl.TEXTURE_2D, mat.ambientMap.id);
+                gl.bindTexture(gl.TEXTURE_2D, material.ambientMap.id);
                 
                 shader.u1b("u_material.ambient_map.enabled", true);
             } else {
                 shader.u1b("u_material.ambient_map.enabled", false);
             }
 
-            if (mat.specularMap != null) {
+            if (material.specularMap != null) {
                 gl.activeTexture(gl.TEXTURE2);
-                gl.bindTexture(gl.TEXTURE_2D, mat.specularMap.id);
+                gl.bindTexture(gl.TEXTURE_2D, material.specularMap.id);
                 
                 shader.u1b("u_material.specular_map.enabled", true);
             } else {
@@ -198,5 +205,13 @@ export class Renderer {
         const aspect = camera.aspect;
 
         return Matrix4.perspective(fov, aspect, near, far);
+    }
+
+    private static generateNormalMatrix(mat: Matrix4): Matrix3 {
+        const inversed = Matrix4.inverse(mat);
+        const transposed = Matrix4.transpose(inversed);
+        
+        const result = Matrix3.from(transposed);
+        return result;
     }
 }

@@ -1,5 +1,6 @@
 import { Aquanore } from "./aquanore";
 import { Color } from "./color";
+import { Matrix3 } from "./matrix3";
 import { Matrix4 } from "./matrix4";
 import { Vector2 } from "./vector2";
 import { Vector3 } from "./vector3";
@@ -149,6 +150,13 @@ export class Shader {
         const loc = gl.getUniformLocation(this._program, name);
 
         gl.uniform3f(loc, vec.x, vec.y, vec.z);
+    }
+
+    public umat3(name: string, mat: Matrix3) {
+        const gl = Aquanore.ctx;
+        const loc = gl.getUniformLocation(this._program, name);
+
+        gl.uniformMatrix3fv(loc, false, mat.values);
     }
 
     public umat4(name: string, mat: Matrix4) {

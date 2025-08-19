@@ -27,6 +27,7 @@ Aquanore.onLoad = () => {
 
     model = Model.cube(1);
     model.meshes[0].material.diffuseMap = new Texture("./rock.png");
+    model.meshes[0].calculateNormals();
 
     lights[0] = new Light(LightType.DIRECTIONAL);
 };
