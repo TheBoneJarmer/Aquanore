@@ -111,16 +111,47 @@ export class Renderer {
         }
 
         const gl = Aquanore.ctx;
-        const matView = this.generateViewMatrix(camera);
-        const matProjection = this.generateProjectionMatrix(camera);
-        const matModel = this.generateModelMatrix(pos, rot, scale);
+        const shader = this._shader;
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(this._shader.id, "u_projection"), false, matProjection.values);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this._shader.id, "u_view"), false, matView.values);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this._shader.id, "u_model"), false, matModel.values);
+        shader.umat4("u_projection", this.generateProjectionMatrix(camera));
+        shader.umat4("u_view", this.generateViewMatrix(camera));
+        shader.umat4("u_model", this.generateModelMatrix(pos, rot, scale));
 
         // Render mesh per mesh
         for (let mesh of model.meshes) {
+            const mat = mesh.material;
+
+            shader.ucolor("u_material.diffuse", mat.diffuse);
+            shader.ucolor("u_material.ambient", mat.ambient);
+            shader.ucolor("u_material.specular", mat.specular);
+
+            if (mat.diffuseMap != null) {
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, mat.diffuseMap.id);
+
+                shader.u1b("u_material.diffuse_map.enabled", true);
+            } else {
+                shader.u1b("u_material.diffuse_map.enabled", false);
+            }
+
+            if (mat.ambientMap != null) {
+                gl.activeTexture(gl.TEXTURE1);
+                gl.bindTexture(gl.TEXTURE_2D, mat.ambientMap.id);
+                
+                shader.u1b("u_material.ambient_map.enabled", true);
+            } else {
+                shader.u1b("u_material.ambient_map.enabled", false);
+            }
+
+            if (mat.specularMap != null) {
+                gl.activeTexture(gl.TEXTURE2);
+                gl.bindTexture(gl.TEXTURE_2D, mat.specularMap.id);
+                
+                shader.u1b("u_material.specular_map.enabled", true);
+            } else {
+                shader.u1b("u_material.specular_map.enabled", false);
+            }
+
             gl.bindVertexArray(mesh.vao);
             gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
             gl.bindVertexArray(null);

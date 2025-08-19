@@ -5,23 +5,16 @@ export class Model {
 
     /* CONSTRUCTION FUNCTIONS */
     public static cube(size: number): Model {
-        const verts = [1, 1, -1, 1, -1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, -1, -1, -1, -1, 1, 1, -1, -1, 1];
-        const normals = [0.58, 0.58, -0.58, 0.58, -0.58, -0.58, 0.58, 0.58, 0.58, 0.58, -0.58, 0.58, -0.58, 0.58, -0.58, -0.58, -0.58, -0.58, -0.58, 0.58, 0.58, -0.58, -0.58, 0.58];
+        const verts = [-size, size, -size, size, size, size, size, size, -size, size, size, size, -size, -size, size, size, -size, size, -size, size, size, -size, -size, -size, -size, -size, size, size, -size, -size, -size, -size, size, -size, -size, -size, size, size, -size, size, -size, size, size, -size, -size, -size, size, -size, size, -size, -size, -size, -size, -size, -size, size, -size, -size, size, size, size, size, size, size, size, size, -size, size, size, -size, -size, size, -size, size, size, -size, size, -size, -size, -size, -size, size, -size, -size, size, -size, size, -size, -size, size, size, size, -size, size, size, size, size, -size, size, -size, size, -size, size, size, -size, size, -size, -size];
+        const normals = [-0.58, 0.58, -0.58, 0.58, 0.58, 0.58, 0.58, 0.58, -0.58, 0.58, 0.58, 0.58, -0.58, -0.58, 0.58, 0.58, -0.58, 0.58, -0.58, 0.58, 0.58, -0.58, -0.58, -0.58, -0.58, -0.58, 0.58, 0.58, -0.58, -0.58, -0.58, -0.58, 0.58, -0.58, -0.58, -0.58, 0.58, 0.58, -0.58, 0.58, -0.58, 0.58, 0.58, -0.58, -0.58, -0.58, 0.58, -0.58, 0.58, -0.58, -0.58, -0.58, -0.58, -0.58, -0.58, 0.58, -0.58, -0.58, 0.58, 0.58, 0.58, 0.58, 0.58, 0.58, 0.58, 0.58, -0.58, 0.58, 0.58, -0.58, -0.58, 0.58, -0.58, 0.58, 0.58, -0.58, 0.58, -0.58, -0.58, -0.58, -0.58, 0.58, -0.58, -0.58, 0.58, -0.58, 0.58, -0.58, -0.58, 0.58, 0.58, 0.58, -0.58, 0.58, 0.58, 0.58, 0.58, -0.58, 0.58, -0.58, 0.58, -0.58, 0.58, 0.58, -0.58, 0.58, -0.58, -0.5];
+        const texcoords = [0.88, 0.5, 0.62, 0.75, 0.62, 0.5, 0.62, 0.75, 0.38, 1.0, 0.38, 0.75, 0.62, 0.0, 0.38, 0.25, 0.38, 0.0, 0.38, 0.5, 0.12, 0.75, 0.12, 0.5, 0.62, 0.5, 0.38, 0.75, 0.38, 0.5, 0.62, 0.25, 0.38, 0.5, 0.38, 0.25, 0.88, 0.5, 0.88, 0.75, 0.62, 0.75, 0.62, 0.75, 0.62, 1.0, 0.38, 1.0, 0.62, 0.0, 0.62, 0.25, 0.38, 0.25, 0.38, 0.5, 0.38, 0.75, 0.12, 0.75, 0.62, 0.5, 0.62, 0.75, 0.38, 0.75, 0.62, 0.25, 0.62, 0.5, 0.38, 0.5];
+        const indices = [];
 
-        const tc = [
-            0, 0,
-            0, 0,
-            0, 0,
-            0, 0,
-            0, 0,
-            0, 0,
-            0, 0,
-            0, 0,
-        ];
+        for (let i=0; i<verts.length; i++) {
+            indices.push(i);
+        }
 
-        const indices = [4, 2, 0, 2, 7, 3, 6, 5, 7, 1, 7, 5, 0, 3, 1, 4, 1, 5, 4, 6, 2, 2, 6, 7, 6, 4, 5, 1, 3, 7, 0, 2, 3, 4, 0, 1];
-
-        const mesh = new Mesh(verts, tc, normals, indices);
+        const mesh = new Mesh(verts, texcoords, normals, indices);
         const model = new Model();
         model.meshes.push(mesh);
 

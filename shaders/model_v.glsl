@@ -8,9 +8,17 @@ uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 
+varying vec2 texcoord;
+varying vec3 vertex;
+varying vec3 normal;
+
 void main() {
     mat4 mat_mvp = u_projection * u_view * u_model;
     //mat3 mat_normal = mat3(transpose(inverse(u_model)));
+
+    texcoord = a_texcoord;
+    vertex = a_vertex;
+    normal = a_normal;
 
     gl_Position = mat_mvp * vec4(a_vertex, 1.0);
 }
