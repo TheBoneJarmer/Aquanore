@@ -11,6 +11,7 @@ import { Vector3 } from "./vector3";
 import { Matrix4 } from "./matrix4";
 import { Camera } from "./camera";
 import { Model } from "./model";
+import { Light } from "./light";
 
 export class Renderer {
     private static _shader: Shader = null;
@@ -101,13 +102,24 @@ export class Renderer {
         gl.bindVertexArray(null);
     }
 
-    public static drawModel(model: Model, camera: Camera, pos: Vector3, rot: Vector3, scale: Vector3) {
+    public static drawModel(model: Model, camera: Camera, lights: Light[], pos: Vector3, rot: Vector3, scale: Vector3) {
         if (!model) {
             return;
         }
 
         if (this.switchShader(this._shaderModel)) {
-            // Process all lights
+            const shader = this._shader;
+
+            shader.u1i("u_light_count", lights.length);
+
+            for (let i=0; i<lights.length; i++) {
+                const light = lights[i];
+
+                shader.u1i(`u_light[${i}].type`, light.type);
+                shader.u1b(`u_light[${i}].enabled`, light.enabled);
+                shader.uvec3(`u_light[${i}].source`, light.source);
+                shader.ucolor(`u_light[${i}].color`, light.color);
+            }
         }
 
         const gl = Aquanore.ctx;

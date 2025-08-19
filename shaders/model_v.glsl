@@ -11,6 +11,7 @@ uniform mat4 u_projection;
 varying vec2 texcoord;
 varying vec3 vertex;
 varying vec3 normal;
+varying vec3 frag;
 
 void main() {
     mat4 mat_mvp = u_projection * u_view * u_model;
@@ -19,6 +20,7 @@ void main() {
     texcoord = a_texcoord;
     vertex = a_vertex;
     normal = a_normal;
+    frag = vec3(u_model * vec4(a_vertex, 1.0));
 
     gl_Position = mat_mvp * vec4(a_vertex, 1.0);
 }

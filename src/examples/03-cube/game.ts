@@ -1,6 +1,8 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Camera } from "../../aquanore/camera";
 import { Cursor } from "../../aquanore/cursor";
+import { LightType } from "../../aquanore/enums";
+import { Light } from "../../aquanore/light";
 import { Model } from "../../aquanore/model";
 import { Renderer } from "../../aquanore/renderer";
 import { Texture } from "../../aquanore/texture";
@@ -8,9 +10,12 @@ import { Vector3 } from "../../aquanore/vector3";
 
 let model: Model = null;
 let cam: Camera = null;
+
 let pos: Vector3 = null;
 let rot: Vector3 = null;
 let scale: Vector3 = null;
+
+let lights: Light[] = [];
 
 Aquanore.init();
 
@@ -22,6 +27,8 @@ Aquanore.onLoad = () => {
 
     model = Model.cube(1);
     model.meshes[0].material.diffuseMap = new Texture("./rock.png");
+
+    lights[0] = new Light(LightType.DIRECTIONAL);
 };
 
 Aquanore.onUpdate = (dt: number) => {
@@ -44,7 +51,7 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, cam, pos, rot, scale);
+    Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
 
 Aquanore.run();
