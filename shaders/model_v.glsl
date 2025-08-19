@@ -19,7 +19,7 @@ void main() {
 
     texcoord = a_texcoord;
     vertex = a_vertex;
-    normal = a_normal * u_normal;
+    normal = a_normal;
     frag = vec3(u_model * vec4(a_vertex, 1.0));
 
     gl_Position = mat_mvp * vec4(a_vertex, 1.0);

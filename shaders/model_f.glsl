@@ -36,11 +36,11 @@ varying vec2 texcoord;
 varying vec3 frag;
 
 vec4 calc_dir_light(Light light) {
-    vec3 light_dir = normalize(-light.source);
+    vec3 light_dir = normalize(light.source);
     float light_diff = max(dot(normal, light_dir), 0.0);
 
     vec4 ambient = u_material.ambient * light.color;
-    vec4 diffuse = light_diff * light.color;
+    vec4 diffuse = u_material.diffuse * light_diff * light.color;
 
     return ambient + diffuse;
 }
