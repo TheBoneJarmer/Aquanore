@@ -1,5 +1,16 @@
-import { Keys } from "./enums";
-import { KeyState } from "./structs";
+import { Keys } from "../enums";
+
+class KeyState {
+    public code: string;
+    public key: Keys;
+    public value: number;
+
+    constructor(code: string, key: Keys) {
+        this.code = code;
+        this.key = key;
+        this.value = 0;
+    }
+}
 
 export class Keyboard {
     private static readonly _states: KeyState[] = [];
@@ -169,7 +180,7 @@ export class Keyboard {
     }
 
     /* HELPER FUNCTIONS */
-    private static getStateByKey(key: Keys): KeyState {
+    private static getStateByKey(key: Keys): KeyState | null {
         for (let state of this._states) {
             if (state.key == key) {
                 return state;
@@ -179,7 +190,7 @@ export class Keyboard {
         return null;
     }
 
-    private static getStateByCode(code: string): KeyState {
+    private static getStateByCode(code: string): KeyState | null {
         for (let state of this._states) {
             if (state.code == code) {
                 return state;

@@ -1,4 +1,4 @@
-import {Aquanore} from "./aquanore";
+import {Aquanore} from "../aquanore";
 
 export class Cursor {
     private static _states: number[] = [];

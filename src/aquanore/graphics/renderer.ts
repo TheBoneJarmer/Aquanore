@@ -1,18 +1,8 @@
-import { Shader } from "./shader";
-import { Shaders } from "./shaders";
-import { Polygon } from "./polygon";
-import { Aquanore } from "./aquanore";
-import { Vector2 } from "./vector2";
-import { Color } from "./color";
-import { MathHelper } from "./mathhelper";
-import { Texture } from "./texture";
-import { Sprite } from "./sprite";
-import { Vector3 } from "./vector3";
-import { Matrix4 } from "./matrix4";
-import { Camera } from "./camera";
-import { Model } from "./model";
-import { Light } from "./light";
-import { Matrix3 } from "./matrix3";
+import { Aquanore } from "../aquanore";
+import { Vector2, MathHelper, Vector3, Matrix3, Matrix4 } from "../math";
+import { BasicMaterial, StandardMaterial } from "./materials";
+import { Camera, Color, Light, Mesh, Model, Polygon, Sprite, Texture } from ".";
+import { Shader, Shaders } from "./shaders";
 
 export class Renderer {
     private static _shader: Shader = null;
@@ -30,7 +20,7 @@ export class Renderer {
     private constructor() {
     }
 
-    public static init() {
+    public static reset() {
         this._shader = null;
         this._shaderPolygon = Shaders.polygon;
         this._shaderModel = Shaders.model;
@@ -113,17 +103,18 @@ export class Renderer {
 
             shader.u1i("u_light_count", lights.length);
 
-            for (let i=0; i<lights.length; i++) {
+            for (let i = 0; i < lights.length; i++) {
                 const light = lights[i];
 
                 shader.u1i(`u_light[${i}].type`, light.type);
                 shader.u1b(`u_light[${i}].enabled`, light.enabled);
                 shader.uvec3(`u_light[${i}].source`, light.source);
                 shader.ucolor(`u_light[${i}].color`, light.color);
+                shader.u1f(`u_light[${i}].strength`, light.strength);
+                shader.u1f(`u_light[${i}].range`, light.range);
             }
         }
 
-        const gl = Aquanore.ctx;
         const shader = this._shader;
 
         const matProjection = this.generateProjectionMatrix(camera);
@@ -135,46 +126,42 @@ export class Renderer {
         shader.umat4("u_view", matView);
         shader.umat4("u_model", matModel);
         shader.umat3("u_normal", matNormal);
+        shader.uvec3("u_camera", camera.position);
 
         // Render mesh per mesh
         for (let mesh of model.meshes) {
-            const material = mesh.material;
-
-            shader.ucolor("u_material.diffuse", material.diffuse);
-            shader.ucolor("u_material.ambient", material.ambient);
-            shader.ucolor("u_material.specular", material.specular);
-
-            if (material.diffuseMap != null) {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, material.diffuseMap.id);
-
-                shader.u1b("u_material.diffuse_map.enabled", true);
-            } else {
-                shader.u1b("u_material.diffuse_map.enabled", false);
-            }
-
-            if (material.ambientMap != null) {
-                gl.activeTexture(gl.TEXTURE1);
-                gl.bindTexture(gl.TEXTURE_2D, material.ambientMap.id);
-                
-                shader.u1b("u_material.ambient_map.enabled", true);
-            } else {
-                shader.u1b("u_material.ambient_map.enabled", false);
-            }
-
-            if (material.specularMap != null) {
-                gl.activeTexture(gl.TEXTURE2);
-                gl.bindTexture(gl.TEXTURE_2D, material.specularMap.id);
-                
-                shader.u1b("u_material.specular_map.enabled", true);
-            } else {
-                shader.u1b("u_material.specular_map.enabled", false);
-            }
-
-            gl.bindVertexArray(mesh.vao);
-            gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
-            gl.bindVertexArray(null);
+            this.drawModel_Mesh(mesh);
         }
+    }
+
+    private static drawModel_Mesh(mesh: Mesh) {
+        const gl = Aquanore.ctx;
+        const shader = this._shader;
+        const material = mesh.material;
+
+        if (material instanceof BasicMaterial) {
+            shader.u1i("u_material_type", 0);
+            shader.ucolor("u_material.color", material.color);
+        }
+
+        if (material instanceof StandardMaterial) {
+            shader.u1i("u_material_type", 1);
+            shader.ucolor("u_material.color", material.color);
+            shader.ucolor("u_material.ambient", material.ambient);
+
+            if (material.map != null) {
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, material.map.id);
+
+                shader.u1b("u_material.tex_active", true);
+            } else {
+                shader.u1b("u_material.tex_active", false);
+            }
+        }
+
+        gl.bindVertexArray(mesh.vao);
+        gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
+        gl.bindVertexArray(null);
     }
 
     /* HELPER FUNCTIONS */
@@ -210,7 +197,7 @@ export class Renderer {
     private static generateNormalMatrix(mat: Matrix4): Matrix3 {
         const inversed = Matrix4.inverse(mat);
         const transposed = Matrix4.transpose(inversed);
-        
+
         const result = Matrix3.from(transposed);
         return result;
     }

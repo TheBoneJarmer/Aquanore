@@ -1,5 +1,5 @@
-import {Polygon} from "./polygon";
-import {Texture} from "./texture";
+import { Polygon } from "./polygon";
+import { Texture } from "./texture";
 
 export class Sprite {
     private _poly: Polygon = null;

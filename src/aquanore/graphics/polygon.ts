@@ -1,4 +1,4 @@
-import { Aquanore } from "./aquanore";
+import { Aquanore } from "../aquanore";
 
 export class Polygon {
     private readonly _vertices: number[];

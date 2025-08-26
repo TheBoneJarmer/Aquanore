@@ -1,5 +1,4 @@
-import { Quaternion } from "./quaternion";
-import { Vector3 } from "./vector3";
+import { Vector3 } from "../math";
 
 export class Camera {
     private _position: Vector3;

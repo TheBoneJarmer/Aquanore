@@ -1,11 +1,11 @@
-import {Aquanore} from "./aquanore";
+import {Aquanore} from "../aquanore";
 
 export class Texture {
-    private _image: HTMLImageElement = null;
-    private _id: WebGLTexture = null;
-    private _onLoad: Function = null;
+    private _image: HTMLImageElement | null = null;
+    private _id: WebGLTexture | null = null;
+    private _onLoad: Function | null = null;
 
-    public get id(): WebGLTexture {
+    public get id(): WebGLTexture | null {
         return this._id;
     }
 

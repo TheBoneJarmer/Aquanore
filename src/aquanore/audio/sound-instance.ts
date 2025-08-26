@@ -1,4 +1,4 @@
-import { SoundStatus } from "./enums";
+import { SoundStatus } from "../enums";
 
 export class SoundInstance {
     private _srcNode: AudioBufferSourceNode;

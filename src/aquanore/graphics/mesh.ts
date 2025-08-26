@@ -1,6 +1,6 @@
-import { Aquanore } from "./aquanore";
-import { Material } from "./material";
-import { Vector3 } from "./vector3";
+import { Aquanore } from "../aquanore";
+import { Vector3 } from "../math";
+import { Material, BasicMaterial } from "./materials";
 
 export class Mesh {
     private _vertices: number[];
@@ -116,7 +116,7 @@ export class Mesh {
         this._texcoords = texcoords;
         this._normals = normals;
         this._indices = indices;
-        this._material = new Material();
+        this._material = new BasicMaterial();
 
         this.generateBuffers();
     }

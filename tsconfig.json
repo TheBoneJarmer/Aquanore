@@ -1,16 +1,15 @@
 {
-  "compilerOptions": {   
-    "module": "esnext",
+  "compilerOptions": {
     "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "outDir": "dist",
     "strict": true,
-    "esModuleInterop": true,
     "strictNullChecks": false,
     "declaration": true,
     "sourceMap": true,
-    "removeComments": true,
   },
   "include": [
-    "src/aquanore/*"
+    "src/aquanore/*", "src/aquanore/graphics/camera.ts", "src/aquanore/graphics/light.ts", "src/aquanore/graphics/mesh.ts", "src/aquanore/graphics/sprite.ts", "src/aquanore/graphics/materials", "src/aquanore/graphics/renderer.ts",
   ]
 }

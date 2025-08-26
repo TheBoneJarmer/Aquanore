@@ -1,14 +1,9 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { Color } from "../../aquanore/color";
-import { Cursor } from "../../aquanore/cursor";
-import { Renderer } from "../../aquanore/renderer";
-import { Sprite } from "../../aquanore/sprite";
-import { Vector2 } from "../../aquanore/vector2";
-import { Sound } from "../../aquanore/sound";
-import { SoundInstance } from "../../aquanore/sound-instance";
-import { Audio } from "../../aquanore/audio";
-import { Keyboard } from "../../aquanore/keyboard";
+import { Audio, Sound, SoundInstance } from "../../aquanore/audio";
 import { Keys } from "../../aquanore/enums";
+import { Color, Sprite,Renderer } from "../../aquanore/graphics";
+import { Cursor, Keyboard } from "../../aquanore/input";
+import { Vector2 } from "../../aquanore/math";
 
 let voice: Sound;
 let ambient: Sound;

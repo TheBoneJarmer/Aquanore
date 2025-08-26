@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 
 const files = await ls("./shaders");
-const dest = "./src/aquanore/shader-sources.ts";
+const dest = "./src/aquanore/graphics/shaders/shader-sources.ts";
 
 await rm(dest);
 await write("export class ShaderSources {");

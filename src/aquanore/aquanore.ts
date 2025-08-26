@@ -1,9 +1,7 @@
-import { Keyboard } from "./keyboard";
-import { Shaders } from "./shaders";
-import { Renderer } from "./renderer";
-import { Cursor } from "./cursor";
-import { Color } from "./color";
-import { Joystick } from "./joystick";
+import { Renderer } from "./graphics/renderer";
+import { Color } from "./graphics";
+import { Shaders } from "./graphics/shaders";
+import { Joystick, Keyboard, Cursor } from "./input";
 
 export class AquanoreOptions {
     public autoResize: boolean = true;
@@ -52,9 +50,9 @@ export class Aquanore {
 
         Keyboard.init();
         Shaders.init();
-        Renderer.init();
         Cursor.init();
         Joystick.init();
+        Renderer.reset();
     }
 
     private static initCanvas() {
@@ -130,6 +128,8 @@ export class Aquanore {
             
             await this.onRender2D();
         }
+
+        Renderer.reset();
     }
 
     private static async callback(time: number) {

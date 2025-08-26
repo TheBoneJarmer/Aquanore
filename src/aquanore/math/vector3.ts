@@ -1,4 +1,4 @@
-import { IClonable } from "./interfaces/iclonable";
+import { IClonable } from "../interfaces/iclonable";
 
 export class Vector3 implements IClonable<Vector3> {
     public static readonly ZERO = new Vector3(0, 0, 0);

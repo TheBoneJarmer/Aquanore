@@ -1,9 +1,6 @@
-import { Aquanore } from "./aquanore";
-import { Color } from "./color";
-import { Matrix3 } from "./matrix3";
-import { Matrix4 } from "./matrix4";
-import { Vector2 } from "./vector2";
-import { Vector3 } from "./vector3";
+import { Aquanore } from "../../aquanore";
+import { Matrix3, Matrix4, Vector3, Vector2 } from "../../math";
+import { Color } from "../color";
 
 export class Shader {
     private readonly _program: WebGLProgram;
