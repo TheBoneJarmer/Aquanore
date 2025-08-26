@@ -52,5 +52,3 @@ Aquanore.onRender2D = () => {
 
     Renderer.drawSprite(sprite, new Vector2(x, y), new Vector2(1, 1), new Vector2(0, 0), 0, 0, 0, false, false, new Color(255, 255, 255, 255));
 };
-
-Aquanore.run();

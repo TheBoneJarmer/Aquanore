@@ -33,6 +33,11 @@
   },
 
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./enums": "./dist/enums/index.js",
+    "./graphics": "./dist/graphics/index.js",
+    "./input": "./dist/input/index.js",
+    "./interfaces": "./dist/interfaces/index.js",
+    "./math": "./dist/math/index.js"
   }
 }

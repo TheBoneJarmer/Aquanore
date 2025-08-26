@@ -24,5 +24,3 @@ Aquanore.onRender2D = () => {
 
     Renderer.drawPolygon(poly, pos, scale, origin, angle, color);
 };
-
-Aquanore.run();

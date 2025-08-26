@@ -74,5 +74,3 @@ Aquanore.onRender3D = () => {
     Renderer.drawModel(modelRock, cam, lights, pos, rot, scale);
     Renderer.drawModel(modelLight, cam, lights, lights[0].source, Vector3.ZERO, Vector3.ONE);
 };
-
-Aquanore.run();

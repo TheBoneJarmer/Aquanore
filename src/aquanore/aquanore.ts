@@ -38,15 +38,17 @@ export class Aquanore {
 
     }
 
-    public static init(options?: AquanoreOptions) {
+    public static async init(options?: AquanoreOptions) {
         this._options = new AquanoreOptions();
+        this._lastTime = 0;
 
         if (options != undefined) {
             this._options = options;
         }
 
-        this.initCanvas();
-        this.initListeners();
+        await this.initCanvas();
+        await this.initListeners();
+        await this.initCallback();
 
         Keyboard.init();
         Shaders.init();
@@ -55,7 +57,7 @@ export class Aquanore {
         Renderer.reset();
     }
 
-    private static initCanvas() {
+    private static async initCanvas() {
         this._canvas = document.createElement("canvas");
         this._canvas.style.touchAction = "none";
         this._canvas.width = this._options.width;
@@ -64,7 +66,7 @@ export class Aquanore {
         document.body.appendChild(this._canvas);
     }
 
-    private static initListeners() {
+    private static async initListeners() {
         window.addEventListener("resize", (e) => {
             if (this._options.autoResize) {
                 this._canvas.width = window.innerWidth;
@@ -77,7 +79,7 @@ export class Aquanore {
         });
     }
 
-    public static async run() {
+    private static async initCallback() {
         this._lastTime = 0;
 
         if (this.onLoad != null) {
