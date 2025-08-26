@@ -1,6 +1,6 @@
 {
   "name": "aquanore",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Aquanore is a light-weight 2D WebGL framework covering the utmost basics for a HTML5 game",
   "author": "Ruben Labruyere",
   "license": "MIT",
@@ -39,5 +39,11 @@
     "./input": "./dist/input/index.js",
     "./interfaces": "./dist/interfaces/index.js",
     "./math": "./dist/math/index.js"
-  }
+  },
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ]
 }
