@@ -7,9 +7,7 @@ import { MathHelper, Vector3 } from "../../aquanore/math";
 let modelRock: Model = null;
 let modelLight: Model = null;
 let cam: Camera = null;
-
 let lights: Light[] = [];
-
 let angle: number = 0;
 
 Aquanore.init();
