@@ -198,10 +198,9 @@ export class Matrix4 implements IClonable<Matrix4> {
         return result;
     }
 
-    public static rotateX(m: Matrix4, radians: number): Matrix4 {
-        const d = MathHelper.degrees(radians);
-        const sin = Math.sin(d);
-        const cos = Math.cos(d);
+    public static rotateX(m: Matrix4, angle: number): Matrix4 {
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
 
         const m2y2 = cos, m2z2 = sin;
         const m2y3 = -sin, m2z3 = cos;
@@ -223,10 +222,9 @@ export class Matrix4 implements IClonable<Matrix4> {
         return result;
     }
 
-    public static rotateY(m: Matrix4, radians: number): Matrix4 {
-        const d = MathHelper.degrees(radians);
-        const sin = Math.sin(d);
-        const cos = Math.cos(d);
+    public static rotateY(m: Matrix4, angle: number): Matrix4 {
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
 
         const m2x1 = cos, m2z1 = -sin;
         const m2x3 = sin, m2c3 = cos;
@@ -248,10 +246,9 @@ export class Matrix4 implements IClonable<Matrix4> {
         return result;
     }
 
-    public static rotateZ(m: Matrix4, radians: number): Matrix4 {
-        const d = MathHelper.degrees(radians);
-        const sin = Math.sin(d);
-        const cos = Math.cos(d);
+    public static rotateZ(m: Matrix4, angle: number): Matrix4 {
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
 
         const m2x1 = cos, m2y1 = sin;
         const m2x2 = -sin, m2y2 = cos;

@@ -17,5 +17,3 @@ Aquanore.onRender2D = () => {
 Aquanore.onRender3D = () => {
 
 };
-
-Aquanore.run();

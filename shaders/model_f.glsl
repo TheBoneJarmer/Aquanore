@@ -41,7 +41,7 @@ vec3 calc_dir_light(Light light) {
     vec3 light_dir = normalize(light.source);
     float light_diff = max(dot(normal, light_dir), 0.0);
 
-    vec4 ambient = u_material.ambient;
+    vec4 ambient = u_material.ambient * u_material.color;
     vec4 diffuse = u_material.color * light_diff;
 
     if(u_material.tex_active) {
@@ -51,7 +51,7 @@ vec3 calc_dir_light(Light light) {
         diffuse *= color;
     }
 
-    return (ambient + diffuse).xyz * light.color.xyz;
+    return (ambient.xyz + diffuse.xyz) * light.color.xyz;
 }
 
 vec3 calc_point_light(Light light) {
@@ -66,7 +66,7 @@ vec3 calc_point_light(Light light) {
         return vec3(0, 0, 0);
     }
 
-    vec4 ambient = u_material.ambient * light_att;
+    vec4 ambient = u_material.ambient  * u_material.color * light_att;
     vec4 diffuse = u_material.color * light_diff * light_att;
 
     if(u_material.tex_active) {
@@ -76,7 +76,7 @@ vec3 calc_point_light(Light light) {
         diffuse *= color;
     }
 
-    return (ambient + diffuse).xyz * light.color.xyz;
+    return (ambient.xyz + diffuse.xyz) * light.color.xyz;
 }
 
 void main() {

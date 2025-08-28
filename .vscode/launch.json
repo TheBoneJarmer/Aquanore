@@ -25,9 +25,18 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "03 - Cube",
+            "name": "03 - Light",
             "runtimeExecutable": "vite",
-            "cwd": "${workspaceFolder}/src/examples/03-cube",
+            "cwd": "${workspaceFolder}/src/examples/03-light",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "04 - Models",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/04-models",
             "internalConsoleOptions": "neverOpen",
             "args": []
         }

@@ -1,10 +1,9 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Texture } from "../../aquanore/graphics";
+import { Camera, Color, Light, Model, Texture, Renderer } from "../../aquanore/graphics";
 import { Keyboard } from "../../aquanore/input";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
 import { Vector3 } from "../../aquanore/math";
-import { Renderer } from "../../aquanore/graphics/renderer";
 
 let modelRock: Model = null;
 let modelLight: Model = null;
