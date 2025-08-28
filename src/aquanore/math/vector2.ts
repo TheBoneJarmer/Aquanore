@@ -20,7 +20,7 @@ export class Vector2 implements IClonable<Vector2> {
         this._y = value;
     }
 
-    public constructor(x: number, y: number) {
+    public constructor(x: number = 0, y: number = 0) {
         this._x = x;
         this._y = y;
     }
