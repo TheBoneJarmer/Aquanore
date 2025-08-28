@@ -1,4 +1,4 @@
-import { IClonable } from "../interfaces/iclonable";
+import { IClonable } from "../interfaces/clonable";
 
 export class Color implements IClonable<Color> {
     private _r: number;

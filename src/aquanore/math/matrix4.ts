@@ -1,4 +1,4 @@
-import { IClonable } from "../interfaces/iclonable";
+import { IClonable } from "../interfaces/clonable";
 import { MathHelper } from "./mathhelper";
 
 export class Matrix4 implements IClonable<Matrix4> {

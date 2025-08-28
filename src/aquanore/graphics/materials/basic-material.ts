@@ -1,7 +1,7 @@
 import { Color } from "../color";
-import { Material } from "./material";
+import { IMaterial } from "../../interfaces"
 
-export class BasicMaterial extends Material {
+export class BasicMaterial implements IMaterial {
     private _color: Color;
 
     public get color(): Color {
@@ -13,7 +13,6 @@ export class BasicMaterial extends Material {
     }
 
     constructor() {
-        super();
         this._color = new Color(255, 255, 255);
     }
 }

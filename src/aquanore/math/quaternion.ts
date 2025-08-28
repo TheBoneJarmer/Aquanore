@@ -1,4 +1,4 @@
-import { IClonable } from "../interfaces/iclonable";
+import { IClonable } from "../interfaces/clonable";
 
 export class Quaternion implements IClonable<Quaternion> {
     public static readonly EPSILON = 0.00001;

@@ -1,4 +1,4 @@
-import { IClonable } from "../interfaces/iclonable";
+import { IClonable } from "../interfaces/clonable";
 
 export class Vector2 implements IClonable<Vector2> {
     private _x: number;

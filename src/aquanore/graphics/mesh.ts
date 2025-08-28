@@ -1,6 +1,7 @@
 import { Aquanore } from "../aquanore";
+import { IMaterial } from "../interfaces";
 import { Vector3 } from "../math";
-import { Material, BasicMaterial } from "./materials";
+import { BasicMaterial } from "./materials";
 
 export class Mesh {
     private _vertices: number[];
@@ -11,7 +12,7 @@ export class Mesh {
     private _position: Vector3;
     private _rotation: Vector3;
     private _scale: Vector3;
-    private _material: Material;
+    private _material: IMaterial;
 
     private _vboVertices: WebGLBuffer = null;
     private _vboTexcoords: WebGLBuffer = null;
@@ -67,11 +68,11 @@ export class Mesh {
         this._scale = value;
     }
 
-    public get material(): Material {
+    public get material(): IMaterial {
         return this._material;
     }
 
-    public set material(value: Material) {
+    public set material(value: IMaterial) {
         if (value == null) {
             throw new Error("Material cannot be null");
         }

@@ -1,8 +1,8 @@
+import { IMaterial } from "../../interfaces";
 import { Color } from "../color";
 import { Texture } from "../texture";
-import { Material } from "./material";
 
-export class StandardMaterial extends Material {
+export class StandardMaterial implements IMaterial {
     private _color: Color;
     private _ambient: Color;
     private _map: Texture;
@@ -31,9 +31,7 @@ export class StandardMaterial extends Material {
         this._ambient = value;
     }
 
-    constructor() {
-        super();
-        
+    constructor() {       
         this._color = new Color(255, 255, 255);
         this._ambient = new Color(55, 55, 55);
         this._map = null;
