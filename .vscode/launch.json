@@ -7,9 +7,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "01 - Shapes",
+            "name": "01 - Polygons",
             "runtimeExecutable": "vite",
-            "cwd": "${workspaceFolder}/src/examples/01-shapes",
+            "cwd": "${workspaceFolder}/src/examples/01-polygons",
             "internalConsoleOptions": "neverOpen",
             "args": []
         },
@@ -34,9 +34,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "04 - Models",
+            "name": "04 - Shapes",
             "runtimeExecutable": "vite",
-            "cwd": "${workspaceFolder}/src/examples/04-models",
+            "cwd": "${workspaceFolder}/src/examples/04-shapes",
             "internalConsoleOptions": "neverOpen",
             "args": []
         }
