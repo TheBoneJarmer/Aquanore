@@ -24,6 +24,7 @@ Aquanore.onLoad = () => {
 
     lights[0] = new Light(LightType.DIRECTIONAL);
 
+    updateInfo();
     updateModel();
 };
 
@@ -35,15 +36,17 @@ Aquanore.onUpdate = (dt: number) => {
 
     if (Keyboard.keyPressed(Keys.Left) && shape > 0) {
         shape--;
+        
         updateModel();
+        updateInfo();
     }
 
     if (Keyboard.keyPressed(Keys.Right) && shape < shapes.length - 1) {
         shape++;
-        updateModel();
-    }
 
-    updateInfo();
+        updateModel();
+        updateInfo();
+    }
 };
 
 Aquanore.onRender2D = () => {
@@ -54,25 +57,43 @@ Aquanore.onRender3D = () => {
     Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
 
+window.addEventListener("load", () => {
+    const left = document.getElementById("arrow-left") as HTMLSpanElement;
+    const right = document.getElementById("arrow-right") as HTMLSpanElement;
+
+    left.onclick = () => {
+        if (shape == 0) {
+            return;
+        }
+
+        shape--;
+        updateInfo();
+        updateModel();
+    }
+
+    right.onclick = () => {
+        if (shape == shapes.length - 1) {
+            return;
+        }
+
+        shape++;
+        updateInfo();
+        updateModel();
+    }
+});
+
 function updateInfo() {
-    const el = document.getElementById("info");
-    el.innerHTML = "";
+    const left = document.getElementById("arrow-left") as HTMLSpanElement;
+    const right = document.getElementById("arrow-right") as HTMLSpanElement;
+    const title = document.getElementById("title") as HTMLSpanElement;
 
-    if (shape > 0) {
-        el.innerHTML += "<span class='arrow'><</span>";
-    } else {
-        el.innerHTML += "<span class='arrow disabled'><</span>";
+    if (!left || !right || !title) {
+        return;
     }
 
-    el.innerHTML += "<span class='title'>";
-    el.innerHTML += shapes[shape];
-    el.innerHTML += "</span>";
-
-    if (shape < shapes.length - 1) {
-        el.innerHTML += "<span class='arrow'>></span>";
-    } else {
-        el.innerHTML += "<span class='arrow disabled'>></span>";
-    }
+    left.className = shape > 0 ? "arrow" : "arrow disabled";
+    right.className = shape < shapes.length - 1 ? "arrow" : "arrow disabled";
+    title.innerHTML = shapes[shape];
 }
 
 function updateModel() {
