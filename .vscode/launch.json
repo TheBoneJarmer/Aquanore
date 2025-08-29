@@ -39,6 +39,15 @@
             "cwd": "${workspaceFolder}/src/examples/04-geometries",
             "internalConsoleOptions": "neverOpen",
             "args": []
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "05 - Models",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/05-models",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
         }
     ]
 }

@@ -84,3 +84,13 @@ export enum Keys {
     NumpadEnter,
     NumpadDecimal,
 };
+
+export enum LightType {
+    POINT = 0,
+    DIRECTIONAL = 1
+};
+
+export enum SoundStatus {
+    STOPPED,
+    PLAYING
+};
