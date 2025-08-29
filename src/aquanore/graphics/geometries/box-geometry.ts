@@ -1,28 +1,9 @@
-import { IGeometry } from "../../interfaces";
+import { IndexGeometry } from "./index-geometry";
 
-export class BoxGeometry implements IGeometry {
-    private _vertices: number[] = [];
-    private _normals: number[] = [];
-    private _uvs: number[] = [];
-    private _indices: number[] = [];
-
-    get vertices(): number[] {
-        return this._vertices;
-    }
-
-    get normals(): number[] {
-        return this._normals;
-    }
-
-    get uvs(): number[] {
-        return this._uvs;
-    }
-
-    get indices(): number[] {
-        return this._indices;
-    }
-
+export class BoxGeometry extends IndexGeometry {
     constructor(width: number = 1, height: number = 1, depth: number = 1, widthSegments: number = 1, heightSegments: number = 1, depthSegments: number = 1) {
+        super();
+
         let vertices: number[] = [];
         let normals: number[] = [];
         let uvs: number[] = [];
@@ -73,6 +54,8 @@ export class BoxGeometry implements IGeometry {
         this._normals = normals;
         this._uvs = uvs;
         this._indices = indices;
+
+        this.generateBuffers();
     }
 
     private generatePlane(u: number, v: number, w: number, udir: number, vdir: number, width: number, height: number, depth: number, gridX: number, gridY: number, totalVertices: number = 0) {

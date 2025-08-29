@@ -1,9 +1,11 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Renderer } from "../../aquanore/graphics";
+import { Camera, Color, Light, Mesh, Model, Renderer } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
+import { IGeometry } from "../../aquanore/interfaces";
 import { MathHelper, Vector3 } from "../../aquanore/math";
+import { BoxGeometry, CapsuleGeometry, ConeGeometry, CubeGeometry, CylinderGeometry, RingGeometry, SphereGeometry, TorusGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
 
 let model: Model = null;
 let cam: Camera = null;
@@ -11,8 +13,9 @@ let lights: Light[] = [];
 let pos: Vector3 = new Vector3(0, 0, 0);
 let rot: Vector3 = new Vector3(0, 0, 0);
 let scale: Vector3 = new Vector3(1, 1, 1);
-let shape: number = 0;
-let shapes: string[] = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
+
+let index: number = 0;
+let geometries: string[] = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
 
 Aquanore.init();
 
@@ -34,15 +37,15 @@ Aquanore.onUpdate = (dt: number) => {
     // rot.x += dt;
     // rot.z += dt;
 
-    if (Keyboard.keyPressed(Keys.Left) && shape > 0) {
-        shape--;
-        
+    if (Keyboard.keyPressed(Keys.Left) && index > 0) {
+        index--;
+
         updateModel();
         updateInfo();
     }
 
-    if (Keyboard.keyPressed(Keys.Right) && shape < shapes.length - 1) {
-        shape++;
+    if (Keyboard.keyPressed(Keys.Right) && index < geometries.length - 1) {
+        index++;
 
         updateModel();
         updateInfo();
@@ -62,21 +65,21 @@ window.addEventListener("load", () => {
     const right = document.getElementById("arrow-right") as HTMLSpanElement;
 
     left.onclick = () => {
-        if (shape == 0) {
+        if (index == 0) {
             return;
         }
 
-        shape--;
+        index--;
         updateInfo();
         updateModel();
     }
 
     right.onclick = () => {
-        if (shape == shapes.length - 1) {
+        if (index == geometries.length - 1) {
             return;
         }
 
-        shape++;
+        index++;
         updateInfo();
         updateModel();
     }
@@ -91,24 +94,29 @@ function updateInfo() {
         return;
     }
 
-    left.className = shape > 0 ? "arrow" : "arrow disabled";
-    right.className = shape < shapes.length - 1 ? "arrow" : "arrow disabled";
-    title.innerHTML = shapes[shape];
+    left.className = index > 0 ? "arrow" : "arrow disabled";
+    right.className = index < geometries.length - 1 ? "arrow" : "arrow disabled";
+    title.innerHTML = geometries[index];
 }
 
 function updateModel() {
-    const mat = new StandardMaterial();
+    let mat = new StandardMaterial();
     mat.color = new Color(35, 200, 35);
 
-    if (shape == 0) model = Model.cube();
-    if (shape == 1) model = Model.box(2, 1, 1);
-    if (shape == 2) model = Model.sphere();
-    if (shape == 3) model = Model.capsule();
-    if (shape == 4) model = Model.cylinder(1, 1, 2, 32, 1, false);
-    if (shape == 5) model = Model.cone();
-    if (shape == 6) model = Model.torus();
-    if (shape == 7) model = Model.torusKnot();
-    if (shape == 8) model = Model.ring();
+    let geom: IGeometry = null;
 
-    model.meshes[0].material = mat;
+    if (index == 0) geom = new CubeGeometry();
+    if (index == 1) geom = new BoxGeometry(2, 1, 1);
+    if (index == 2) geom = new SphereGeometry();
+    if (index == 3) geom = new CapsuleGeometry();
+    if (index == 4) geom = new CylinderGeometry(1, 1, 2, 32, 1, false);
+    if (index == 5) geom = new ConeGeometry();
+    if (index == 6) geom = new TorusGeometry();
+    if (index == 7) geom = new TorusKnotGeometry();
+    if (index == 8) geom = new RingGeometry();
+
+    const mesh = new Mesh(geom, mat);
+
+    model = new Model();
+    model.meshes[0] = mesh;
 }
