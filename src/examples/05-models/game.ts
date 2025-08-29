@@ -16,8 +16,8 @@ Aquanore.init();
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -3;
-    cam.position.y = -2;
+    cam.position.z = -10;
+    cam.position.y = -8;
     cam.rotation.x = MathHelper.radians(35);
 
     lights[0] = new Light(LightType.DIRECTIONAL);

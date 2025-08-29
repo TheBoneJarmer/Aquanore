@@ -1,20 +1,23 @@
 import { Gltf, GltfBuffer, GltfMeshNode, GltfNode } from "../types";
 import { ILoader } from "../interfaces";
-import { Model } from "../graphics";
+import { Mesh, Model } from "../graphics";
+import { Aquanore } from "../aquanore";
+import { RawIndexGeometry } from "../graphics/geometries";
+import { StandardMaterial } from "../graphics/materials";
 
 export class GltfLoader implements ILoader<Model> {
     private _result: Model;
     private _gltf: Gltf;
-    private _buffers: Blob[];
+    private _buffers: ArrayBuffer[];
 
     public async load(path: string): Promise<Model> {
         this._result = new Model();
         this._buffers = [];
 
         if (path.endsWith(".gltf")) {
-            this.loadGltf(path);
+            await this.loadGltf(path);
         } else if (path.endsWith(".glb")) {
-            this.loadGlb(path);
+            await this.loadGlb(path);
         } else {
             throw new Error("Unsupported model format");
         }
@@ -50,14 +53,14 @@ export class GltfLoader implements ILoader<Model> {
     private async parse() {
         const scene = this._gltf.scenes[this._gltf.scene];
 
+        for (let b of this._gltf.buffers) {
+            await this.parseBuffer(b);
+        }
+
         for (let n of scene.nodes) {
             const node = this._gltf.nodes[n];
 
             await this.traverseNode(node);
-        }
-
-        for (let b of this._gltf.buffers) {
-            await this.parseBuffer(b);
         }
     }
 
@@ -70,10 +73,8 @@ export class GltfLoader implements ILoader<Model> {
             const res = await fetch(uri);
 
             if (res.ok) {
-                const blob = await res.blob();
-                this._buffers.push(blob);
-
-                
+                const buffer = await res.arrayBuffer();
+                this._buffers.push(buffer);
             } else {
                 throw new Error("Failed to load buffer from file");
             }
@@ -102,17 +103,47 @@ export class GltfLoader implements ILoader<Model> {
         const obj = this._gltf.meshes[node.mesh];
 
         for (let primitive of obj.primitives) {
-            const vertices: number[] = [];
-            const normals: number[] = [];
-            const uvs: number[] = [];
-            const indices: number[] = [];
+            const vertices = this.getBufferArray(primitive.attributes.POSITION);
+            const normals = this.getBufferArray(primitive.attributes.NORMAL);
+            const uvs = this.getBufferArray(primitive.attributes.TEXCOORD_0);
+            const indices = this.getBufferArray(primitive.indices);
 
-            const accVertices = this._gltf.accessors[primitive.attributes.POSITION];
-            const accNormal = this._gltf.accessors[primitive.attributes.NORMAL];
-            const accUvs = this._gltf.accessors[primitive.attributes.TEXCOORD_0];
-            const accIndices = this._gltf.accessors[primitive.indices];
+            const geom = new RawIndexGeometry(vertices, normals, uvs, indices);
+            const mat = new StandardMaterial();
+            const mesh = new Mesh(geom ,mat);
+
+            this._result.meshes.push(mesh);
         }
     }
 
     /* HELPER FUNCTIONS */
+    private getBufferArray(accesorIndex: number): number[] {
+        const gl = Aquanore.ctx;
+        const accesor = this._gltf.accessors[accesorIndex];
+        const bufferView = this._gltf.bufferViews[accesor.bufferView];
+
+        const offset = accesor.byteOffset ?? 0 + bufferView.byteOffset;
+        const length = bufferView.byteLength;
+        const buffer = this._buffers[bufferView.buffer].slice(offset, offset + length);
+
+        if (accesor.componentType == gl.FLOAT) {
+            return Array.from(new Float32Array(buffer));
+        }
+        
+        if (accesor.componentType == gl.UNSIGNED_SHORT) {
+            return Array.from(new Uint16Array(buffer));
+        }
+
+        return [];
+    }
+
+    private getBuffer(accesorIndex: number): ArrayBuffer {
+        const accesor = this._gltf.accessors[accesorIndex];
+        const bufferView = this._gltf.bufferViews[accesor.bufferView];
+
+        const offset = accesor.byteOffset ?? 0 + bufferView.byteOffset;
+        const length = bufferView.byteLength;
+
+        return this._buffers[bufferView.buffer].slice(offset, offset + length);
+    }
 }

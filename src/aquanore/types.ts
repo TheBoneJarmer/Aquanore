@@ -3,6 +3,7 @@ export type GltfScalar = [number];
 export type GltfVector = [number, number, number];
 export type GltfQuaternion = [number, number, number, number];
 export type GltfMatrix = [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number];
+export type GltfAccessorType = "VEC2" | "VEC3" | "SCALAR";
 
 export type GltfAsset = {
     generator: string;
@@ -71,8 +72,6 @@ export type GltfMesh = {
     primitives: GltfPrimitive[];
 };
 
-export type GltfAccessorType = "VEC2" | "VEC3" | "SCALAR";
-
 export type GltfAccessor = {
     bufferView: number;
     componentType: number;
@@ -80,6 +79,7 @@ export type GltfAccessor = {
     max: GltfScalar | GltfVector | GltfQuaternion;
     min: GltfScalar | GltfVector | GltfQuaternion;
     type: GltfAccessorType;
+    byteOffset: number;
 };
 
 export type GltfBufferView = {
