@@ -36,6 +36,8 @@ uniform int u_material_type;
 varying vec3 v_vertex;
 varying vec3 v_normal;
 varying vec2 v_texcoord;
+varying vec3 v_tangent;
+varying vec3 v_bitangent;
 varying vec3 v_frag;
 
 vec3 calc_dir_light(Light light) {

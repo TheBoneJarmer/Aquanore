@@ -41,6 +41,7 @@ export class RawIndexGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
+        this.generateTangents();
         this.generateBuffers();
     }
 }

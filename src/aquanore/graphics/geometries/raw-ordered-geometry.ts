@@ -40,6 +40,7 @@ export class RawOrderedGeometry extends OrderedGeometry {
         this._normals = normals;
         this._uvs = uvs;
 
+        this.generateTangents();
         this.generateBuffers();
     }
 }

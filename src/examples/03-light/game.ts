@@ -3,7 +3,7 @@ import { LightType } from "../../aquanore/enums";
 import { Camera, Color, Light, Model, Texture, Renderer, Mesh, MeshPrimitive } from "../../aquanore/graphics";
 import { SphereGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
-import { MathHelper, Matrix3, Vector3 } from "../../aquanore/math";
+import { MathHelper, Vector3 } from "../../aquanore/math";
 
 let modelRock: Model = null;
 let modelLight: Model = null;

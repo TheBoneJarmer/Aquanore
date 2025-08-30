@@ -63,6 +63,7 @@ export class RingGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
+        this.generateTangents();
         this.generateBuffers();
     }
 }

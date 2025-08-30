@@ -12,10 +12,14 @@ export abstract class OrderedGeometry implements IGeometry {
     protected _vertices: number[];
     protected _uvs: number[];
     protected _normals: number[];
+    protected _tangents: number[];
+    protected _bitangents: number[];
 
     private _vboVertices: WebGLBuffer;
     private _vboTexcoords: WebGLBuffer;
     private _vboNormals: WebGLBuffer;
+    private _vboTangents: WebGLBuffer;
+    private _vboBitangents: WebGLBuffer;
     private _vao: WebGLVertexArrayObject;
 
     get vao(): WebGLVertexArrayObject {
@@ -34,6 +38,18 @@ export abstract class OrderedGeometry implements IGeometry {
         return this._uvs;
     }
 
+    get tangents(): number[] {
+        return this._tangents;
+    }
+
+    get bitangents(): number[] {
+        return this._bitangents;
+    }
+
+    protected generateTangents() {
+
+    }
+
     protected generateBuffers() {
         const gl = Aquanore.ctx;
 
@@ -41,6 +57,8 @@ export abstract class OrderedGeometry implements IGeometry {
         this._vboVertices = gl.createBuffer();
         this._vboTexcoords = gl.createBuffer();
         this._vboNormals = gl.createBuffer();
+        this._vboTangents = gl.createBuffer();
+        this._vboBitangents = gl.createBuffer();
 
         gl.bindVertexArray(this._vao);
 
@@ -58,6 +76,16 @@ export abstract class OrderedGeometry implements IGeometry {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._uvs), gl.STATIC_DRAW);
         gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(2);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboTangents);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._tangents), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(3);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboBitangents);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._bitangents), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(4);
 
         gl.bindVertexArray(null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);

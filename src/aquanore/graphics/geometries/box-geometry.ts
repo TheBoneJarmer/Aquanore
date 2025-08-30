@@ -55,6 +55,7 @@ export class BoxGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
+        this.generateTangents();
         this.generateBuffers();
     }
 

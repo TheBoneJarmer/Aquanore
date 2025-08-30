@@ -11,10 +11,14 @@ export abstract class IndexGeometry implements IGeometry {
     protected _uvs: number[];
     protected _normals: number[];
     protected _indices: number[];
+    protected _tangents: number[];
+    protected _bitangents: number[];
 
     private _vboVertices: WebGLBuffer;
-    private _vboTexcoords: WebGLBuffer;
+    private _vboUvs: WebGLBuffer;
     private _vboNormals: WebGLBuffer;
+    private _vboTangents: WebGLBuffer;
+    private _vboBitangents: WebGLBuffer;
     private _vao: WebGLVertexArrayObject;
     private _ebo: WebGLBuffer;
 
@@ -38,14 +42,28 @@ export abstract class IndexGeometry implements IGeometry {
         return this._indices;
     }
 
+    get tangents(): number[] {
+        return this._tangents;
+    }
+
+    get bitangents(): number[] {
+        return this._bitangents;
+    }
+
+    protected generateTangents() {
+        
+    }
+
     protected generateBuffers() {
         const gl = Aquanore.ctx;
 
         this._vao = gl.createVertexArray();
         this._ebo = gl.createBuffer();
         this._vboVertices = gl.createBuffer();
-        this._vboTexcoords = gl.createBuffer();
+        this._vboUvs = gl.createBuffer();
         this._vboNormals = gl.createBuffer();
+        this._vboTangents = gl.createBuffer();
+        this._vboBitangents = gl.createBuffer();
 
         gl.bindVertexArray(this._vao);
 
@@ -59,10 +77,20 @@ export abstract class IndexGeometry implements IGeometry {
         gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(1);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboTexcoords);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboUvs);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._uvs), gl.STATIC_DRAW);
         gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(2);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboTangents);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._tangents), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(3);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vboBitangents);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._bitangents), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(4);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._ebo);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices), gl.STATIC_DRAW);

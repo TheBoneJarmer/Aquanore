@@ -83,6 +83,7 @@ export class SphereGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
+        this.generateTangents();
         this.generateBuffers();
     }
 }
