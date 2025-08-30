@@ -88,7 +88,8 @@ export class GltfLoader implements ILoader<Model> {
             return;
         }
 
-        for (let child of node.children) {
+        for (let index of node.children) {
+            let child = this._gltf.nodes[index];
             await this.traverseNode(child);
         }
     }

@@ -45,4 +45,21 @@ export class Vector2 implements IClonable<Vector2> {
 
         return theta;
     }
+
+    /* BASIC MATH */
+    public static add(v1: Vector2, v2: Vector2): Vector2 {
+        return new Vector2(v1.x + v2.x, v1.y + v2.y,);
+    }
+
+    public static sub(v1: Vector2, v2: Vector2): Vector2 {
+        return new Vector2(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    public static mult(v1: Vector2, v2: Vector2): Vector2 {
+        return new Vector2(v1.x * v2.x, v1.y * v2.y);
+    }
+
+    public static div(v1: Vector2, v2: Vector2): Vector2 {
+        return new Vector2(v1.x / v2.x, v1.y / v2.y);
+    }
 }

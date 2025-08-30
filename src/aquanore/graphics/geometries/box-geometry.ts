@@ -1,6 +1,6 @@
-import { IndexGeometry } from "./index-geometry";
+import { Geometry } from "./geometry";
 
-export class BoxGeometry extends IndexGeometry {
+export class BoxGeometry extends Geometry {
     constructor(width: number = 1, height: number = 1, depth: number = 1, widthSegments: number = 1, heightSegments: number = 1, depthSegments: number = 1) {
         super();
 
@@ -55,7 +55,7 @@ export class BoxGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 

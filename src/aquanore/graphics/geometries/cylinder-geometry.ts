@@ -1,7 +1,7 @@
 import { Vector2, Vector3 } from "../../math";
-import { IndexGeometry } from "./index-geometry";
+import { Geometry } from "./geometry";
 
-export class CylinderGeometry extends IndexGeometry {
+export class CylinderGeometry extends Geometry {
     constructor(radiusTop: number = 1, radiusBottom: number = 1, height: number = 1, radialSegments: number = 32, heightSegments: number = 1, openEnded: boolean = false) {
         super();
 
@@ -49,7 +49,7 @@ export class CylinderGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 

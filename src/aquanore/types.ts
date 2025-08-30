@@ -22,7 +22,7 @@ export type GltfNode = {
     rotation: GltfQuaternion;
     scale: GltfVector;
     matrix: GltfMatrix;
-    children: GltfNode[];
+    children: number[];
 };
 
 export type GltfMeshNode = GltfNode & {

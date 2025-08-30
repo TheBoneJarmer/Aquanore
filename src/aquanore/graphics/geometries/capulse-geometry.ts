@@ -1,7 +1,7 @@
 import { Vector3 } from "../../math";
-import { IndexGeometry } from "./index-geometry";
+import { Geometry } from "./geometry";
 
-export class CapsuleGeometry extends IndexGeometry {
+export class CapsuleGeometry extends Geometry {
     constructor(radius: number = 1, height: number = 1, capSegments: number = 16, radialSegments: number = 32, heightSegments: number = 1) {
         super();
         
@@ -123,7 +123,7 @@ export class CapsuleGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 }

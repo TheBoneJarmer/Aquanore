@@ -1,7 +1,7 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { LightType } from "../../aquanore/enums";
 import { Camera, Color, Light, Model, Texture, Renderer, Mesh, MeshPrimitive } from "../../aquanore/graphics";
-import { SphereGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
+import { CubeGeometry, SphereGeometry, TorusGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 
@@ -15,25 +15,25 @@ Aquanore.init();
 
 Aquanore.onLoad = () => {
     const matRock = new StandardMaterial();
-    matRock.colorMap = new Texture("./rock.png");
-    matRock.normalMap = new Texture("./rock_normal.png");
+    matRock.colorMap = new Texture("rock.png");
+    matRock.normalMap = new Texture("rock_normal.png");
 
     const matLight = new BasicMaterial();
     matLight.color = new Color(255, 255, 255);
 
-    const priTorusKnot = new MeshPrimitive(new TorusKnotGeometry(), matRock);
+    const priRock = new MeshPrimitive(new TorusGeometry(), matRock);
     const priSphere = new MeshPrimitive(new SphereGeometry(0.1), matLight);
 
     modelRock = new Model();
     modelRock.meshes[0] = new Mesh();
-    modelRock.meshes[0].primitives.push(priTorusKnot);
+    modelRock.meshes[0].primitives.push(priRock);
 
     modelLight = new Model();
     modelLight.meshes[0] = new Mesh();
     modelLight.meshes[0].primitives.push(priSphere);
 
     lights[0] = new Light(LightType.POINT);
-    lights[0].source = new Vector3(0, 0, 0);
+    lights[0].source = new Vector3(-1, 0, -1);
 
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000.0);
 };
@@ -41,10 +41,11 @@ Aquanore.onLoad = () => {
 Aquanore.onUpdate = (dt: number) => {
     cam.position.z = -5;
     cam.aspect = innerWidth / innerHeight;
+
     angle++;
 
-    lights[0].source.x += Math.cos(MathHelper.radians(angle)) * dt;
-    lights[0].source.z += Math.sin(MathHelper.radians(angle)) * dt;
+    lights[0].source.x += Math.cos(MathHelper.radians(angle)) * dt * 2;
+    lights[0].source.z += Math.sin(MathHelper.radians(angle)) * dt * 2;
 };
 
 Aquanore.onRender2D = () => {
@@ -53,7 +54,7 @@ Aquanore.onRender2D = () => {
 
 Aquanore.onRender3D = () => {
     const pos = new Vector3();
-    const rot = new Vector3();
+    const rot = new Vector3(0, MathHelper.radians(angle / 5), 0);
     const scale = new Vector3(1, 1, 1);
 
     Renderer.drawModel(modelRock, cam, lights, pos, rot, scale);

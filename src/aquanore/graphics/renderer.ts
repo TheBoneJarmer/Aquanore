@@ -2,7 +2,7 @@ import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Vector3, Matrix3, Matrix4 } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
 import { Camera, Color, Light, Mesh, Model, Polygon, Sprite, Texture } from ".";
-import { IndexGeometry, OrderedGeometry } from "./geometries";
+import { Geometry } from "./geometries";
 import { Shader, Shaders } from "./shaders";
 
 export class Renderer {
@@ -159,6 +159,7 @@ export class Renderer {
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, material.colorMap.id);
 
+                    shader.u1i("u_material.color_map", 0);
                     shader.u1b("u_material.color_map_active", true);
                 }
 
@@ -166,20 +167,14 @@ export class Renderer {
                     gl.activeTexture(gl.TEXTURE1);
                     gl.bindTexture(gl.TEXTURE_2D, material.normalMap.id);
 
+                    shader.u1i("u_material.normal_map", 1);
                     shader.u1b("u_material.normal_map_active", true);
                 }
             }
 
             gl.bindVertexArray(geom.vao);
-
-            if (geom instanceof IndexGeometry) {
-                gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
-            }
-
-            if (geom instanceof OrderedGeometry) {
-                gl.drawArrays(gl.TRIANGLES, 0, geom.vertices.length / 3);
-            }
-
+            gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            // gl.drawArrays(gl.TRIANGLES, 0, geom.vertices.length / 3);
             gl.bindVertexArray(null);
         }
     }

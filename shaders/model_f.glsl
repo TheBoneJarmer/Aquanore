@@ -36,16 +36,16 @@ uniform int u_material_type;
 varying vec3 v_vertex;
 varying vec3 v_normal;
 varying vec2 v_texcoord;
-varying vec3 v_tangent;
-varying vec3 v_bitangent;
+varying mat3 v_tbn;
 varying vec3 v_frag;
 
 vec3 calc_dir_light(Light light) {
     vec3 normal = normalize(v_normal);
 
-    if (u_material.normal_map_active) {
+    if(u_material.normal_map_active) {
         normal = texture2D(u_material.normal_map, v_texcoord).rgb;
-        normal = normalize(normal * 2.0 - 1.0);
+        normal = normal * 2.0 - 1.0;
+        normal = normalize(v_tbn * normal);
     }
 
     vec3 light_dir = normalize(light.source);
@@ -67,9 +67,10 @@ vec3 calc_dir_light(Light light) {
 vec3 calc_point_light(Light light) {
     vec3 normal = normalize(v_normal);
 
-    if (u_material.normal_map_active) {
+    if(u_material.normal_map_active) {
         normal = texture2D(u_material.normal_map, v_texcoord).rgb;
-        normal = normalize(normal * 2.0 - 1.0);
+        normal = normal * 2.0 - 1.0;
+        normal = normalize(v_tbn * normal);
     }
 
     vec3 light_dir = normalize(light.source - v_frag);
@@ -82,7 +83,7 @@ vec3 calc_point_light(Light light) {
         return vec3(0, 0, 0);
     }
 
-    vec4 ambient = u_material.ambient  * u_material.color * light_att;
+    vec4 ambient = u_material.ambient * u_material.color * light_att;
     vec4 diffuse = u_material.color * light_diff * light_att;
 
     if(u_material.color_map_active) {

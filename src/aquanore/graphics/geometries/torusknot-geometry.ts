@@ -1,8 +1,8 @@
 import { Vector3 } from '../../math';
-import { IndexGeometry } from './index-geometry';
+import { Geometry } from './geometry';
 
-export class TorusKnotGeometry extends IndexGeometry {
-    constructor(radius: number = 1, tube: number = 0.4, tubularSegments: number = 64, radialSegments: number = 8, p: number = 2, q: number = 3) {
+export class TorusKnotGeometry extends Geometry {
+    constructor(radius: number = 1, tube: number = 0.4, tubularSegments: number = 256, radialSegments: number = 32, p: number = 2, q: number = 3) {
         super();
 
         let vertices: number[] = [];
@@ -69,7 +69,7 @@ export class TorusKnotGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 

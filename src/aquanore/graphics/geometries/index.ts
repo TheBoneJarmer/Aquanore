@@ -8,7 +8,5 @@ export * from "./sphere-geometry";
 export * from "./torus-geometry";
 export * from "./torusknot-geometry";
 
-export * from "./index-geometry";
-export * from "./ordered-geometry";
-export * from "./raw-index-geometry";
-export * from "./raw-ordered-geometry";
+export * from "./geometry";
+export * from "./raw-geometry";

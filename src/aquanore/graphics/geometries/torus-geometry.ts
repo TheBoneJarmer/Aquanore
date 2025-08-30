@@ -1,7 +1,7 @@
 import { Vector3 } from "../../math";
-import { IndexGeometry } from "./index-geometry";
+import { Geometry } from "./geometry";
 
-export class TorusGeometry extends IndexGeometry {
+export class TorusGeometry extends Geometry {
     constructor(radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48) {
         super();
 
@@ -61,7 +61,7 @@ export class TorusGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 }

@@ -1,7 +1,7 @@
 import { Vector2, Vector3 } from "../../math";
-import { IndexGeometry } from "./index-geometry";
+import { Geometry } from "./geometry";
 
-export class RingGeometry extends IndexGeometry {
+export class RingGeometry extends Geometry {
     constructor(innerRadius: number = 0.5, outerRadius: number = 1, thetaSegments: number = 32, phiSegments: number = 1) {
         super();
 
@@ -63,7 +63,7 @@ export class RingGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 }

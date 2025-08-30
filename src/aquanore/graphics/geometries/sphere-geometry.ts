@@ -1,7 +1,7 @@
 import { Vector3 } from "../../math";
-import { IndexGeometry } from "./index-geometry";
+import { Geometry } from "./geometry";
 
-export class SphereGeometry extends IndexGeometry {
+export class SphereGeometry extends Geometry {
     constructor(radius: number = 1, widthSegments: number = 32, heightSegments: number = 16) {
         super();
 
@@ -83,7 +83,7 @@ export class SphereGeometry extends IndexGeometry {
         this._uvs = uvs;
         this._indices = indices;
 
-        this.generateTangents();
+        this.updateArrays();
         this.generateBuffers();
     }
 }
