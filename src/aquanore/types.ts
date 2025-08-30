@@ -2,6 +2,7 @@
 export type GltfScalar = [number];
 export type GltfVector = [number, number, number];
 export type GltfQuaternion = [number, number, number, number];
+export type GltfColor = [number, number, number, number];
 export type GltfMatrix = [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number];
 export type GltfAccessorType = "VEC2" | "VEC3" | "SCALAR";
 
@@ -36,15 +37,8 @@ export type GltfSkinNode = GltfNode & {
     skin: number;
 };
 
-export type GltfColor = {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-};
-
 export type GltfPbrMetallicRoughness = {
-    baseColorFactor: GltfColor[];
+    baseColorFactor: GltfColor;
     metallicFactor: number;
     roughnessFactor: number;
 };

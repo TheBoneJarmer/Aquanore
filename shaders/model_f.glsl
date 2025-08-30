@@ -11,8 +11,10 @@ struct Material {
     vec4 color;
     vec4 ambient;
 
-    sampler2D tex;
-    bool tex_active;
+    sampler2D color_map;
+    bool color_map_active;
+    sampler2D normal_map;
+    bool normal_map_active;
 };
 
 struct Light {
@@ -38,14 +40,20 @@ varying vec3 v_frag;
 
 vec3 calc_dir_light(Light light) {
     vec3 normal = normalize(v_normal);
+
+    if (u_material.normal_map_active) {
+        normal = texture2D(u_material.normal_map, v_texcoord).rgb;
+        normal = normalize(normal * 2.0 - 1.0);
+    }
+
     vec3 light_dir = normalize(light.source);
     float light_diff = max(dot(normal, light_dir), 0.0);
 
     vec4 ambient = u_material.ambient * u_material.color;
     vec4 diffuse = u_material.color * light_diff;
 
-    if(u_material.tex_active) {
-        vec4 color = texture2D(u_material.tex, v_texcoord);
+    if(u_material.color_map_active) {
+        vec4 color = texture2D(u_material.color_map, v_texcoord);
 
         ambient *= color;
         diffuse *= color;
@@ -56,6 +64,12 @@ vec3 calc_dir_light(Light light) {
 
 vec3 calc_point_light(Light light) {
     vec3 normal = normalize(v_normal);
+
+    if (u_material.normal_map_active) {
+        normal = texture2D(u_material.normal_map, v_texcoord).rgb;
+        normal = normalize(normal * 2.0 - 1.0);
+    }
+
     vec3 light_dir = normalize(light.source - v_frag);
     float light_diff = max(dot(normal, light_dir), 0.0);
 
@@ -69,8 +83,8 @@ vec3 calc_point_light(Light light) {
     vec4 ambient = u_material.ambient  * u_material.color * light_att;
     vec4 diffuse = u_material.color * light_diff * light_att;
 
-    if(u_material.tex_active) {
-        vec4 color = texture2D(u_material.tex, v_texcoord);
+    if(u_material.color_map_active) {
+        vec4 color = texture2D(u_material.color_map, v_texcoord);
 
         ambient *= color;
         diffuse *= color;

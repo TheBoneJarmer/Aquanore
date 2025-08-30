@@ -1,9 +1,9 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Texture, Renderer, Mesh } from "../../aquanore/graphics";
+import { Camera, Color, Light, Model, Texture, Renderer, Mesh, MeshPrimitive } from "../../aquanore/graphics";
 import { SphereGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
-import { MathHelper, Vector3 } from "../../aquanore/math";
+import { MathHelper, Matrix3, Vector3 } from "../../aquanore/math";
 
 let modelRock: Model = null;
 let modelLight: Model = null;
@@ -15,16 +15,22 @@ Aquanore.init();
 
 Aquanore.onLoad = () => {
     const matRock = new StandardMaterial();
-    matRock.map = new Texture("./rock.png");
+    matRock.colorMap = new Texture("./rock.png");
+    matRock.normalMap = new Texture("./rock_normal.png");
 
     const matLight = new BasicMaterial();
     matLight.color = new Color(255, 255, 255);
 
+    const priTorusKnot = new MeshPrimitive(new TorusKnotGeometry(), matRock);
+    const priSphere = new MeshPrimitive(new SphereGeometry(0.1), matLight);
+
     modelRock = new Model();
-    modelRock.meshes[0] = new Mesh(new TorusKnotGeometry(), matRock);
+    modelRock.meshes[0] = new Mesh();
+    modelRock.meshes[0].primitives.push(priTorusKnot);
 
     modelLight = new Model();
-    modelLight.meshes[0] = new Mesh(new SphereGeometry(0.1), matLight);
+    modelLight.meshes[0] = new Mesh();
+    modelLight.meshes[0].primitives.push(priSphere);
 
     lights[0] = new Light(LightType.POINT);
     lights[0].source = new Vector3(0, 0, 0);

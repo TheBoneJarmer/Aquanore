@@ -1,6 +1,6 @@
-import { Gltf, GltfBuffer, GltfMeshNode, GltfNode } from "../types";
-import { ILoader } from "../interfaces";
-import { Mesh, Model } from "../graphics";
+import { Gltf, GltfBuffer, GltfMaterial, GltfMeshNode, GltfNode, GltfPrimitive } from "../types";
+import { ILoader, IMaterial } from "../interfaces";
+import { Mesh, MeshPrimitive, Model } from "../graphics";
 import { Aquanore } from "../aquanore";
 import { RawIndexGeometry } from "../graphics/geometries";
 import { StandardMaterial } from "../graphics/materials";
@@ -100,23 +100,37 @@ export class GltfLoader implements ILoader<Model> {
     }
 
     private async parseMeshNode(node: GltfMeshNode) {
-        const obj = this._gltf.meshes[node.mesh];
+        const objMesh = this._gltf.meshes[node.mesh];
+        const mesh = new Mesh();
 
-        for (let primitive of obj.primitives) {
-            const vertices = this.getBufferArray(primitive.attributes.POSITION);
-            const normals = this.getBufferArray(primitive.attributes.NORMAL);
-            const uvs = this.getBufferArray(primitive.attributes.TEXCOORD_0);
-            const indices = this.getBufferArray(primitive.indices);
+        for (let objPri of objMesh.primitives) {
+            const vertices = this.getBufferArray(objPri.attributes.POSITION);
+            const normals = this.getBufferArray(objPri.attributes.NORMAL);
+            const uvs = this.getBufferArray(objPri.attributes.TEXCOORD_0);
+            const indices = this.getBufferArray(objPri.indices);
 
+            const mat = this.getMaterial(objPri);
             const geom = new RawIndexGeometry(vertices, normals, uvs, indices);
-            const mat = new StandardMaterial();
-            const mesh = new Mesh(geom ,mat);
+            const pri = new MeshPrimitive(geom ,mat);
 
-            this._result.meshes.push(mesh);
+            mesh.primitives.push(pri);
         }
+
+        this._result.meshes.push(mesh);
     }
 
     /* HELPER FUNCTIONS */
+    private getMaterial(pri: GltfPrimitive): IMaterial {
+        const objMat = this._gltf.materials[pri.material];
+
+        const mat = new StandardMaterial();
+        mat.color.r = Math.round(objMat.pbrMetallicRoughness.baseColorFactor[0] * 255);
+        mat.color.g = Math.round(objMat.pbrMetallicRoughness.baseColorFactor[1] * 255);
+        mat.color.b = Math.round(objMat.pbrMetallicRoughness.baseColorFactor[2] * 255);
+        
+        return mat;
+    }
+
     private getBufferArray(accesorIndex: number): number[] {
         const gl = Aquanore.ctx;
         const accesor = this._gltf.accessors[accesorIndex];

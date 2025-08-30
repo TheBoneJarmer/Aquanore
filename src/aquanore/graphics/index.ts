@@ -2,6 +2,7 @@ export * from "./sprite";
 export * from "./polygon";
 export * from "./light";
 export * from "./mesh";
+export * from "./mesh-primitive";
 export * from "./model";
 export * from "./texture";
 export * from "./color";

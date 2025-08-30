@@ -1,6 +1,6 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Mesh, Model, Renderer } from "../../aquanore/graphics";
+import { Camera, Color, Light, Mesh, MeshPrimitive, Model, Renderer } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
 import { IGeometry } from "../../aquanore/interfaces";
@@ -115,8 +115,10 @@ function updateModel() {
     if (index == 7) geom = new TorusKnotGeometry();
     if (index == 8) geom = new RingGeometry();
 
-    const mesh = new Mesh(geom, mat);
+    const pri = new MeshPrimitive(geom, mat);
+    const mesh = new Mesh();
+    mesh.primitives.push(pri);
 
     model = new Model();
-    model.meshes[0] = mesh;
+    model.meshes.push(mesh);
 }

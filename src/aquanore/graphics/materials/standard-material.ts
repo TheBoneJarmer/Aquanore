@@ -3,9 +3,10 @@ import { Color } from "../color";
 import { Texture } from "../texture";
 
 export class StandardMaterial implements IMaterial {
-    private _color: Color;
     private _ambient: Color;
-    private _map: Texture;
+    private _color: Color;
+    private _colorMap: Texture;
+    private _normalMap: Texture;
 
     public get color(): Color {
         return this._color;
@@ -15,12 +16,20 @@ export class StandardMaterial implements IMaterial {
         this._color = value;
     }
 
-    public get map(): Texture {
-        return this._map;
+    public get colorMap(): Texture {
+        return this._colorMap;
     }
 
-    public set map(value: Texture) {
-        this._map = value;
+    public set colorMap(value: Texture) {
+        this._colorMap = value;
+    }
+
+    public get normalMap(): Texture {
+        return this._normalMap;
+    }
+
+    public set normalMap(value: Texture) {
+        this._normalMap = value;
     }
 
     public get ambient(): Color {
@@ -34,6 +43,7 @@ export class StandardMaterial implements IMaterial {
     constructor() {       
         this._color = new Color(255, 255, 255);
         this._ambient = new Color(55, 55, 55);
-        this._map = null;
+        this._colorMap = null;
+        this._normalMap = null;
     }
 }

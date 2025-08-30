@@ -138,40 +138,50 @@ export class Renderer {
     private static drawModel_Mesh(mesh: Mesh) {
         const gl = Aquanore.ctx;
         const shader = this._shader;
-        const material = mesh.material;
-        const geom = mesh.geometry;
 
-        if (material instanceof BasicMaterial) {
-            shader.u1i("u_material_type", 0);
-            shader.ucolor("u_material.color", material.color);
-        }
+        for (let pri of mesh.primitives) {
+            const material = pri.material;
+            const geom = pri.geometry;
 
-        if (material instanceof StandardMaterial) {
-            shader.u1i("u_material_type", 1);
-            shader.ucolor("u_material.color", material.color);
-            shader.ucolor("u_material.ambient", material.ambient);
-
-            if (material.map != null) {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, material.map.id);
-
-                shader.u1b("u_material.tex_active", true);
-            } else {
-                shader.u1b("u_material.tex_active", false);
+            if (material instanceof BasicMaterial) {
+                shader.u1i("u_material_type", 0);
+                shader.ucolor("u_material.color", material.color);
             }
+
+            if (material instanceof StandardMaterial) {
+                shader.u1i("u_material_type", 1);
+                shader.ucolor("u_material.color", material.color);
+                shader.ucolor("u_material.ambient", material.ambient);
+                shader.u1b("u_material.normal_map_active", false);
+                shader.u1b("u_material.color_map_active", false);
+
+                if (material.colorMap != null) {
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, material.colorMap.id);
+
+                    shader.u1b("u_material.color_map_active", true);
+                }
+
+                if (material.normalMap != null) {
+                    gl.activeTexture(gl.TEXTURE1);
+                    gl.bindTexture(gl.TEXTURE_2D, material.normalMap.id);
+
+                    shader.u1b("u_material.normal_map_active", true);
+                }
+            }
+
+            gl.bindVertexArray(geom.vao);
+
+            if (geom instanceof IndexGeometry) {
+                gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            }
+
+            if (geom instanceof OrderedGeometry) {
+                gl.drawArrays(gl.TRIANGLES, 0, geom.vertices.length / 3);
+            }
+
+            gl.bindVertexArray(null);
         }
-
-        gl.bindVertexArray(geom.vao);
-
-        if (geom instanceof IndexGeometry) {
-            gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
-        }
-
-        if (geom instanceof OrderedGeometry) {
-            gl.drawArrays(gl.TRIANGLES, 0, geom.vertices.length / 3);
-        }
-
-        gl.bindVertexArray(null);
     }
 
     /* HELPER FUNCTIONS */
