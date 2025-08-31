@@ -47,17 +47,7 @@ export class Sprite {
         return this.height / this.frameHeight;
     }
 
-    public constructor(path: string, frameWidth: number, frameHeight: number) {
-        this._frameWidth = frameWidth;
-        this._frameHeight = frameHeight;
-
-        this._tex = new Texture(path);
-        this._tex.onLoad = () => {
-            this.generatePolygon();
-        }
-    }
-
-    private generatePolygon() {
+    public constructor(tex: Texture, frameWidth: number, frameHeight: number) {
         const tcX = 1.0 / this.framesHor;
         const tcY = 1.0 / this.framesVert;
         const vertices = [
@@ -78,6 +68,9 @@ export class Sprite {
             tcX, tcY
         ];
 
+        this._frameWidth = frameWidth;
+        this._frameHeight = frameHeight;
+        this._tex = tex;
         this._poly = new Polygon(vertices, texcoords);
     }
 }

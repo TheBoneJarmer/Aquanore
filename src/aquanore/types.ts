@@ -1,3 +1,5 @@
+export type TextureData = Uint8Array | Uint16Array | Uint32Array | ImageBitmap | ImageData | HTMLImageElement;
+
 /* GLTF */
 export type GltfScalar = [number];
 export type GltfVector = [number, number, number];
@@ -37,8 +39,13 @@ export type GltfSkinNode = GltfNode & {
     skin: number;
 };
 
+export type GltfBaseColorTexture = {
+    index: number;
+};
+
 export type GltfPbrMetallicRoughness = {
     baseColorFactor: GltfColor;
+    baseColorTexture: GltfBaseColorTexture;
     metallicFactor: number;
     roughnessFactor: number;
 };
@@ -88,6 +95,18 @@ export type GltfBuffer = {
     uri: string;
 };
 
+export type GltfTexture = {
+    sampler: number;
+    source: number;
+};
+
+export type GltfImage = {
+    mimeType: string;
+    name: string;
+    uri: string;
+    bufferView: number;
+};
+
 export type Gltf = {
     asset: GltfAsset;
     scene: number,
@@ -98,4 +117,6 @@ export type Gltf = {
     accessors: GltfAccessor[];
     bufferViews: GltfBufferView[];
     buffers: GltfBuffer[];
+    textures: GltfTexture[];
+    images: GltfImage[];
 };

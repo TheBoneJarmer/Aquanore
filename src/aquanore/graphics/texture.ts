@@ -1,59 +1,51 @@
 import {Aquanore} from "../aquanore";
+import { TextureData } from "../types";
 
 export class Texture {
-    private _image: HTMLImageElement | null = null;
-    private _id: WebGLTexture | null = null;
-    private _onLoad: Function | null = null;
+    private _id: WebGLTexture;
+    private _width: number;
+    private _height: number;
 
-    public get id(): WebGLTexture | null {
+    public get id(): WebGLTexture {
         return this._id;
     }
 
     public get width(): number {
-        if (!this._image) {
-            return 0;
-        }
-
-        return this._image.width;
+        return this._width;
     }
 
     public get height(): number {
-        if (!this._image) {
-            return 0;
+        return this._height;
+    }
+
+    public constructor(width: number, height: number, data: TextureData) {
+        const gl = Aquanore.ctx;
+        const id = gl.createTexture();
+
+        gl.bindTexture(gl.TEXTURE_2D, id);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        
+        if (data instanceof HTMLImageElement || data instanceof ImageData || data instanceof ImageBitmap) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
         }
 
-        return this._image.height;
-    }
+        if (data instanceof Uint8Array) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        }
 
-    public set onLoad(value: Function) {
-        this._onLoad = value;
-    }
+        if (data instanceof Uint16Array) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_SHORT, data);
+        }
 
-    public constructor(path: string) {
-        const img = new Image();
-        img.src = path;
-        img.onload = () => {
-            this.generateTexture();
+        if (data instanceof Uint32Array) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_INT, data);
+        }
 
-            if (this._onLoad) {
-                this._onLoad();
-            }
-        };
-
-        this._image = img;
-    }
-
-    private generateTexture() {
-        const ctx = Aquanore.ctx!;
-        const texture = ctx.createTexture();
-
-        ctx.bindTexture(ctx.TEXTURE_2D, texture);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
-        ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, this._image!);
-
-        this._id = texture;
+        this._id = id;
+        this._width = width;
+        this._height = height;
     }
 }

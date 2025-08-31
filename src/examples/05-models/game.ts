@@ -23,7 +23,7 @@ Aquanore.onLoad = async () => {
     lights[0] = new Light(LightType.DIRECTIONAL);
 
     let loader = new GltfLoader();
-    model = await loader.load("axis.gltf");
+    model = await loader.load("axis.glb");
 };
 
 Aquanore.onUpdate = (dt: number) => {

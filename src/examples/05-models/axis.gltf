@@ -33,40 +33,31 @@
 			"doubleSided":true,
 			"name":"X",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.8000000715255737,
-					0.0033112794626504183,
-					0,
-					1
-				],
+				"baseColorTexture":{
+					"index":0
+				},
 				"metallicFactor":0,
-				"roughnessFactor":0.4000000059604645
+				"roughnessFactor":0.5
 			}
 		},
 		{
 			"doubleSided":true,
 			"name":"Y",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.008276484906673431,
-					0.8000000715255737,
-					0,
-					1
-				],
+				"baseColorTexture":{
+					"index":1
+				},
 				"metallicFactor":0,
-				"roughnessFactor":0.4000000059604645
+				"roughnessFactor":0.5
 			}
 		},
 		{
 			"doubleSided":true,
 			"name":"Z",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.03725771605968475,
-					0.3746276795864105,
-					0.8000000715255737,
-					1
-				],
+				"baseColorTexture":{
+					"index":2
+				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
 			}
@@ -114,6 +105,37 @@
 					"material":2
 				}
 			]
+		}
+	],
+	"textures":[
+		{
+			"sampler":0,
+			"source":0
+		},
+		{
+			"sampler":0,
+			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
+		}
+	],
+	"images":[
+		{
+			"mimeType":"image/png",
+			"name":"red",
+			"uri":"tex/red.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"green",
+			"uri":"tex/green.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"blue",
+			"uri":"tex/blue.png"
 		}
 	],
 	"accessors":[
@@ -292,6 +314,12 @@
 			"byteLength":1896,
 			"byteOffset":66000,
 			"target":34963
+		}
+	],
+	"samplers":[
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[

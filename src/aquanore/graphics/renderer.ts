@@ -2,7 +2,6 @@ import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Vector3, Matrix3, Matrix4 } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
 import { Camera, Color, Light, Mesh, Model, Polygon, Sprite, Texture } from ".";
-import { Geometry } from "./geometries";
 import { Shader, Shaders } from "./shaders";
 
 export class Renderer {
@@ -174,7 +173,6 @@ export class Renderer {
 
             gl.bindVertexArray(geom.vao);
             gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
-            // gl.drawArrays(gl.TRIANGLES, 0, geom.vertices.length / 3);
             gl.bindVertexArray(null);
         }
     }
