@@ -147,7 +147,7 @@ export class GltfLoader implements ILoader<Model> {
 
         for (let n of scene.nodes) {
             const node = gltf.nodes[n];
-            await this.traverseNode(gltf, node);
+            await this.parseNode(gltf, node);
         }
     }
 
@@ -197,8 +197,10 @@ export class GltfLoader implements ILoader<Model> {
         }
     }
 
-    private async traverseNode(gltf: Gltf, node: GltfNode) {
-        await this.parseNode(gltf, node);
+    private async parseNode(gltf: Gltf, node: GltfNode) {
+        if ("mesh" in node) {
+            await this.parseMeshNode(gltf, node as GltfMeshNode);
+        }
 
         if (!node.children) {
             return;
@@ -206,13 +208,7 @@ export class GltfLoader implements ILoader<Model> {
 
         for (let index of node.children) {
             let child = gltf.nodes[index];
-            await this.traverseNode(gltf, child);
-        }
-    }
-
-    private async parseNode(gltf: Gltf, node: GltfNode) {
-        if ("mesh" in node) {
-            await this.parseMeshNode(gltf, node as GltfMeshNode);
+            await this.parseNode(gltf, child);
         }
     }
 

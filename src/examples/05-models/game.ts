@@ -16,20 +16,20 @@ Aquanore.init();
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -10;
-    cam.position.y = -8;
+    cam.position.z = -5;
+    cam.position.y = -4;
     cam.rotation.x = MathHelper.radians(35);
 
     lights[0] = new Light(LightType.DIRECTIONAL);
 
     let loader = new GltfLoader();
-    model = await loader.load("axis.glb");
+    model = await loader.load("mage.glb");
 };
 
 Aquanore.onUpdate = (dt: number) => {
     cam.aspect = innerWidth / innerHeight;
 
-    rot.y += dt;
+    rot.y += dt * 0.1;
 };
 
 Aquanore.onRender2D = () => {
