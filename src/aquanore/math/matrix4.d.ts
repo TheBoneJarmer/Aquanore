@@ -1,0 +1,50 @@
+export class Matrix4 {
+    get x1(): number;
+    set x1(value: number);
+    get y1(): number;
+    set y1(value: number);
+    get z1(): number;
+    set z1(value: number);
+    get w1(): number;
+    set w1(value: number);
+    get x2(): number;
+    set x2(value: number);
+    get y2(): number;
+    set y2(value: number);
+    get z2(): number;
+    set z2(value: number);
+    get w2(): number;
+    set w2(value: number);
+    get x3(): number;
+    set x3(value: number);
+    get y3(): number;
+    set y3(value: number);
+    get z3(): number;
+    set z3(value: number);
+    get w3(): number;
+    set w3(value: number);
+    get x4(): number;
+    set x4(value: number);
+    get y4(): number;
+    set y4(value: number);
+    get z4(): number;
+    set z4(value: number);
+    get w4(): number;
+    set w4(value: number);
+    get values(): number[];
+    set values(values: number[]);
+
+    constructor(values: number[]);
+
+    clone(): Matrix4;
+    static translate(mat: Matrix4, x: number, y: number, z: number): Matrix4;
+    static scale(mat: Matrix4, x: number, y:number, z:number): Matrix4;
+    static rotate(mat: Matrix4, x: number, y:number, z:number): Matrix4;
+    static rotateX(mat: Matrix4, angle: number): Matrix4;
+    static rotateY(mat: Matrix4, angle: number): Matrix4;
+    static rotateZ(mat: Matrix4, angle: number): Matrix4;
+    static frustum(left: number, right: number, top: number, bottom: number, near: number, far: number): Matrix4;
+    static perspective(fov: number, aspect: number, near: number, far: number): Matrix4;
+    static transpose(mat: Matrix4): Matrix4;
+    static inverse(mat: Matrix4): Matrix4;
+}

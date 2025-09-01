@@ -27,12 +27,16 @@
   },
 
   "exports": {
-    ".": "./src/aquanore/index.js",
+    ".": {
+      "import": "./src/aquanore/index.js",
+      "types": "./src/aquanore/index.d.ts"
+    },
     "./audio": "./src/aquanore/audio/index.js",
     "./graphics": "./src/aquanore/graphics/index.js",
     "./input": "./src/aquanore/input/index.js",
     "./loaders": "./src/aquanore/loaders/index.js",
-    "./math": "./src/aquanore/math/index.js"
+    "./math": "./src/aquanore/math/index.js",
+    "./enums": "./src/aquanore/enums.js"
   },
   "files": [
     "src/aquanore/*",

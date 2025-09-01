@@ -12,10 +12,10 @@ export class Audio {
     }
 
     static async play(sound) {
-        const gain = this.ctx.createGain();
-        gain.connect(this.ctx.destination);
+        const gain = this.#ctx.createGain();
+        gain.connect(this.#ctx.destination);
 
-        const src = this.ctx.createBufferSource();
+        const src = this.#ctx.createBufferSource();
         src.buffer = sound.buffer;
         src.connect(gain);
         src.start();
@@ -24,10 +24,10 @@ export class Audio {
     }
 
     static async suspend() {
-        await this.ctx.suspend();
+        await this.#ctx.suspend();
     }
 
     static async resume() {
-        await this.ctx.resume();
+        await this.#ctx.resume();
     }
 }

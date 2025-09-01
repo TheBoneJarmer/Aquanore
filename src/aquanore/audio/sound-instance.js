@@ -41,10 +41,10 @@ export class SoundInstance {
         this.#gainNode = gainNode;
         this.#srcNode = srcNode;
         this.#srcNode.onended = () => {
-            this.#status = SoundStatus.STOPPED;
+            this.#status = SoundStatus.Stopped;
         };
 
-        this.#status = SoundStatus.PLAYING;
+        this.#status = SoundStatus.Playing;
     }
 
     stop() {
