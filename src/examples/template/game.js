@@ -6,7 +6,7 @@ Aquanore.onLoad = () => {
 
 };
 
-Aquanore.onUpdate = (dt: number) => {
+Aquanore.onUpdate = (dt) => {
 
 };
 
