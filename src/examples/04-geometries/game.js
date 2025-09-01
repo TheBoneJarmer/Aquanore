@@ -16,7 +16,7 @@ let scale = new Vector3(1, 1, 1);
 let index = 0;
 let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
@@ -121,3 +121,5 @@ function updateModel() {
     model = new Model();
     model.meshes.push(mesh);
 }
+
+await Aquanore.run();

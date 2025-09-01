@@ -5,7 +5,7 @@ import { Vector2 } from "../../aquanore/math";
 let poly = null;
 let angle = 0;
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = () => {
     poly = Polygon.rectangle(64, 64);
@@ -23,3 +23,5 @@ Aquanore.onRender2D = () => {
 
     Renderer.drawPolygon(poly, pos, scale, origin, angle, color);
 };
+
+await Aquanore.run();

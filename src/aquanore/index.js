@@ -1,2 +1,2 @@
+export * from "./aquanore-options";
 export * from './aquanore';
-export * from './graphics/renderer';

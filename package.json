@@ -18,11 +18,11 @@
     "url": "https://github.com/TheBoneJarmer/aquanore/issues"
   },
   "homepage": "https://github.com/TheBoneJarmer/aquanore#readme",
-
-  "main": "index.js",
+  "main": "src/aquanore/index.js",
   "type": "module",
-
+  
   "devDependencies": {
+    "typescript": "^5.9.2",
     "vite": "^5.3.3"
   },
 

@@ -12,7 +12,7 @@ let pos = new Vector3();
 let rot = new Vector3();
 let scale = new Vector3(1, 1, 1);
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
@@ -39,3 +39,5 @@ Aquanore.onRender2D = () => {
 Aquanore.onRender3D = () => {
     Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
+
+await Aquanore.run();

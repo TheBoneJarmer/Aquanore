@@ -11,7 +11,7 @@ let ambient = null;
 let handle = null;
 let sprite = null;
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = async () => {
     const loader = new TextureLoader();
@@ -56,3 +56,5 @@ Aquanore.onRender2D = () => {
 
     Renderer.drawSprite(sprite, new Vector2(x, y), new Vector2(1, 1), new Vector2(0, 0), 0, 0, 0, false, false, new Color(255, 255, 255, 255));
 };
+
+await Aquanore.run();

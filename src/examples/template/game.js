@@ -1,6 +1,6 @@
 import {Aquanore, AquanoreOptions} from "../../aquanore/aquanore";
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = () => {
 
@@ -17,3 +17,9 @@ Aquanore.onRender2D = () => {
 Aquanore.onRender3D = () => {
 
 };
+
+Aquanore.onResize = () => {
+
+};
+
+await Aquanore.run();
