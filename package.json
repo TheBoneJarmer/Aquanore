@@ -1,7 +1,7 @@
 {
   "name": "aquanore",
-  "version": "3.1.0",
-  "description": "Aquanore is a light-weight 2D WebGL framework covering the utmost basics for a HTML5 game",
+  "version": "4.0.0",
+  "description": "Aquanore is a 2D and 3D WebGL game framework",
   "author": "Ruben Labruyere",
   "license": "MIT",
   "repository": {
@@ -12,7 +12,6 @@
     "html5",
     "webgl",
     "aquanore",
-    "typescript",
     "2d"
   ],
   "bugs": {
@@ -21,28 +20,22 @@
   "homepage": "https://github.com/TheBoneJarmer/aquanore#readme",
 
   "main": "index.js",
-  "types": "index.d.ts",
   "type": "module",
 
-  "scripts": {
-    "build": "tsc"
-  },
-
   "devDependencies": {
-    "typescript": "^5.6.2",
     "vite": "^5.3.3"
   },
 
   "exports": {
-    ".": "./dist/index.js",
-    "./enums": "./dist/enums/index.js",
-    "./graphics": "./dist/graphics/index.js",
-    "./input": "./dist/input/index.js",
-    "./interfaces": "./dist/interfaces/index.js",
-    "./math": "./dist/math/index.js"
+    ".": "./src/aquanore/index.js",
+    "./audio": "./src/aquanore/audio/index.js",
+    "./graphics": "./src/aquanore/graphics/index.js",
+    "./input": "./src/aquanore/input/index.js",
+    "./loaders": "./src/aquanore/loaders/index.js",
+    "./math": "./src/aquanore/math/index.js"
   },
   "files": [
-    "dist/",
+    "src/aquanore/*",
     "LICENSE",
     "README.md",
     "package.json"
