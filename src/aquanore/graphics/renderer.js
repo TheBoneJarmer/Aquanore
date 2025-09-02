@@ -113,10 +113,10 @@ export class Renderer {
 
         const shader = this.#shader;
 
-        const matProjection = this.generateProjectionMatrix(camera);
-        const matView = this.generateViewMatrix(camera);
-        const matModel = this.generateModelMatrix(pos, rot, scale);
-        const matNormal = this.generateNormalMatrix(matModel);
+        const matProjection = this.#generateProjectionMatrix(camera);
+        const matView = this.#generateViewMatrix(camera);
+        const matModel = this.#generateModelMatrix(pos, rot, scale);
+        const matNormal = this.#generateNormalMatrix(matModel);
 
         shader.umat4("u_projection", matProjection);
         shader.umat4("u_view", matView);
@@ -126,11 +126,11 @@ export class Renderer {
 
         // Render mesh per mesh
         for (let mesh of model.meshes) {
-            this.drawModel_Mesh(mesh);
+            this.#drawModel_Mesh(mesh);
         }
     }
 
-    static drawModel_Mesh(mesh) {
+    static #drawModel_Mesh(mesh) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
@@ -174,7 +174,7 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
-    static generateModelMatrix(pos, rot, scale) {
+    static #generateModelMatrix(pos, rot, scale) {
         let m = Matrix4.identity();
         m = Matrix4.scale(m, scale.x, scale.y, scale.z);
         m = Matrix4.translate(m, pos.x, pos.y, pos.z);
@@ -183,7 +183,7 @@ export class Renderer {
         return m;
     }
 
-    static generateViewMatrix(camera) {
+    static #generateViewMatrix(camera) {
         const pos = camera.position;
         const rot = camera.rotation;
 
@@ -194,7 +194,7 @@ export class Renderer {
         return m;
     }
 
-    static generateProjectionMatrix(camera) {
+    static #generateProjectionMatrix(camera) {
         const fov = camera.fov;
         const near = camera.near;
         const far = camera.far;
@@ -203,7 +203,7 @@ export class Renderer {
         return Matrix4.perspective(fov, aspect, near, far);
     }
 
-    static generateNormalMatrix(mat) {
+    static #generateNormalMatrix(mat) {
         const inversed = Matrix4.inverse(mat);
         const transposed = Matrix4.transpose(inversed);
 

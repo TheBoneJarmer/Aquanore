@@ -14,4 +14,4 @@ export class ShaderSources {
 	static get POLYGON_V() {
 		return "precision highp float;\n\nattribute vec2 a_vertex;\nattribute vec2 a_texcoord;\n\nuniform vec2 u_resolution;\nuniform vec2 u_rotation;\nuniform vec2 u_translation;\nuniform vec2 u_scale;\nuniform vec2 u_origin;\nuniform vec2 u_offset;\nvarying vec2 v_texcoord;\n\nvoid main() {\n    vec2 vertex = a_vertex - u_origin;\n    vertex = vertex * u_scale;\n    vertex = vec2(vertex.x * u_rotation.y + vertex.y * u_rotation.x, vertex.y * u_rotation.y - vertex.x * u_rotation.x);\n    vertex = vertex + u_translation;\n    vertex = vertex / u_resolution;\n    vertex = (vertex * 2.0) - 1.0;\n    v_texcoord = a_texcoord + u_offset;\n\n    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);\n}\n";
 	}
-};
+}

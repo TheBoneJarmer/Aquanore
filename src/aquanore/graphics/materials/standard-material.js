@@ -1,6 +1,6 @@
 import { Color } from "../color";
 
-export class StandardMaterial {
+export class StandardMaterial extends Material {
     #ambient = null;
     #color = null;
     #colorMap = null;

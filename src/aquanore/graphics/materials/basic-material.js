@@ -1,6 +1,7 @@
 import { Color } from "../color";
+import { Material } from "./material";
 
-export class BasicMaterial {
+export class BasicMaterial extends Material {
     #color = null;
 
     get color() {
