@@ -13,6 +13,8 @@ export class BasicMaterial extends Material {
     }
 
     constructor() {
+        super();
+        
         this.#color = new Color(255, 255, 255);
     }
 }

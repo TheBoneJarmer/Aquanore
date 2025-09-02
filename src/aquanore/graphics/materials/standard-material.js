@@ -1,4 +1,5 @@
 import { Color } from "../color";
+import { Material } from "./material";
 
 export class StandardMaterial extends Material {
     #ambient = null;
@@ -39,6 +40,8 @@ export class StandardMaterial extends Material {
     }
 
     constructor() {       
+        super();
+        
         this.#color = new Color(255, 255, 255);
         this.#ambient = new Color(55, 55, 55);
         this.#colorMap = null;
