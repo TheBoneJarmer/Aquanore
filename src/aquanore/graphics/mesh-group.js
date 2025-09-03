@@ -1,10 +1,11 @@
 import { Vector3 } from "../math";
 
-export class MeshNode {
+export class MeshGroup {
     #translation = null;
     #rotation = null;
     #scale = null;
-    #children = [];
+    #children = null;
+    #name = null;
 
     get translation() {
         return this.#translation;
@@ -34,9 +35,23 @@ export class MeshNode {
         return this.#children;
     }
 
+    set children(value) {
+        this.#children = value;
+    }
+
+    get name() {
+        return this.#name;
+    }
+
+    set name(value) {
+        this.#name = value;
+    }
+
     constructor() {
         this.#translation = new Vector3(0, 0, 0);
         this.#rotation = new Vector3(0, 0, 0);
         this.#scale = new Vector3(1, 1, 1);
+        this.#children = [];
+        this.#name = "MeshGroup";
     }
 }

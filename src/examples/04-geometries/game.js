@@ -119,7 +119,7 @@ function updateModel() {
     mesh.primitives.push(pri);
 
     model = new Model();
-    model.meshes.push(mesh);
+    model.data = mesh;
 }
 
 await Aquanore.run();

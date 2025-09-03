@@ -1,3 +1,5 @@
+import { Vector3 } from "./vector3";
+
 export class Quaternion {
     #x = 0;
     #y = 0;
@@ -57,6 +59,51 @@ export class Quaternion {
 
     clone() {
         return new Quaternion(this.#x, this.#y, this.#z, this.#w);
+    }
+
+    static toEuler(q) {
+        const x = q.x;
+        const y = q.y;
+        const z = q.z;
+        const w = q.w;
+
+        // Roll (x-axis rotation)
+        const sinr_cosp = 2 * (w * x + y * z);
+        const cosr_cosp = 1 - 2 * (x * x + y * y);
+        const roll = Math.atan2(sinr_cosp, cosr_cosp);
+
+        // Pitch (y-axis rotation)
+        let sinp = 2 * (w * y - z * x);
+        sinp = Math.max(-1, Math.min(1, sinp)); // clamp for numerical stability
+        const pitch = Math.asin(sinp);
+
+        // Yaw (z-axis rotation)
+        const siny_cosp = 2 * (w * z + x * y);
+        const cosy_cosp = 1 - 2 * (y * y + z * z);
+        const yaw = Math.atan2(siny_cosp, cosy_cosp);
+
+        return new Vector3(roll, pitch, yaw);
+    }
+
+    static fromEuler(v) {
+        const roll = v.x;
+        const pitch = v.y;
+        const yaw = v.z;
+
+        const cy = Math.cos(yaw * 0.5);
+        const sy = Math.sin(yaw * 0.5);
+        const cp = Math.cos(pitch * 0.5);
+        const sp = Math.sin(pitch * 0.5);
+        const cr = Math.cos(roll * 0.5);
+        const sr = Math.sin(roll * 0.5);
+
+        const q = new Quaternion();
+        q.w = cr * cp * cy + sr * sp * sy;
+        q.x = sr * cp * cy - cr * sp * sy;
+        q.y = cr * sp * cy + sr * cp * sy;
+        q.z = cr * cp * sy - sr * sp * cy;
+
+        return q;
     }
 
     static length(q) {

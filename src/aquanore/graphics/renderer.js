@@ -1,6 +1,8 @@
 import { Aquanore } from "../aquanore";
-import { Vector2, MathHelper, Matrix3, Matrix4 } from "../math";
+import { Vector2, MathHelper, Matrix3, Matrix4, Vector3 } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
+import { Mesh } from "./mesh";
+import { MeshGroup } from "./mesh-group";
 import { Shaders } from "./shaders";
 
 export class Renderer {
@@ -125,15 +127,64 @@ export class Renderer {
         shader.uvec3("u_camera", camera.position);
 
         // Render mesh per mesh
-        for (let mesh of model.meshes) {
-            this.#drawModel_Mesh(mesh);
+        if (model.data instanceof Mesh) {
+            const pos = new Vector3(0, 0, 0);
+            const rot = new Vector3(0, 0, 0);
+            const scale = new Vector3(1, 1, 1);
+
+            if (Array.isArray(model.data)) {
+                for (let mesh of model.data) {
+                    this.#drawModel_Mesh(mesh, pos, rot, scale);
+                }
+            } else {
+                this.#drawModel_Mesh(model.data, pos, rot, scale);
+            }
+        }
+
+        if (model.data instanceof MeshGroup) {
+            const pos = new Vector3(0, 0, 0);
+            const rot = new Vector3(0, 0, 0);
+            const scale = new Vector3(1, 1, 1);
+
+            if (Array.isArray(model.data)) {
+                for (let group of model.data) {
+                    this.#drawModel_Group(group, pos, rot, scale);
+                }
+            } else {
+                this.#drawModel_Group(model.data, pos, rot, scale);
+            }
         }
     }
 
-    static #drawModel_Mesh(mesh) {
+    static #drawModel_Group(group, pos, rot, scale) {
+        pos = Vector3.add(pos, group.translation);
+        rot = Vector3.add(rot, group.rotation);
+        scale = Vector3.mult(scale, group.scale);
+
+        for (let child of group.children) {
+            if (child instanceof Mesh) {
+                this.#drawModel_Mesh(child, pos, rot, scale);
+            }
+
+            if (child instanceof MeshGroup) {
+                this.#drawModel_Group(child, pos, rot, scale);
+            }
+        }
+    }
+
+    static #drawModel_Mesh(mesh, pos, rot, scale) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
+        // Set the mesh matrix. For this we generate a model matrix. Its basically the same thing.
+        const finalPos = Vector3.add(pos, mesh.translation);
+        const finalRot = Vector3.add(rot, mesh.rotation);
+        const finalScale = Vector3.mult(scale, mesh.scale);
+
+        const mat = this.#generateModelMatrix(finalPos, finalRot, finalScale);
+        shader.umat4("u_mesh", mat);
+
+        // Now render primitive per primitive
         for (let pri of mesh.primitives) {
             const material = pri.material;
             const geom = pri.geometry;

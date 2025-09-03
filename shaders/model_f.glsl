@@ -29,7 +29,6 @@ struct Light {
 uniform vec3 u_camera;
 uniform Light u_light[100];
 uniform int u_light_count;
-
 uniform Material u_material;
 uniform int u_material_type;
 

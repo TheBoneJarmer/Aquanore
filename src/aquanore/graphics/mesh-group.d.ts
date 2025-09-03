@@ -1,8 +1,8 @@
 import { Vector3 } from "../math";
-import { MeshPrimitive } from "./mesh-primitive";
+import { Mesh } from "./mesh";
 
-export class Mesh {
-    get primitives(): MeshPrimitive[];
+export class MeshGroup {
+    get children(): (Mesh | MeshGroup)[];
     get name(): string;
     set name(value: string);
     get translation(): Vector3;

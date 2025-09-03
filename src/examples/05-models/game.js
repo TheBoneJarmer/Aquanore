@@ -1,8 +1,9 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { LightType } from "../../aquanore/enums";
+import { Keys, LightType } from "../../aquanore/enums";
 import { Camera, Light, Renderer } from "../../aquanore/graphics";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
+import { Keyboard} from "../../aquanore/input";
 
 let model = null;
 let cam = null;
@@ -16,9 +17,8 @@ Aquanore.init();
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -5;
-    cam.position.y = -4;
-    cam.rotation.x = MathHelper.radians(35);
+    cam.position.z = -3;
+    cam.position.y = -1;
 
     lights[0] = new Light(LightType.Directional);
 
@@ -29,7 +29,21 @@ Aquanore.onLoad = async () => {
 Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
 
-    rot.y += dt * 0.1;
+    if (Keyboard.keyDown(Keys.Up)) {
+        rot.x -= dt;
+    }
+
+    if (Keyboard.keyDown(Keys.Down)) {
+        rot.x += dt;
+    }
+
+    if (Keyboard.keyDown(Keys.Left)) {
+        rot.y -= dt;
+    }
+
+    if (Keyboard.keyDown(Keys.Right)) {
+        rot.y += dt;
+    }
 };
 
 Aquanore.onRender2D = () => {

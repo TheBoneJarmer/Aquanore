@@ -73,7 +73,7 @@ export class Vector3 {
 
     /* BASIC MATH */
     static add(v1, v2) {
-        return new Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.y);
+        return new Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
     }
 
     static sub(v1, v2) {

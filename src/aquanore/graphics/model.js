@@ -1,11 +1,25 @@
 export class Model {
-    #meshes = [];
+    #data = null;
+    #animations = [];
 
-    get meshes() {
-        return this.#meshes;
+    get data() {
+        return this.#data;
+    }
+
+    set data(value) {
+        this.#data = value;
+    }
+
+    get animations() {
+        return this.#animations;
+    }
+
+    set animations(value) {
+        this.#animations = value;
     }
 
     constructor() {
-        this.#meshes = [];
+        this.#data = null;
+        this.#animations = [];
     }
 }

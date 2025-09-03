@@ -24,16 +24,17 @@ Aquanore.onLoad = async () => {
     const matLight = new BasicMaterial();
     matLight.color = new Color(255, 255, 255);
 
-    const priRock = new MeshPrimitive(new TorusGeometry(), matRock);
-    const priSphere = new MeshPrimitive(new SphereGeometry(0.1), matLight);
+    const meshRock = new Mesh();
+    meshRock.primitives[0] = new MeshPrimitive(new TorusGeometry(), matRock);
+
+    const meshLight = new Mesh();
+    meshLight.primitives[0] = new MeshPrimitive(new SphereGeometry(0.1), matLight);
 
     modelRock = new Model();
-    modelRock.meshes[0] = new Mesh();
-    modelRock.meshes[0].primitives.push(priRock);
+    modelRock.data = meshRock;
 
     modelLight = new Model();
-    modelLight.meshes[0] = new Mesh();
-    modelLight.meshes[0].primitives.push(priSphere);
+    modelLight.data = meshLight;
 
     lights[0] = new Light(LightType.POINT);
     lights[0].source = new Vector3(-1, 0, -1);

@@ -2,6 +2,8 @@ import { Aquanore } from "../aquanore";
 import { Mesh, MeshPrimitive, Model, Texture } from "../graphics";
 import { RawIndexGeometry } from "../graphics/geometries";
 import { StandardMaterial } from "../graphics/materials";
+import { MeshGroup } from "../graphics/mesh-group";
+import { Quaternion, Vector3 } from "../math";
 import { TextureLoader } from "./texture-loader";
 
 export class GltfLoader {
@@ -52,8 +54,6 @@ export class GltfLoader {
                 if (chunk.type == "JSON") {
                     const json = decoder.decode(chunk.buffer);
                     gltf = JSON.parse(json);
-
-                    console.log(gltf);
                 }
 
                 if (chunk.type == "BIN") {
@@ -141,9 +141,22 @@ export class GltfLoader {
             }
         }
 
-        for (let n of scene.nodes) {
-            const node = gltf.nodes[n];
-            await this.#parseNode(gltf, node);
+        if (scene.nodes.length == 1) {
+            const node = gltf.nodes[scene.nodes[0]];
+            const data = await this.#parseNode(gltf, node);
+
+            this.#result.data = data;
+        }
+
+        if (scene.nodes.length > 1) {
+            this.#result.data = [];
+
+            for (let n of scene.nodes) {
+                const node = gltf.nodes[n];
+                const data = await this.#parseNode(gltf, node);
+
+                this.#result.data.push(data);
+            }
         }
     }
 
@@ -193,25 +206,84 @@ export class GltfLoader {
         }
     }
 
-    async #parseNode(gltf, node) {
-        if ("mesh" in node) {
-            await this.#parseMeshNode(gltf, node);
+    async #parseNode(gltf, objNode) {
+        if ("mesh" in objNode) {
+            return await this.#parseMesh(gltf, objNode);
         }
-
-        if (!node.children) {
-            return;
-        }
-
-        for (let index of node.children) {
-            let child = gltf.nodes[index];
-            await this.#parseNode(gltf, child);
-        }
+        
+        return await this.#parseMeshGroup(gltf, objNode);
     }
 
-    async #parseMeshNode(gltf, node) {
-        const objMesh = gltf.meshes[node.mesh];
-        const mesh = new Mesh();
+    async #parseMeshGroup(gltf, objNode) {
+        const group = new MeshGroup();
+        group.name = objNode.name;
 
+        if (objNode.translation) {
+            group.translation = new Vector3();
+            group.translation.x = objNode.translation[0];
+            group.translation.y = objNode.translation[1];
+            group.translation.z = objNode.translation[2];
+        }
+
+        if (objNode.scale) {
+            group.scale = new Vector3();
+            group.scale.x = objNode.scale[0];
+            group.scale.y = objNode.scale[1];
+            group.scale.z = objNode.scale[2];
+        }
+
+        if (objNode.rotation) {
+            const q = new Quaternion();
+            q.x = objNode.rotation[0];
+            q.y = objNode.rotation[1];
+            q.z = objNode.rotation[2];
+            q.w = objNode.rotation[3];
+
+            group.rotation = Quaternion.toEuler(q);
+        }
+
+        if (objNode.children) {
+            for (let index of objNode.children) {
+                const child = await this.#parseNode(gltf, gltf.nodes[index]);
+                group.children.push(child);
+            }
+        }
+
+        return group;
+    }
+
+    async #parseMesh(gltf, objNode) {
+        const objMesh = gltf.meshes[objNode.mesh];
+
+        // Generate mesh
+        const mesh = new Mesh();
+        mesh.name = objMesh.name;
+
+        if (objNode.translation) {
+            mesh.translation = new Vector3();
+            mesh.translation.x = objNode.translation[0];
+            mesh.translation.y = objNode.translation[1];
+            mesh.translation.z = objNode.translation[2];
+        }
+
+        if (objNode.scale) {
+            mesh.scale = new Vector3();
+            mesh.scale.x = objNode.scale[0];
+            mesh.scale.y = objNode.scale[1];
+            mesh.scale.z = objNode.scale[2];
+        }
+
+        if (objNode.rotation) {
+            const q = new Quaternion();
+            q.x = objNode.rotation[0];
+            q.y = objNode.rotation[1];
+            q.z = objNode.rotation[2];
+            q.w = objNode.rotation[3];
+
+            mesh.rotation = Quaternion.toEuler(q);
+        }
+
+        // Generate primitives
         for (let objPri of objMesh.primitives) {
             const vertices = this.#getAccessorBuffer(gltf, objPri.attributes.POSITION);
             const normals = this.#getAccessorBuffer(gltf, objPri.attributes.NORMAL);
@@ -225,7 +297,7 @@ export class GltfLoader {
             mesh.primitives.push(pri);
         }
 
-        this.#result.meshes.push(mesh);
+        return mesh;
     }
 
     /* HELPER FUNCTIONS */

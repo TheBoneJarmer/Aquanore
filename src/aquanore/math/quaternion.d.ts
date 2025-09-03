@@ -1,3 +1,5 @@
+import { Vector3 } from "./vector3";
+
 export class Quaternion {
     static readonly EPSILON: number;
     static readonly ONE: Quaternion;
@@ -16,6 +18,8 @@ export class Quaternion {
 
     clone(): Quaternion;
 
+    static toEuler(q: Quaternion): Vector3;
+    static fromEuler(v: Vector3): Quaternion;
     static length(q: Quaternion): number;
     static normalized(q: Quaternion): Quaternion;
     static inversed(q: Quaternion): Quaternion;

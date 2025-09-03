@@ -10,6 +10,7 @@ uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat3 u_normal;
+uniform mat4 u_mesh;
 
 varying vec2 v_texcoord;
 varying vec3 v_vertex;
@@ -18,7 +19,7 @@ varying mat3 v_tbn;
 varying vec3 v_frag;
 
 void main() {
-    mat4 mvp = u_projection * u_view * u_model;
+    mat4 mvp = u_projection * u_view * u_model * u_mesh;
     vec4 pos = vec4(a_vertex, 1.0);
 
     vec3 t = normalize(vec3(u_model * vec4(a_tangent, 0.0)));
