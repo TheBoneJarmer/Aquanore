@@ -1,6 +1,6 @@
 import { Geometry } from "./geometry";
 
-export class RawIndexGeometry extends Geometry {
+export class RawGeometry extends Geometry {
     constructor(vertices, normals, uvs, indices) {
         super();
 

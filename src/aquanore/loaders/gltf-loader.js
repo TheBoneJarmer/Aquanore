@@ -1,8 +1,10 @@
 import { Aquanore } from "../aquanore";
 import { Mesh, MeshPrimitive, Model, Texture } from "../graphics";
-import { RawIndexGeometry } from "../graphics/geometries";
+import { RawGeometry } from "../graphics/geometries";
 import { StandardMaterial } from "../graphics/materials";
 import { MeshGroup } from "../graphics/mesh-group";
+import { ModelAnimation } from "../graphics/model-animation";
+import { ModelAnimationChannel } from "../graphics/model-animation-channel";
 import { Quaternion, Vector3 } from "../math";
 import { TextureLoader } from "./texture-loader";
 
@@ -54,6 +56,7 @@ export class GltfLoader {
                 if (chunk.type == "JSON") {
                     const json = decoder.decode(chunk.buffer);
                     gltf = JSON.parse(json);
+                    console.log(gltf);
                 }
 
                 if (chunk.type == "BIN") {
@@ -130,20 +133,27 @@ export class GltfLoader {
         const scene = gltf.scenes[gltf.scene];
 
         if (gltf.buffers) {
-            for (let b of gltf.buffers) {
-                await this.#parseBuffer(b);
+            for (let obj of gltf.buffers) {
+                await this.#parseBuffer(obj);
             }
         }
 
         if (gltf.textures) {
-            for (let t of gltf.textures) {
-                await this.#parseTexture(gltf, t);
+            for (let obj of gltf.textures) {
+                await this.#parseTexture(gltf, obj);
+            }
+        }
+
+        if (gltf.animations) {
+            for (let obj of gltf.animations) {
+                await this.#parseAnimation(gltf, obj);
             }
         }
 
         if (scene.nodes.length == 1) {
-            const node = gltf.nodes[scene.nodes[0]];
-            const data = await this.#parseNode(gltf, node);
+            const nodeIndex = scene.nodes[0];
+            const node = gltf.nodes[nodeIndex];
+            const data = await this.#parseNode(gltf, node, nodeIndex);
 
             this.#result.data = data;
         }
@@ -151,13 +161,58 @@ export class GltfLoader {
         if (scene.nodes.length > 1) {
             this.#result.data = [];
 
-            for (let n of scene.nodes) {
-                const node = gltf.nodes[n];
-                const data = await this.#parseNode(gltf, node);
+            for (let i = 0; i < scene.nodes.length; i++) {
+                const node = gltf.nodes[i];
+                const data = await this.#parseNode(gltf, node, i);
 
                 this.#result.data.push(data);
             }
         }
+    }
+
+    async #parseAnimation(gltf, objAnimation) {
+        const animation = new ModelAnimation();
+        animation.name = objAnimation.name;
+
+        for (let objChannel of objAnimation.channels) {
+            const objSampler = objAnimation.samplers[objChannel.sampler];
+
+            let input = this.#getAccessorBuffer(gltf, objSampler.input);
+            let output = this.#getAccessorBuffer(gltf, objSampler.output);
+
+            // Convert quaternions to euler angles if the sampler contains them
+            if (objChannel.target.path == "rotation") {
+                const eulers = [];
+
+                for (let i = 0; i < output.length; i += 4) {
+                    const q = new Quaternion();
+                    q.x = output[i + 0];
+                    q.y = output[i + 1];
+                    q.z = output[i + 2];
+                    q.w = output[i + 3];
+
+                    const v = Quaternion.toEuler(q);
+
+                    eulers.push(v.x);
+                    eulers.push(v.y);
+                    eulers.push(v.z);
+                }
+
+                output = eulers;
+            }
+
+            // Finally generate our animation channel and add it to the list
+            const channel = new ModelAnimationChannel();
+            channel.index = objChannel.target.node;
+            channel.path = objChannel.target.path;
+            channel.interpolation = objSampler.interpolation;
+            channel.input = input;
+            channel.output = output;
+
+            animation.channels.push(channel);
+        }
+
+        this.#result.animations.push(animation);
     }
 
     async #parseTexture(gltf, objTex) {
@@ -206,45 +261,46 @@ export class GltfLoader {
         }
     }
 
-    async #parseNode(gltf, objNode) {
-        if ("mesh" in objNode) {
-            return await this.#parseMesh(gltf, objNode);
+    async #parseNode(gltf, obj, index) {
+        if ("mesh" in obj) {
+            return await this.#parseMesh(gltf, obj, index);
         }
-        
-        return await this.#parseMeshGroup(gltf, objNode);
+
+        return await this.#parseMeshGroup(gltf, obj, index);
     }
 
-    async #parseMeshGroup(gltf, objNode) {
+    async #parseMeshGroup(gltf, obj, index) {
         const group = new MeshGroup();
-        group.name = objNode.name;
+        group.name = obj.name;
+        group.index = index;
 
-        if (objNode.translation) {
+        if (obj.translation) {
             group.translation = new Vector3();
-            group.translation.x = objNode.translation[0];
-            group.translation.y = objNode.translation[1];
-            group.translation.z = objNode.translation[2];
+            group.translation.x = obj.translation[0];
+            group.translation.y = obj.translation[1];
+            group.translation.z = obj.translation[2];
         }
 
-        if (objNode.scale) {
+        if (obj.scale) {
             group.scale = new Vector3();
-            group.scale.x = objNode.scale[0];
-            group.scale.y = objNode.scale[1];
-            group.scale.z = objNode.scale[2];
+            group.scale.x = obj.scale[0];
+            group.scale.y = obj.scale[1];
+            group.scale.z = obj.scale[2];
         }
 
-        if (objNode.rotation) {
+        if (obj.rotation) {
             const q = new Quaternion();
-            q.x = objNode.rotation[0];
-            q.y = objNode.rotation[1];
-            q.z = objNode.rotation[2];
-            q.w = objNode.rotation[3];
+            q.x = obj.rotation[0];
+            q.y = obj.rotation[1];
+            q.z = obj.rotation[2];
+            q.w = obj.rotation[3];
 
             group.rotation = Quaternion.toEuler(q);
         }
 
-        if (objNode.children) {
-            for (let index of objNode.children) {
-                const child = await this.#parseNode(gltf, gltf.nodes[index]);
+        if (obj.children) {
+            for (let index of obj.children) {
+                const child = await this.#parseNode(gltf, gltf.nodes[index], index);
                 group.children.push(child);
             }
         }
@@ -252,33 +308,34 @@ export class GltfLoader {
         return group;
     }
 
-    async #parseMesh(gltf, objNode) {
-        const objMesh = gltf.meshes[objNode.mesh];
+    async #parseMesh(gltf, obj, index) {
+        const objMesh = gltf.meshes[obj.mesh];
 
         // Generate mesh
         const mesh = new Mesh();
         mesh.name = objMesh.name;
+        mesh.index = index;
 
-        if (objNode.translation) {
+        if (obj.translation) {
             mesh.translation = new Vector3();
-            mesh.translation.x = objNode.translation[0];
-            mesh.translation.y = objNode.translation[1];
-            mesh.translation.z = objNode.translation[2];
+            mesh.translation.x = obj.translation[0];
+            mesh.translation.y = obj.translation[1];
+            mesh.translation.z = obj.translation[2];
         }
 
-        if (objNode.scale) {
+        if (obj.scale) {
             mesh.scale = new Vector3();
-            mesh.scale.x = objNode.scale[0];
-            mesh.scale.y = objNode.scale[1];
-            mesh.scale.z = objNode.scale[2];
+            mesh.scale.x = obj.scale[0];
+            mesh.scale.y = obj.scale[1];
+            mesh.scale.z = obj.scale[2];
         }
 
-        if (objNode.rotation) {
+        if (obj.rotation) {
             const q = new Quaternion();
-            q.x = objNode.rotation[0];
-            q.y = objNode.rotation[1];
-            q.z = objNode.rotation[2];
-            q.w = objNode.rotation[3];
+            q.x = obj.rotation[0];
+            q.y = obj.rotation[1];
+            q.z = obj.rotation[2];
+            q.w = obj.rotation[3];
 
             mesh.rotation = Quaternion.toEuler(q);
         }
@@ -291,7 +348,7 @@ export class GltfLoader {
             const indices = this.#getAccessorBuffer(gltf, objPri.indices);
 
             const mat = this.#getMaterial(gltf, objPri);
-            const geom = new RawIndexGeometry(vertices, normals, uvs, indices);
+            const geom = new RawGeometry(vertices, normals, uvs, indices);
             const pri = new MeshPrimitive(geom, mat);
 
             mesh.primitives.push(pri);

@@ -3,6 +3,7 @@ import { Vector2, MathHelper, Matrix3, Matrix4, Vector3 } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
 import { Mesh } from "./mesh";
 import { MeshGroup } from "./mesh-group";
+import { ModelAnimation } from "./model-animation";
 import { Shaders } from "./shaders";
 
 export class Renderer {
@@ -91,14 +92,13 @@ export class Renderer {
         gl.bindVertexArray(null);
     }
 
-    static drawModel(model, camera, lights, pos, rot, scale) {
+    static drawModel(model, camera, lights, pos, rot, scale, animation = null, animationTime = 0) {
         if (!model) {
             return;
         }
 
         if (this.switchShader(this.#shaderModel)) {
             const shader = this.#shader;
-
             shader.u1i("u_light_count", lights.length);
 
             for (let i = 0; i < lights.length; i++) {
@@ -114,7 +114,6 @@ export class Renderer {
         }
 
         const shader = this.#shader;
-
         const matProjection = this.#generateProjectionMatrix(camera);
         const matView = this.#generateViewMatrix(camera);
         const matModel = this.#generateModelMatrix(pos, rot, scale);
@@ -127,18 +126,28 @@ export class Renderer {
         shader.uvec3("u_camera", camera.position);
 
         // Render mesh per mesh
+        if (model.data instanceof Array) {
+            const pos = new Vector3(0, 0, 0);
+            const rot = new Vector3(0, 0, 0);
+            const scale = new Vector3(1, 1, 1);
+
+            for (let el of model.data) {
+                if (el instanceof Mesh) {
+                    this.#drawModel_Mesh(el, pos, rot, scale, animation, animationTime);
+                }
+
+                if (el instanceof MeshGroup) {
+                    this.#drawModel_Group(el, pos, rot, scale, animation, animationTime);
+                }
+            }
+        }
+
         if (model.data instanceof Mesh) {
             const pos = new Vector3(0, 0, 0);
             const rot = new Vector3(0, 0, 0);
             const scale = new Vector3(1, 1, 1);
 
-            if (Array.isArray(model.data)) {
-                for (let mesh of model.data) {
-                    this.#drawModel_Mesh(mesh, pos, rot, scale);
-                }
-            } else {
-                this.#drawModel_Mesh(model.data, pos, rot, scale);
-            }
+            this.#drawModel_Mesh(model.data, pos, rot, scale, animation, animationTime);
         }
 
         if (model.data instanceof MeshGroup) {
@@ -146,43 +155,55 @@ export class Renderer {
             const rot = new Vector3(0, 0, 0);
             const scale = new Vector3(1, 1, 1);
 
-            if (Array.isArray(model.data)) {
-                for (let group of model.data) {
-                    this.#drawModel_Group(group, pos, rot, scale);
-                }
-            } else {
-                this.#drawModel_Group(model.data, pos, rot, scale);
-            }
+            this.#drawModel_Group(model.data, pos, rot, scale, animation, animationTime);
         }
     }
 
-    static #drawModel_Group(group, pos, rot, scale) {
+    static #drawModel_Group(group, pos, rot, scale, animation, animationTime) {
         pos = Vector3.add(pos, group.translation);
         rot = Vector3.add(rot, group.rotation);
         scale = Vector3.mult(scale, group.scale);
 
+        if (animation) {
+            const transform = this.#generateAnimationTransform(group.index, animation, animationTime);
+
+            pos = Vector3.add(pos, transform.pos);
+            rot = Vector3.add(rot, transform.rot);
+            scale = Vector3.mult(scale, transform.scale);
+        }
+
         for (let child of group.children) {
             if (child instanceof Mesh) {
-                this.#drawModel_Mesh(child, pos, rot, scale);
+                this.#drawModel_Mesh(child, pos, rot, scale, animation, animationTime);
             }
 
             if (child instanceof MeshGroup) {
-                this.#drawModel_Group(child, pos, rot, scale);
+                this.#drawModel_Group(child, pos, rot, scale, animation, animationTime);
             }
         }
     }
 
-    static #drawModel_Mesh(mesh, pos, rot, scale) {
+    static #drawModel_Mesh(mesh, pos, rot, scale, animation, animationTime) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
-        // Set the mesh matrix. For this we generate a model matrix. Its basically the same thing.
-        const finalPos = Vector3.add(pos, mesh.translation);
-        const finalRot = Vector3.add(rot, mesh.rotation);
-        const finalScale = Vector3.mult(scale, mesh.scale);
+        // Generate a matrix per mesh similar to a model matrix
+        let meshPos = Vector3.add(pos, mesh.translation);
+        let meshRot = Vector3.add(rot, mesh.rotation);
+        let meshScale = Vector3.mult(scale, mesh.scale);
 
-        const mat = this.#generateModelMatrix(finalPos, finalRot, finalScale);
-        shader.umat4("u_mesh", mat);
+        // Apply animations first
+        if (animation) {
+            const transform = this.#generateAnimationTransform(mesh.index, animation, animationTime);
+
+            meshPos = Vector3.add(meshPos, transform.pos);
+            meshRot = Vector3.add(meshRot, transform.rot);
+            meshScale = Vector3.mult(meshScale, transform.scale);
+        }
+
+        // And finally generate and set the mesh matrix
+        const matMesh = this.#generateModelMatrix(meshPos, meshRot, meshScale);
+        shader.umat4("u_mesh", matMesh);
 
         // Now render primitive per primitive
         for (let pri of mesh.primitives) {
@@ -225,6 +246,93 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
+    static #generateAnimationTransform(index, animation, animationTime) {
+        let channels = animation.channels.filter(x => x.index == index);
+        let pos = new Vector3(0, 0, 0);
+        let rot = new Vector3(0, 0, 0);
+        let scale = new Vector3(1, 1, 1);
+
+        for (let channel of channels) {
+            let prevTime = 0;
+            let prevIndex = 0;
+            let nextTime = channel.input[channel.input.length - 1];
+            let nextIndex = channel.input.length - 1;
+            let interpolation = channel.interpolation;
+
+            // We only interpolate when the animation time is within our input range
+            // Therefore we check it here because there is no point in figuring out the timesteps if we already exceeded the last one.
+            if (animationTime >= nextTime) {
+                interpolation = null;
+            }
+
+            if (interpolation == "STEP") {
+
+            }
+
+            if (interpolation == "LINEAR") {
+                for (let i = 0; i < channel.input.length - 1; i++) {
+                    const time1 = channel.input[i + 0];
+                    const time2 = channel.input[i + 1];
+
+                    if (time1 < animationTime && time1 > prevTime) {
+                        prevTime = time1;
+                        prevIndex = i;
+                    }
+
+                    if (time2 > animationTime && time2 < nextTime) {
+                        nextTime = time2;
+                        nextIndex = i + 1;
+                    }
+                }
+
+                const prev = new Vector3();
+                prev.x = channel.output[prevIndex * 3 + 0] ?? 0;
+                prev.y = channel.output[prevIndex * 3 + 1] ?? 0;
+                prev.z = channel.output[prevIndex * 3 + 2] ?? 0;
+
+                const next = new Vector3();
+                next.x = channel.output[nextIndex * 3 + 0] ?? 0;
+                next.y = channel.output[nextIndex * 3 + 1] ?? 0;
+                next.z = channel.output[nextIndex * 3 + 2] ?? 0;
+
+                const value = prevIndex < nextIndex ? (animationTime - prevTime) / (nextTime - prevTime) : 0;
+
+                if (channel.path === "translation") {
+                    const v = new Vector3();
+                    v.x = prev.x + value * (next.x - prev.x);
+                    v.y = prev.y + value * (next.y - prev.y);
+                    v.z = prev.z + value * (next.z - prev.z);
+
+                    pos = Vector3.add(pos, v);
+                }
+
+                if (channel.path === "rotation") {
+                    const v = new Vector3();
+                    v.x = prev.x + value * (next.x - prev.x);
+                    v.y = prev.y + value * (next.y - prev.y);
+                    v.z = prev.z + value * (next.z - prev.z);
+
+                    rot = Vector3.add(rot, v);
+                }
+
+                if (channel.path === "scale") {
+                    const v = new Vector3();
+                    v.x = prev.x + value * (next.x - prev.x);
+                    v.y = prev.y + value * (next.y - prev.y);
+                    v.z = prev.z + value * (next.z - prev.z);
+
+                    scale = Vector3.mult(scale, v);
+                }
+            }
+        }
+
+        return {
+            pos: pos,
+            rot: rot,
+            scale: scale
+        };
+    }
+
     static #generateModelMatrix(pos, rot, scale) {
         let m = Matrix4.identity();
         m = Matrix4.scale(m, scale.x, scale.y, scale.z);

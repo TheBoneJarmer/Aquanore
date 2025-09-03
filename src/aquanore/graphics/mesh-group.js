@@ -6,6 +6,7 @@ export class MeshGroup {
     #scale = null;
     #children = null;
     #name = null;
+    #index = 0;
 
     get translation() {
         return this.#translation;
@@ -45,6 +46,14 @@ export class MeshGroup {
 
     set name(value) {
         this.#name = value;
+    }
+
+    get index() {
+        return this.#index;
+    }
+
+    set index(value) {
+        this.#index = value;
     }
 
     constructor() {

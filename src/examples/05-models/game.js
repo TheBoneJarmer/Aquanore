@@ -12,22 +12,30 @@ let lights = [];
 let pos = new Vector3();
 let rot = new Vector3();
 let scale = new Vector3(1, 1, 1);
+let time = 0;
 
 Aquanore.init();
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -3;
-    cam.position.y = -1;
+    cam.position.z = -10;
+    cam.position.y = 0;
 
     lights[0] = new Light(LightType.Directional);
 
     let loader = new GltfLoader();
-    model = await loader.load("mage.glb");
+    model = await loader.load("axis.glb");
+
+    console.log(model);
 };
 
 Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
+    time += dt / 10;
+
+    if (time == 100) {
+        time = 0;
+    }
 
     if (Keyboard.keyDown(Keys.Up)) {
         rot.x -= dt;
@@ -44,6 +52,11 @@ Aquanore.onUpdate = (dt) => {
     if (Keyboard.keyDown(Keys.Right)) {
         rot.y += dt;
     }
+
+    if (Keyboard.keyPressed(Keys.R)) {
+        rot.x = 0;
+        rot.y = 0;
+    }
 };
 
 Aquanore.onRender2D = () => {
@@ -51,7 +64,7 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, cam, lights, pos, rot, scale);
+    Renderer.drawModel(model, cam, lights, pos, rot, scale, model.animations[0], time);
 };
 
 Aquanore.run();
