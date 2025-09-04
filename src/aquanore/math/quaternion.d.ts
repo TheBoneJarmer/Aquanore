@@ -23,4 +23,9 @@ export class Quaternion {
     static length(q: Quaternion): number;
     static normalized(q: Quaternion): Quaternion;
     static inversed(q: Quaternion): Quaternion;
+    static slerp(q1: Quaternion, q1: Quaternion, t: number): Quaternion;
+    static dot(q1: Quaternion, q2: Quaternion): number;
+    static add(q1: Quaternion, q2: Quaternion): Quaternion;
+    static sub(q1: Quaternion, q2: Quaternion): Quaternion;
+    static mult(q1: Quaternion, q2: Quaternion): Quaternion;
 }

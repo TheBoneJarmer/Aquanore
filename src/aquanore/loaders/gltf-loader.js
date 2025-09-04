@@ -177,28 +177,32 @@ export class GltfLoader {
         for (let objChannel of objAnimation.channels) {
             const objSampler = objAnimation.samplers[objChannel.sampler];
 
-            let input = this.#getAccessorBuffer(gltf, objSampler.input);
-            let output = this.#getAccessorBuffer(gltf, objSampler.output);
+            let inputArray = this.#getAccessorBuffer(gltf, objSampler.input);
+            let outputArray = this.#getAccessorBuffer(gltf, objSampler.output);
+            let output = []; // Vectors or quaternions
 
-            // Convert quaternions to euler angles if the sampler contains them
-            if (objChannel.target.path == "rotation") {
-                const eulers = [];
+            // Convert the output array to either vector3 or quaternion
+            if (objChannel.target.path == "translation" || objChannel.target.path == "scale") {
+                for (let i = 0; i < outputArray.length; i += 3) {
+                    const v = new Vector3();
+                    v.x = outputArray[i + 0];
+                    v.y = outputArray[i + 1];
+                    v.z = outputArray[i + 2];
 
-                for (let i = 0; i < output.length; i += 4) {
-                    const q = new Quaternion();
-                    q.x = output[i + 0];
-                    q.y = output[i + 1];
-                    q.z = output[i + 2];
-                    q.w = output[i + 3];
-
-                    const v = Quaternion.toEuler(q);
-
-                    eulers.push(v.x);
-                    eulers.push(v.y);
-                    eulers.push(v.z);
+                    output.push(v);
                 }
+            }
 
-                output = eulers;
+            if (objChannel.target.path == "rotation") {
+                for (let i = 0; i < outputArray.length; i += 4) {
+                    const q = new Quaternion();
+                    q.x = outputArray[i + 0];
+                    q.y = outputArray[i + 1];
+                    q.z = outputArray[i + 2];
+                    q.w = outputArray[i + 3];
+
+                    output.push(q);
+                }
             }
 
             // Finally generate our animation channel and add it to the list
@@ -206,7 +210,7 @@ export class GltfLoader {
             channel.index = objChannel.target.node;
             channel.path = objChannel.target.path;
             channel.interpolation = objSampler.interpolation;
-            channel.input = input;
+            channel.input = inputArray;
             channel.output = output;
 
             animation.channels.push(channel);

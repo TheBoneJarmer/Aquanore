@@ -1,5 +1,5 @@
 import { Aquanore } from "../aquanore";
-import { Vector2, MathHelper, Matrix3, Matrix4, Vector3 } from "../math";
+import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
 import { Mesh } from "./mesh";
 import { MeshGroup } from "./mesh-group";
@@ -166,9 +166,10 @@ export class Renderer {
 
         if (animation) {
             const transform = this.#generateAnimationTransform(group.index, animation, animationTime);
+            const euler = Quaternion.toEuler(transform.rot);
 
             pos = Vector3.add(pos, transform.pos);
-            rot = Vector3.add(rot, transform.rot);
+            rot = Vector3.add(rot, euler);
             scale = Vector3.mult(scale, transform.scale);
         }
 
@@ -195,9 +196,10 @@ export class Renderer {
         // Apply animations first
         if (animation) {
             const transform = this.#generateAnimationTransform(mesh.index, animation, animationTime);
+            const euler = Quaternion.toEuler(transform.rot);
 
             meshPos = Vector3.add(meshPos, transform.pos);
-            meshRot = Vector3.add(meshRot, transform.rot);
+            meshRot = Vector3.add(meshRot, euler);
             meshScale = Vector3.mult(meshScale, transform.scale);
         }
 
@@ -249,7 +251,7 @@ export class Renderer {
     static #generateAnimationTransform(index, animation, animationTime) {
         let channels = animation.channels.filter(x => x.index == index);
         let pos = new Vector3(0, 0, 0);
-        let rot = new Vector3(0, 0, 0);
+        let rot = new Quaternion(0, 0, 0, 1);
         let scale = new Vector3(1, 1, 1);
 
         for (let channel of channels) {
@@ -266,10 +268,12 @@ export class Renderer {
             }
 
             if (interpolation == "STEP") {
-
+                // TODO: Step interpolation
             }
 
             if (interpolation == "LINEAR") {
+
+                // Figure out the largest smaller time before the current time as well as the smallest largest time after the current time
                 for (let i = 0; i < channel.input.length - 1; i++) {
                     const time1 = channel.input[i + 0];
                     const time2 = channel.input[i + 1];
@@ -285,43 +289,33 @@ export class Renderer {
                     }
                 }
 
-                const prev = new Vector3();
-                prev.x = channel.output[prevIndex * 3 + 0] ?? 0;
-                prev.y = channel.output[prevIndex * 3 + 1] ?? 0;
-                prev.z = channel.output[prevIndex * 3 + 2] ?? 0;
-
-                const next = new Vector3();
-                next.x = channel.output[nextIndex * 3 + 0] ?? 0;
-                next.y = channel.output[nextIndex * 3 + 1] ?? 0;
-                next.z = channel.output[nextIndex * 3 + 2] ?? 0;
-
+                // The linear interpolation value
                 const value = prevIndex < nextIndex ? (animationTime - prevTime) / (nextTime - prevTime) : 0;
 
+                // Now compute the lerp and slerp values accordingly
+                // We are going to assume here that translation and scale are instances of Vector3 and rotations are instances of Quaternions
                 if (channel.path === "translation") {
-                    const v = new Vector3();
-                    v.x = prev.x + value * (next.x - prev.x);
-                    v.y = prev.y + value * (next.y - prev.y);
-                    v.z = prev.z + value * (next.z - prev.z);
+                    const prev = channel.output[prevIndex];
+                    const next = channel.output[nextIndex];
+                    const lerp = Vector3.lerp(prev, next, value);
 
-                    pos = Vector3.add(pos, v);
+                    pos = Vector3.add(pos, lerp);
                 }
 
                 if (channel.path === "rotation") {
-                    const v = new Vector3();
-                    v.x = prev.x + value * (next.x - prev.x);
-                    v.y = prev.y + value * (next.y - prev.y);
-                    v.z = prev.z + value * (next.z - prev.z);
+                    const prev = channel.output[prevIndex];
+                    const next = channel.output[nextIndex];
+                    const slerp = Quaternion.slerp(prev, next, value);
 
-                    rot = Vector3.add(rot, v);
+                    rot = Quaternion.mult(rot, slerp);
                 }
 
                 if (channel.path === "scale") {
-                    const v = new Vector3();
-                    v.x = prev.x + value * (next.x - prev.x);
-                    v.y = prev.y + value * (next.y - prev.y);
-                    v.z = prev.z + value * (next.z - prev.z);
+                    const prev = channel.output[prevIndex];
+                    const next = channel.output[nextIndex];
+                    const lerp = Vector3.lerp(prev, next, value);
 
-                    scale = Vector3.mult(scale, v);
+                    scale = Vector3.mult(prev, next);
                 }
             }
         }

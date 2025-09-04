@@ -17,6 +17,7 @@ export class Vector3 {
     static normalized(v: Vector3): Vector3;
     static cross(v1: Vector3, v2: Vector3): Vector3;
     static dot(v1: Vector3, v2: Vector3): number;
+    static lerp(v1: Vector3, v2: Vector3, t: number): Vector3;
     static add(v1: Vector3, v2: Vector3): Vector3;
     static sub(v1: Vector3, v2: Vector3): Vector3;
     static mult(v1: Vector3, v2: Vector3): Vector3;

@@ -31,7 +31,7 @@ Aquanore.onLoad = async () => {
 
 Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
-    time += dt / 10;
+    time += dt / 5;
 
     if (time == 100) {
         time = 0;
