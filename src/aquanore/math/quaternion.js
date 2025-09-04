@@ -168,7 +168,10 @@ export class Quaternion {
             z = s * z + t * z;
             w = s * w + t * w;
 
-            return new Quaternion(x, y, z, w).normalize();
+            let q = new Quaternion(x, y, z, w);
+            q = Quaternion.normalized(q);
+
+            return q;
         }
 
         const sinHalfTheta = Math.sqrt(sqrSinHalfTheta);

@@ -24,7 +24,7 @@ Aquanore.onLoad = async () => {
     lights[0] = new Light(LightType.Directional);
 
     let loader = new GltfLoader();
-    model = await loader.load("axis.glb");
+    model = await loader.load("mage.glb");
 
     console.log(model);
 };
