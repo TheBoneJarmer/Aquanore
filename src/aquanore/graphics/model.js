@@ -1,6 +1,7 @@
 export class Model {
     #data = null;
     #animations = [];
+    #skins = [];
 
     get data() {
         return this.#data;
@@ -18,8 +19,17 @@ export class Model {
         this.#animations = value;
     }
 
+    get skins() {
+        return this.#skins;
+    }
+
+    set skins(value) {
+        this.#skins = value;
+    }
+
     constructor() {
         this.#data = null;
         this.#animations = [];
+        this.#skins = [];
     }
 }

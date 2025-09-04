@@ -1,7 +1,7 @@
 import { Geometry } from "./geometry";
 
 export class RawGeometry extends Geometry {
-    constructor(vertices, normals, uvs, indices) {
+    constructor(vertices, normals, uvs, indices, joints = [], weights = []) {
         super();
 
         if (vertices == null) {
@@ -40,6 +40,8 @@ export class RawGeometry extends Geometry {
         this.normals = normals;
         this.uvs = uvs;
         this.indices = indices;
+        this.joints = joints;
+        this.weights = weights;
 
         this.updateArrays();
         this.generateBuffers();

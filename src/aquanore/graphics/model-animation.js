@@ -21,4 +21,18 @@ export class ModelAnimation {
     constructor() {
 
     }
+
+    getDuration() {
+        let result = 0;
+
+        for (let channel of this.#channels) {
+            const max = Math.max(...channel.input);
+
+            if (max > result) {
+                result = max;
+            }
+        }
+
+        return result;
+    }
 }

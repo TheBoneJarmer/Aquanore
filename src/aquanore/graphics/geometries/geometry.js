@@ -8,12 +8,16 @@ export class Geometry {
     #indices = [];
     #tangents = [];
     #bitangents = [];
+    #joints = [];
+    #weights = [];
 
     #vboVertices = null;
     #vboUvs = null;
     #vboNormals = null;
     #vboTangents = null;
     #vboBitangents = null;
+    #vboJoints = null;
+    #vboWeights = null;
     #vao = null;
     #ebo = null;
 
@@ -67,6 +71,22 @@ export class Geometry {
 
     set bitangents(value) {
         this.#bitangents = value;
+    }
+
+    get weights() {
+        return this.#weights;
+    }
+
+    set weights(value) {
+        this.#weights = value;
+    }
+
+    get joints() {
+        return this.#joints;
+    }
+
+    set joints(value) {
+        this.#joints = value;
     }
 
     updateArrays() {
@@ -154,6 +174,8 @@ export class Geometry {
         this.#vboNormals = gl.createBuffer();
         this.#vboTangents = gl.createBuffer();
         this.#vboBitangents = gl.createBuffer();
+        this.#vboJoints = gl.createBuffer();
+        this.#vboWeights = gl.createBuffer();
 
         gl.bindVertexArray(this.#vao);
 
@@ -181,6 +203,16 @@ export class Geometry {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#bitangents), gl.STATIC_DRAW);
         gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(4);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboJoints);
+        gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(this.#joints), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(5, 4, gl.UNSIGNED_BYTE, false, 0, 0);
+        gl.enableVertexAttribArray(5);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboWeights);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#weights), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(6, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(6);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#ebo);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.#indices), gl.STATIC_DRAW);

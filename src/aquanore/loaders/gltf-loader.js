@@ -2,10 +2,11 @@ import { Aquanore } from "../aquanore";
 import { Mesh, MeshPrimitive, Model, Texture } from "../graphics";
 import { RawGeometry } from "../graphics/geometries";
 import { StandardMaterial } from "../graphics/materials";
-import { MeshGroup } from "../graphics/mesh-group";
+import { MeshJoint } from "../graphics/mesh-joint";
+import { MeshSkin } from "../graphics/mesh-skin";
 import { ModelAnimation } from "../graphics/model-animation";
 import { ModelAnimationChannel } from "../graphics/model-animation-channel";
-import { Quaternion, Vector3 } from "../math";
+import { Matrix4, Quaternion, Vector3 } from "../math";
 import { TextureLoader } from "./texture-loader";
 
 export class GltfLoader {
@@ -150,6 +151,12 @@ export class GltfLoader {
             }
         }
 
+        if (gltf.skins) {
+            for (let obj of gltf.skins) {
+                await this.#parseSkin(gltf, obj);
+            }
+        }
+
         if (scene.nodes.length == 1) {
             const nodeIndex = scene.nodes[0];
             const node = gltf.nodes[nodeIndex];
@@ -270,26 +277,26 @@ export class GltfLoader {
             return await this.#parseMesh(gltf, obj, index);
         }
 
-        return await this.#parseMeshGroup(gltf, obj, index);
+        return await this.#parseMeshJoint(gltf, obj, index);
     }
 
-    async #parseMeshGroup(gltf, obj, index) {
-        const group = new MeshGroup();
-        group.name = obj.name;
-        group.index = index;
+    async #parseMeshJoint(gltf, obj, index) {
+        const joint = new MeshJoint();
+        joint.name = obj.name;
+        joint.index = index;
 
         if (obj.translation) {
-            group.translation = new Vector3();
-            group.translation.x = obj.translation[0];
-            group.translation.y = obj.translation[1];
-            group.translation.z = obj.translation[2];
+            joint.translation = new Vector3();
+            joint.translation.x = obj.translation[0];
+            joint.translation.y = obj.translation[1];
+            joint.translation.z = obj.translation[2];
         }
 
         if (obj.scale) {
-            group.scale = new Vector3();
-            group.scale.x = obj.scale[0];
-            group.scale.y = obj.scale[1];
-            group.scale.z = obj.scale[2];
+            joint.scale = new Vector3();
+            joint.scale.x = obj.scale[0];
+            joint.scale.y = obj.scale[1];
+            joint.scale.z = obj.scale[2];
         }
 
         if (obj.rotation) {
@@ -299,17 +306,17 @@ export class GltfLoader {
             q.z = obj.rotation[2];
             q.w = obj.rotation[3];
 
-            group.rotation = Quaternion.toEuler(q);
+            joint.rotation = Quaternion.toEuler(q);
         }
 
         if (obj.children) {
             for (let index of obj.children) {
                 const child = await this.#parseNode(gltf, gltf.nodes[index], index);
-                group.children.push(child);
+                joint.children.push(child);
             }
         }
 
-        return group;
+        return joint;
     }
 
     async #parseMesh(gltf, obj, index) {
@@ -344,21 +351,67 @@ export class GltfLoader {
             mesh.rotation = Quaternion.toEuler(q);
         }
 
+        if (obj.skin != null) {
+            mesh.skin = obj.skin;
+        }
+
         // Generate primitives
         for (let objPri of objMesh.primitives) {
-            const vertices = this.#getAccessorBuffer(gltf, objPri.attributes.POSITION);
-            const normals = this.#getAccessorBuffer(gltf, objPri.attributes.NORMAL);
-            const uvs = this.#getAccessorBuffer(gltf, objPri.attributes.TEXCOORD_0);
-            const indices = this.#getAccessorBuffer(gltf, objPri.indices);
+            let indices = [];
+            let vertices = [];
+            let normals = [];
+            let uvs = [];
+            let joints = [];
+            let weights = [];
+
+            if (objPri.indices != null) {
+                indices = this.#getAccessorBuffer(gltf, objPri.indices);
+            }
+
+            if (objPri.attributes.POSITION != null) {
+                vertices = this.#getAccessorBuffer(gltf, objPri.attributes.POSITION)
+            }
+
+            if (objPri.attributes.NORMAL != null) {
+                normals = this.#getAccessorBuffer(gltf, objPri.attributes.NORMAL);
+            }
+
+            if (objPri.attributes.TEXCOORD_0 != null) {
+                uvs = this.#getAccessorBuffer(gltf, objPri.attributes.TEXCOORD_0);
+            }
+
+            if (objPri.attributes.JOINTS_0 != null) {
+                joints = this.#getAccessorBuffer(gltf, objPri.attributes.JOINTS_0);
+            }
+
+            if (objPri.attributes.WEIGHTS_0 != null) {
+                weights = this.#getAccessorBuffer(gltf, objPri.attributes.WEIGHTS_0);
+            }
 
             const mat = this.#getMaterial(gltf, objPri);
-            const geom = new RawGeometry(vertices, normals, uvs, indices);
-            const pri = new MeshPrimitive(geom, mat);
+            const geom = new RawGeometry(vertices, normals, uvs, indices, joints, weights);
 
+            const pri = new MeshPrimitive(geom, mat);
             mesh.primitives.push(pri);
         }
 
         return mesh;
+    }
+
+    async #parseSkin(gltf, obj) {
+        const buffer = this.#getAccessorBuffer(gltf, obj.inverseBindMatrices);
+
+        const skin = new MeshSkin();
+        skin.joints = obj.joints;
+
+        for (let i = 0; i < buffer.length; i += 16) {
+            const values = buffer.slice(i, i + 16);
+            const matrix = new Matrix4(values);
+
+            skin.matrices.push(matrix);
+        }
+
+        this.#result.skins.push(skin);
     }
 
     /* HELPER FUNCTIONS */
@@ -404,24 +457,45 @@ export class GltfLoader {
         return mat;
     }
 
-    #getAccessorBuffer(gltf, accesorIndex) {
-        const gl = Aquanore.ctx;
-        const accesor = gltf.accessors[accesorIndex];
+    #getAccessorBuffer(gltf, accessorIndex) {
+        const accesor = gltf.accessors[accessorIndex];
         const bufferView = gltf.bufferViews[accesor.bufferView];
 
         const offset = accesor.byteOffset ?? 0 + bufferView.byteOffset;
         const length = bufferView.byteLength;
         const buffer = this.#buffers[bufferView.buffer].slice(offset, offset + length);
 
-        if (accesor.componentType == gl.FLOAT) {
-            return Array.from(new Float32Array(buffer));
+        // BYTE
+        if (accesor.componentType == 5120) {
+            return Array.from(new Int8Array(buffer));
         }
 
-        if (accesor.componentType == gl.UNSIGNED_SHORT) {
+        // UNSIGNED_BYTE
+        if (accesor.componentType == 5121) {
+            return Array.from(new Uint8Array(buffer));
+        }
+
+        // SHORT
+        if (accesor.componentType == 5122) {
+            return Array.from(new Int16Array(buffer));
+        }
+
+        // UNSIGNED_SHORT
+        if (accesor.componentType == 5123) {
             return Array.from(new Uint16Array(buffer));
         }
 
-        return [];
+        // UNSIGNED INT
+        if (accesor.componentType == 5125) {
+            return Array.from(new Uint32Array(buffer));
+        }
+
+        // FLOAT
+        if (accesor.componentType == 5126) {
+            return Array.from(new Float32Array(buffer));
+        }
+
+        throw new Error(`Unsupported component type ${accesor.componentType} was used in accessor ${accessorIndex}`);
     }
 
     #getBuffer(gltf, index) {

@@ -13,6 +13,7 @@ let pos = new Vector3();
 let rot = new Vector3();
 let scale = new Vector3(1, 1, 1);
 let time = 0;
+let anim = 0;
 
 Aquanore.init();
 
@@ -25,7 +26,6 @@ Aquanore.onLoad = async () => {
 
     let loader = new GltfLoader();
     model = await loader.load("mage.glb");
-
     console.log(model);
 };
 
@@ -33,7 +33,7 @@ Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
     time += dt / 5;
 
-    if (time == 100) {
+    if (time > model.animations[anim].getDuration()) {
         time = 0;
     }
 
@@ -64,7 +64,8 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, cam, lights, pos, rot, scale, model.animations[0], time);
+    // Renderer.drawModel(model, cam, lights, pos, rot, scale, model.animations[anim], time);
+    Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
 
 Aquanore.run();

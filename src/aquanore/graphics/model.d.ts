@@ -1,8 +1,8 @@
 import { Mesh } from "./mesh";
-import { MeshGroup } from "./mesh-group";
+import { MeshJoint } from "./mesh-joint";
 
 export class Model {
-    get data(): Mesh | Mesh[] | MeshGroup | MeshGroup[];
+    get data(): Mesh | Mesh[] | MeshJoint | MeshJoint[];
     get animations(): any;
 
     constructor();

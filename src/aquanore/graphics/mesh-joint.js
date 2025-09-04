@@ -1,6 +1,6 @@
 import { Vector3 } from "../math";
 
-export class MeshGroup {
+export class MeshJoint {
     #translation = null;
     #rotation = null;
     #scale = null;

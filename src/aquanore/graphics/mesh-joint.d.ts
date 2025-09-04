@@ -1,8 +1,8 @@
 import { Vector3 } from "../math";
 import { Mesh } from "./mesh";
 
-export class MeshGroup {
-    get children(): (Mesh | MeshGroup)[];
+export class MeshJoint {
+    get children(): (Mesh | MeshJoint)[];
     get name(): string;
     set name(value: string);
     get translation(): Vector3;
