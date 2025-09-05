@@ -222,6 +222,9 @@ export class Renderer {
             const material = pri.material;
             const geom = pri.geometry;
 
+            shader.u1b("u_has_joints", geom.joints.length > 0);
+            shader.u1b("u_has_weights", geom.weights.length > 0);
+
             if (material instanceof BasicMaterial) {
                 shader.u1i("u_material_type", 0);
                 shader.ucolor("u_material.color", material.color);

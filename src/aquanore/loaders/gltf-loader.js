@@ -1,6 +1,6 @@
 import { Aquanore } from "../aquanore";
 import { Mesh, MeshPrimitive, Model, Texture } from "../graphics";
-import { RawGeometry } from "../graphics/geometries";
+import { Geometry } from "../graphics/geometries";
 import { StandardMaterial } from "../graphics/materials";
 import { MeshJoint } from "../graphics/mesh-joint";
 import { MeshSkin } from "../graphics/mesh-skin";
@@ -37,6 +37,7 @@ export class GltfLoader {
         if (res.ok) {
             const gltf = await res.json();
             await this.#parseGltf(gltf);
+            console.log(gltf);
         } else {
             throw new Error(`Failed to load GLTF`);
         }
@@ -184,8 +185,8 @@ export class GltfLoader {
         for (let objChannel of objAnimation.channels) {
             const objSampler = objAnimation.samplers[objChannel.sampler];
 
-            let inputArray = this.#getAccessorBuffer(gltf, objSampler.input);
-            let outputArray = this.#getAccessorBuffer(gltf, objSampler.output);
+            let inputArray = this.#getAccessorBufferArray(gltf, objSampler.input);
+            let outputArray = this.#getAccessorBufferArray(gltf, objSampler.output);
             let output = []; // Vectors or quaternions
 
             // Convert the output array to either vector3 or quaternion
@@ -258,8 +259,23 @@ export class GltfLoader {
         }
 
         if (uri.startsWith("data:")) {
-            // TODO: Parse uri data
-            throw new Error("Data urls are not yet supported.");
+            //data:application/gltf-buffer;base64,
+            const parts = uri.split(";");
+            const mimetype = parts[0].replace("data:", "");
+            const format = parts[1].split(",")[0];
+
+            if (mimetype != "application/gltf-buffer") {
+                throw new Error(`Failed to parse buffer. Unsupported data URI mimetype ${mimetype}`);
+            }
+
+            if (format == "base64") {
+                const res = await fetch(uri);
+                const buffer = await res.arrayBuffer();
+
+                this.#buffers.push(buffer);
+            } else {
+                throw new Error(`Failed to parse buffer. Unsupported data URI format ${format}`);
+            }
         } else {
             const res = await fetch(uri);
 
@@ -357,39 +373,86 @@ export class GltfLoader {
 
         // Generate primitives
         for (let objPri of objMesh.primitives) {
-            let indices = [];
-            let vertices = [];
-            let normals = [];
-            let uvs = [];
-            let joints = [];
-            let weights = [];
+            const vao = this.#generateVao();
+            const mat = this.#getMaterial(gltf, objPri);
+
+            const geom = new Geometry();
+            geom.vao = vao;
 
             if (objPri.indices != null) {
-                indices = this.#getAccessorBuffer(gltf, objPri.indices);
+                const buffer = this.#getAccessorBuffer(gltf, objPri.indices);
+                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.indices);
+
+                geom.indices = bufferArray;
+                this.#generateEbo(vao, buffer.data);
             }
 
             if (objPri.attributes.POSITION != null) {
-                vertices = this.#getAccessorBuffer(gltf, objPri.attributes.POSITION)
+                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.POSITION);
+                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.POSITION);
+
+                geom.vertices = bufferArray;
+                this.#generateVbo(vao, 0, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
             }
 
             if (objPri.attributes.NORMAL != null) {
-                normals = this.#getAccessorBuffer(gltf, objPri.attributes.NORMAL);
+                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.NORMAL);
+                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.NORMAL);
+
+                geom.normals = bufferArray;
+                this.#generateVbo(vao, 1, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
             }
 
             if (objPri.attributes.TEXCOORD_0 != null) {
-                uvs = this.#getAccessorBuffer(gltf, objPri.attributes.TEXCOORD_0);
+                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.TEXCOORD_0);
+                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.TEXCOORD_0);
+
+                geom.uvs = bufferArray;
+                this.#generateVbo(vao, 2, buffer.data, buffer.dataType, 2, buffer.dataStride, 0);
             }
 
             if (objPri.attributes.JOINTS_0 != null) {
-                joints = this.#getAccessorBuffer(gltf, objPri.attributes.JOINTS_0);
+                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.JOINTS_0);
+                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.JOINTS_0);
+
+                geom.joints = bufferArray;
+                this.#generateVbo(vao, 4, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
             }
 
             if (objPri.attributes.WEIGHTS_0 != null) {
-                weights = this.#getAccessorBuffer(gltf, objPri.attributes.WEIGHTS_0);
+                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.WEIGHTS_0);
+                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.WEIGHTS_0);
+
+                geom.weights = bufferArray;
+                this.#generateVbo(vao, 5, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
             }
 
-            const mat = this.#getMaterial(gltf, objPri);
-            const geom = new RawGeometry(vertices, normals, uvs, indices, joints, weights);
+            // Fill up required arrays if the model does not provide the data
+            if (geom.normals.length == 0) {
+                const gl = Aquanore.ctx;
+
+                for (let i = 0; i < geom.vertices.length; i += 3) {
+                    geom.normals.push(0);
+                    geom.normals.push(0);
+                    geom.normals.push(0);
+                }
+
+                this.#generateVbo(vao, 1, new Float32Array(geom.normals), gl.FLOAT, 3, 0, 0);
+            }
+
+            if (geom.uvs.length == 0) {
+                const gl = Aquanore.ctx;
+
+                for (let i = 0; i < geom.vertices.length; i += 3) {
+                    geom.uvs.push(0);
+                    geom.uvs.push(0);
+                }
+
+                this.#generateVbo(vao, 2, new Float32Array(geom.normals), gl.FLOAT, 2, 0, 0);
+            }
+
+            // Generate tangents and bitangents
+            geom.updateArrays();
 
             const pri = new MeshPrimitive(geom, mat);
             mesh.primitives.push(pri);
@@ -399,7 +462,7 @@ export class GltfLoader {
     }
 
     async #parseSkin(gltf, obj) {
-        const buffer = this.#getAccessorBuffer(gltf, obj.inverseBindMatrices);
+        const buffer = this.#getAccessorBufferArray(gltf, obj.inverseBindMatrices);
 
         const skin = new MeshSkin();
         skin.joints = obj.joints;
@@ -415,6 +478,41 @@ export class GltfLoader {
     }
 
     /* HELPER FUNCTIONS */
+    #generateVbo(vao, index, data, dataType, dataSize, dataStride, dataOffset) {
+        const gl = Aquanore.ctx;
+        const id = gl.createBuffer();
+
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, id);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(index, dataSize, dataType, false, dataStride, dataOffset);
+        gl.enableVertexAttribArray(index);
+        gl.bindVertexArray(null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        return id;
+    }
+
+    #generateEbo(vao, data) {
+        const gl = Aquanore.ctx;
+        const id = gl.createBuffer();
+
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, id);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        gl.bindVertexArray(null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+        return id;
+    }
+
+    #generateVao() {
+        const gl = Aquanore.ctx;
+        const id = gl.createVertexArray();
+
+        return id;
+    }
+
     #getTexture(buffer) {
         return new Promise((resolve, reject) => {
             const blob = new Blob([buffer]);
@@ -434,23 +532,26 @@ export class GltfLoader {
         });
     }
 
-    #getMaterial(gltf, pri) {
+    #getMaterial(gltf, objPri) {
         const mat = new StandardMaterial();
-        const objMat = gltf.materials[pri.material];
-        const objPbr = objMat.pbrMetallicRoughness;
 
-        if (objPbr) {
-            if (objPbr.baseColorFactor) {
-                mat.color.r = Math.round(objPbr.baseColorFactor[0] * 255);
-                mat.color.g = Math.round(objPbr.baseColorFactor[1] * 255);
-                mat.color.b = Math.round(objPbr.baseColorFactor[2] * 255);
-            }
+        if (objPri.material != null) {
+            const objMat = gltf.materials[objPri.material];
+            const objPbr = objMat.pbrMetallicRoughness;
 
-            if (objPbr.baseColorTexture) {
-                const index = objPbr.baseColorTexture.index;
-                const objTex = gltf.textures[index];
+            if (objPbr) {
+                if (objPbr.baseColorFactor) {
+                    mat.color.r = Math.round(objPbr.baseColorFactor[0] * 255);
+                    mat.color.g = Math.round(objPbr.baseColorFactor[1] * 255);
+                    mat.color.b = Math.round(objPbr.baseColorFactor[2] * 255);
+                }
 
-                mat.colorMap = this.#textures[objTex.source];
+                if (objPbr.baseColorTexture) {
+                    const index = objPbr.baseColorTexture.index;
+                    const objTex = gltf.textures[index];
+
+                    mat.colorMap = this.#textures[objTex.source];
+                }
             }
         }
 
@@ -461,38 +562,54 @@ export class GltfLoader {
         const accesor = gltf.accessors[accessorIndex];
         const bufferView = gltf.bufferViews[accesor.bufferView];
 
-        const offset = accesor.byteOffset ?? 0 + bufferView.byteOffset;
-        const length = bufferView.byteLength;
-        const buffer = this.#buffers[bufferView.buffer].slice(offset, offset + length);
+        const offset = (accesor.byteOffset ?? 0) + (bufferView.byteOffset ?? 0);
+        const stride = bufferView.byteStride ?? 0;
+        const length = bufferView.byteLength ?? 0;
+        const buffer = this.#buffers[bufferView.buffer]?.slice(offset, offset + length);
+
+        if (buffer == null) {
+            throw new Error(`Unable to fetch buffer for accessor ${accessorIndex}`);
+        }
+
+        return {
+            data: buffer,
+            dataType: accesor.componentType,
+            dataStride: stride
+        };
+    }
+
+    #getAccessorBufferArray(gltf, accessorIndex) {
+        const accesor = gltf.accessors[accessorIndex];
+        const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
 
         // BYTE
         if (accesor.componentType == 5120) {
-            return Array.from(new Int8Array(buffer));
+            return Array.from(new Int8Array(buffer.data));
         }
 
         // UNSIGNED_BYTE
         if (accesor.componentType == 5121) {
-            return Array.from(new Uint8Array(buffer));
+            return Array.from(new Uint8Array(buffer.data));
         }
 
         // SHORT
         if (accesor.componentType == 5122) {
-            return Array.from(new Int16Array(buffer));
+            return Array.from(new Int16Array(buffer.data));
         }
 
         // UNSIGNED_SHORT
         if (accesor.componentType == 5123) {
-            return Array.from(new Uint16Array(buffer));
+            return Array.from(new Uint16Array(buffer.data));
         }
 
         // UNSIGNED INT
         if (accesor.componentType == 5125) {
-            return Array.from(new Uint32Array(buffer));
+            return Array.from(new Uint32Array(buffer.data));
         }
 
         // FLOAT
         if (accesor.componentType == 5126) {
-            return Array.from(new Float32Array(buffer));
+            return Array.from(new Float32Array(buffer.data));
         }
 
         throw new Error(`Unsupported component type ${accesor.componentType} was used in accessor ${accessorIndex}`);

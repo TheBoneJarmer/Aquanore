@@ -2,71 +2,66 @@ import { Aquanore } from "../../aquanore";
 import { Vector2, Vector3 } from "../../math";
 
 export class Geometry {
+    #vao = null;
+    #indices = [];
     #vertices = [];
     #uvs = [];
     #normals = [];
-    #indices = [];
     #tangents = [];
     #bitangents = [];
     #joints = [];
     #weights = [];
 
-    #vboVertices = null;
-    #vboUvs = null;
-    #vboNormals = null;
-    #vboTangents = null;
-    #vboBitangents = null;
-    #vboJoints = null;
-    #vboWeights = null;
-    #vao = null;
-    #ebo = null;
-
     get vao() {
         return this.#vao;
+    }
+
+    set vao(value) {
+        this.#vao = value;
     }
 
     get vertices() {
         return this.#vertices;
     }
 
-    get normals() {
-        return this.#normals;
-    }
-
-    get uvs() {
-        return this.#uvs;
-    }
-
-    get indices() {
-        return this.#indices;
-    }
-
-    get tangents() {
-        return this.#tangents;
-    }
-
-    get bitangents() {
-        return this.#bitangents;
-    }
-
     set vertices(value) {
         this.#vertices = value;
+    }
+
+    get normals() {
+        return this.#normals;
     }
 
     set normals(value) {
         this.#normals = value;
     }
 
+    get uvs() {
+        return this.#uvs;
+    }
+
     set uvs(value) {
         this.#uvs = value;
+    }
+
+    get indices() {
+        return this.#indices;
     }
 
     set indices(value) {
         this.#indices = value;
     }
 
+    get tangents() {
+        return this.#tangents;
+    }
+
     set tangents(value) {
         this.#tangents = value;
+    }
+
+    get bitangents() {
+        return this.#bitangents;
     }
 
     set bitangents(value) {
@@ -167,58 +162,60 @@ export class Geometry {
     generateBuffers() {
         const gl = Aquanore.ctx;
 
-        this.#vao = gl.createVertexArray();
-        this.#ebo = gl.createBuffer();
-        this.#vboVertices = gl.createBuffer();
-        this.#vboUvs = gl.createBuffer();
-        this.#vboNormals = gl.createBuffer();
-        this.#vboTangents = gl.createBuffer();
-        this.#vboBitangents = gl.createBuffer();
-        this.#vboJoints = gl.createBuffer();
-        this.#vboWeights = gl.createBuffer();
+        const vao = gl.createVertexArray();
+        const ebo = gl.createBuffer();
+        const vboVertex = gl.createBuffer();
+        const vboUV = gl.createBuffer();
+        const vboNormal = gl.createBuffer();
+        const vboTangent = gl.createBuffer();
+        const vboBitangent = gl.createBuffer();
+        const vboJoint = gl.createBuffer();
+        const vboWeight = gl.createBuffer();
 
-        gl.bindVertexArray(this.#vao);
+        gl.bindVertexArray(vao);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboVertices);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboVertex);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#vertices), gl.STATIC_DRAW);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboNormals);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboNormal);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#normals), gl.STATIC_DRAW);
         gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(1);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboUvs);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboUV);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#uvs), gl.STATIC_DRAW);
         gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(2);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboTangents);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboTangent);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#tangents), gl.STATIC_DRAW);
         gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(3);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboBitangents);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboBitangent);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#bitangents), gl.STATIC_DRAW);
         gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(4);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboJoints);
-        gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(this.#joints), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(5, 4, gl.UNSIGNED_BYTE, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboJoint);
+        gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(this.#joints), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(5, 4, gl.UNSIGNED_SHORT, false, 0, 0);
         gl.enableVertexAttribArray(5);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.#vboWeights);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboWeight);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#weights), gl.STATIC_DRAW);
         gl.vertexAttribPointer(6, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(6);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#ebo);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.#indices), gl.STATIC_DRAW);
 
         gl.bindVertexArray(null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        this.#vao = vao;
     }
 }
