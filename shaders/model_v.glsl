@@ -13,7 +13,7 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat3 u_normal;
 uniform mat4 u_mesh;
-uniform mat4 u_joints[99];
+uniform mat4 u_joint[99];
 
 uniform int u_has_joints;
 uniform int u_has_weights;
@@ -28,24 +28,17 @@ mat4 get_matrix_skin() {
     mat4 result = mat4(1);
 
     if(u_has_joints == 1 && u_has_weights == 1) {
-        result = a_weight.x * u_joints[int(a_joint.x)] +
-            a_weight.y * u_joints[int(a_joint.y)] +
-            a_weight.z * u_joints[int(a_joint.z)] +
-            a_weight.w * u_joints[int(a_joint.w)];
-    }
-
-    if(u_has_joints == 1 && u_has_weights == 0) {
-        result = u_joints[int(a_joint.x)] +
-            u_joints[int(a_joint.y)] +
-            u_joints[int(a_joint.z)] +
-            u_joints[int(a_joint.w)];
+        result = a_weight.x * u_joint[int(a_joint.x)] +
+            a_weight.y * u_joint[int(a_joint.y)] +
+            a_weight.z * u_joint[int(a_joint.z)] +
+            a_weight.w * u_joint[int(a_joint.w)];
     }
 
     return result;
 }
 
 mat4 get_matrix_mvp() {
-    return u_projection * u_view * u_model * u_mesh;
+    return u_projection * u_view * u_model * u_mesh * u_joint[1];
 }
 
 mat3 get_matrix_tbn() {
@@ -60,7 +53,7 @@ void main() {
     mat4 mat_mvp = get_matrix_mvp();
     mat4 mat_skin = get_matrix_skin();
     mat3 mat_tbn = get_matrix_tbn();
-    vec4 v = vec4(a_vertex, 1.0) * mat_skin;
+    vec4 v = vec4(a_vertex, 1.0);
 
     v_texcoord = a_texcoord;
     v_vertex = a_vertex;

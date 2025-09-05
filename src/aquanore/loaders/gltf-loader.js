@@ -1,8 +1,8 @@
 import { Aquanore } from "../aquanore";
-import { Mesh, MeshPrimitive, Model, Texture } from "../graphics";
+import { Mesh, Primitive, Model, Texture } from "../graphics";
 import { Geometry } from "../graphics/geometries";
 import { StandardMaterial } from "../graphics/materials";
-import { MeshJoint } from "../graphics/mesh-joint";
+import { Joint } from "../graphics/joint";
 import { MeshSkin } from "../graphics/mesh-skin";
 import { ModelAnimation } from "../graphics/model-animation";
 import { ModelAnimationChannel } from "../graphics/model-animation-channel";
@@ -158,22 +158,16 @@ export class GltfLoader {
             }
         }
 
-        if (scene.nodes.length == 1) {
-            const nodeIndex = scene.nodes[0];
-            const node = gltf.nodes[nodeIndex];
-            const data = await this.#parseNode(gltf, node, nodeIndex);
+        for (let i = 0; i < gltf.nodes.length; i++) {
+            const node = gltf.nodes[i];
+            const data = await this.#parseNode(gltf, node, i);
 
-            this.#result.data = data;
-        }
+            if (data instanceof Mesh) {
+                this.#result.meshes.push(data);
+            }
 
-        if (scene.nodes.length > 1) {
-            this.#result.data = [];
-
-            for (let i = 0; i < scene.nodes.length; i++) {
-                const node = gltf.nodes[i];
-                const data = await this.#parseNode(gltf, node, i);
-
-                this.#result.data.push(data);
+            if (data instanceof Joint) {
+                this.#result.joints.push(data);
             }
         }
     }
@@ -290,14 +284,14 @@ export class GltfLoader {
 
     async #parseNode(gltf, obj, index) {
         if ("mesh" in obj) {
-            return await this.#parseMesh(gltf, obj, index);
+            return await this.#parseMeshNode(gltf, obj, index);
         }
 
-        return await this.#parseMeshJoint(gltf, obj, index);
+        return await this.#parseJointNode(gltf, obj, index);
     }
 
-    async #parseMeshJoint(gltf, obj, index) {
-        const joint = new MeshJoint();
+    async #parseJointNode(gltf, obj, index) {
+        const joint = new Joint();
         joint.name = obj.name;
         joint.index = index;
 
@@ -325,17 +319,10 @@ export class GltfLoader {
             joint.rotation = Quaternion.toEuler(q);
         }
 
-        if (obj.children) {
-            for (let index of obj.children) {
-                const child = await this.#parseNode(gltf, gltf.nodes[index], index);
-                joint.children.push(child);
-            }
-        }
-
         return joint;
     }
 
-    async #parseMesh(gltf, obj, index) {
+    async #parseMeshNode(gltf, obj, index) {
         const objMesh = gltf.meshes[obj.mesh];
 
         // Generate mesh
@@ -454,7 +441,7 @@ export class GltfLoader {
             // Generate tangents and bitangents
             geom.updateArrays();
 
-            const pri = new MeshPrimitive(geom, mat);
+            const pri = new Primitive(geom, mat);
             mesh.primitives.push(pri);
         }
 

@@ -21,7 +21,7 @@ Aquanore.clearColor = new Color(55, 55, 55);
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -4;
+    cam.position.z = -8;
     cam.position.y = 0;
 
     lights[0] = new Light(LightType.Directional);
@@ -29,11 +29,9 @@ Aquanore.onLoad = async () => {
     let loader = new GltfLoader();
     model = await loader.load("debug.gltf");
 
-    for (let obj of model.data) {
-        if (obj instanceof Mesh) {
-            for (let pri of obj.primitives) {
-                pri.material = new BasicMaterial();
-            }
+    for (let mesh of model.meshes) {
+        for (let pri of mesh.primitives) {
+            pri.material = new BasicMaterial();
         }
     }
 

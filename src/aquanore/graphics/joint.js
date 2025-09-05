@@ -1,10 +1,9 @@
 import { Vector3 } from "../math";
 
-export class MeshJoint {
+export class Joint {
     #translation = null;
     #rotation = null;
     #scale = null;
-    #children = null;
     #name = null;
     #index = 0;
 
@@ -32,14 +31,6 @@ export class MeshJoint {
         this.#scale = value;
     }
 
-    get children() {
-        return this.#children;
-    }
-
-    set children(value) {
-        this.#children = value;
-    }
-
     get name() {
         return this.#name;
     }
@@ -60,7 +51,7 @@ export class MeshJoint {
         this.#translation = new Vector3(0, 0, 0);
         this.#rotation = new Vector3(0, 0, 0);
         this.#scale = new Vector3(1, 1, 1);
-        this.#children = [];
-        this.#name = "MeshGroup";
+        this.#name = "Joint";
+        this.#index = 0;
     }
 }

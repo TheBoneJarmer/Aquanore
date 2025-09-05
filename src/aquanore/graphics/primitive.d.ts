@@ -1,7 +1,7 @@
 import { Material } from "./materials";
 import { Geometry } from "./geometries";
 
-export class MeshPrimitive {
+export class Primitive {
     get material(): Material;
     set material(value: Material);
     get geometry(): Geometry;

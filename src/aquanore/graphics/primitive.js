@@ -1,4 +1,4 @@
-export class MeshPrimitive {
+export class Primitive {
     #material = null;
     #geometry = null;
 

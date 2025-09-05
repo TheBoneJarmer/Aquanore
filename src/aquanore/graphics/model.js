@@ -1,14 +1,15 @@
 export class Model {
-    #data = null;
+    #meshes = [];
+    #joints = [];
     #animations = [];
     #skins = [];
-
-    get data() {
-        return this.#data;
+    
+    get meshes() {
+        return this.#meshes;
     }
 
-    set data(value) {
-        this.#data = value;
+    set meshes(value) {
+        this.#meshes = value;
     }
 
     get animations() {
@@ -17,6 +18,14 @@ export class Model {
 
     set animations(value) {
         this.#animations = value;
+    }
+
+    get joints() {
+        return this.#joints;
+    }
+
+    set joints(value) {
+        this.#joints = value;
     }
 
     get skins() {
@@ -28,8 +37,9 @@ export class Model {
     }
 
     constructor() {
-        this.#data = null;
+        this.#meshes = [];
         this.#animations = [];
+        this.#joints = [];
         this.#skins = [];
     }
 }

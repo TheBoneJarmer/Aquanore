@@ -2,8 +2,7 @@ import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
 import { Mesh } from "./mesh";
-import { MeshJoint } from "./mesh-joint";
-import { ModelAnimation } from "./model-animation";
+import { Joint } from "./joint";
 import { Shaders } from "./shaders";
 
 export class Renderer {
@@ -126,98 +125,33 @@ export class Renderer {
         shader.uvec3("u_camera", camera.position);
 
         // Render mesh per mesh
-        if (model.data instanceof Array) {
-            const pos = new Vector3(0, 0, 0);
-            const rot = new Vector3(0, 0, 0);
-            const scale = new Vector3(1, 1, 1);
-
-            for (let el of model.data) {
-                if (el instanceof Mesh) {
-                    this.#drawModel_Mesh(model, el, pos, rot, scale, animation, animationTime);
-                }
-
-                if (el instanceof MeshJoint) {
-                    this.#drawModel_Joint(model, el, pos, rot, scale, animation, animationTime);
-                }
-            }
-        }
-
-        if (model.data instanceof Mesh) {
-            const pos = new Vector3(0, 0, 0);
-            const rot = new Vector3(0, 0, 0);
-            const scale = new Vector3(1, 1, 1);
-
-            this.#drawModel_Mesh(model, model.data, pos, rot, scale, animation, animationTime);
-        }
-
-        if (model.data instanceof MeshJoint) {
-            const pos = new Vector3(0, 0, 0);
-            const rot = new Vector3(0, 0, 0);
-            const scale = new Vector3(1, 1, 1);
-
-            this.#drawModel_Joint(model, model.data, pos, rot, scale, animation, animationTime);
+        for (let mesh of model.meshes) {
+            this.#drawModel_Mesh(model, mesh, animation, animationTime);
         }
     }
 
-    static #drawModel_Joint(model, joint, pos, rot, scale, animation, animationTime) {
-        pos = Vector3.add(pos, joint.translation);
-        rot = Vector3.add(rot, joint.rotation);
-        scale = Vector3.mult(scale, joint.scale);
-
-        if (animation) {
-            const transform = this.#generateAnimationTransform(joint.index, animation, animationTime);
-            const euler = Quaternion.toEuler(transform.rot);
-
-            pos = Vector3.add(pos, transform.pos);
-            rot = Vector3.add(rot, euler);
-            scale = Vector3.mult(scale, transform.scale);
-        }
-
-        for (let child of joint.children) {
-            if (child instanceof Mesh) {
-                this.#drawModel_Mesh(model, child, pos, rot, scale, animation, animationTime);
-            }
-
-            if (child instanceof MeshJoint) {
-                this.#drawModel_Joint(model, child, pos, rot, scale, animation, animationTime);
-            }
-        }
-    }
-
-    static #drawModel_Mesh(model, mesh, pos, rot, scale, animation, animationTime) {
+    static #drawModel_Mesh(model, mesh, animation, animationTime) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
-        // If the mesh has a skin we need to pass its matrices to the shader
         if (mesh.skin != null) {
             const skin = model.skins[mesh.skin];
-            const matrices = skin.matrices;
 
-            for (let i=0; i<matrices.length; i++) {
-                shader.umat4(`u_joints[${i}]`, matrices[i]);
+            for (let i = 0; i < skin.joints.length; i++) {
+                let joint = model.joints.find(x => x.index == skin.joints[i]);
+                //let mat = skin.matrices[i];
+                let mat = Matrix4.identity();
+                
+                shader.umat4(`u_joint[${i}]`, mat);
             }
+
+            shader.umat4("u_mesh", Matrix4.identity());
+        } else {
+            const mat = this.#generateAnimationMatrix(mesh.index, animation, animationTime);
+            shader.umat4("u_mesh", mat);
         }
 
-        // Generate a matrix per mesh similar to a model matrix
-        let meshPos = Vector3.add(pos, mesh.translation);
-        let meshRot = Vector3.add(rot, mesh.rotation);
-        let meshScale = Vector3.mult(scale, mesh.scale);
-
-        // Apply animations first
-        if (animation != null) {
-            const transform = this.#generateAnimationTransform(mesh.index, animation, animationTime);
-            const euler = Quaternion.toEuler(transform.rot);
-
-            meshPos = Vector3.add(meshPos, transform.pos);
-            meshRot = Vector3.add(meshRot, euler);
-            meshScale = Vector3.mult(meshScale, transform.scale);
-        }
-
-        // And finally generate and set the mesh matrix
-        const matMesh = this.#generateModelMatrix(meshPos, meshRot, meshScale);
-        shader.umat4("u_mesh", matMesh);
-
-        // Now render primitive per primitive
+        // Render primitive per primitive
         for (let pri of mesh.primitives) {
             const material = pri.material;
             const geom = pri.geometry;
@@ -261,11 +195,15 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
-    static #generateAnimationTransform(index, animation, animationTime) {
-        let channels = animation.channels.filter(x => x.index == index);
+    static #generateAnimationMatrix(index, animation, animationTime) {
+        let channels = animation?.channels.filter(x => x.index == index);
         let pos = new Vector3(0, 0, 0);
         let rot = new Quaternion(0, 0, 0, 1);
         let scale = new Vector3(1, 1, 1);
+
+        if (animation == null) {
+            return Matrix4.identity();
+        }
 
         for (let channel of channels) {
             let prevTime = 0;
@@ -328,16 +266,18 @@ export class Renderer {
                     const next = channel.output[nextIndex];
                     const lerp = Vector3.lerp(prev, next, value);
 
-                    scale = Vector3.mult(prev, next);
+                    scale = Vector3.mult(scale, lerp);
                 }
             }
         }
 
-        return {
-            pos: pos,
-            rot: rot,
-            scale: scale
-        };
+        let euler = Quaternion.toEuler(rot);
+        let m = Matrix4.identity();
+        m = Matrix4.scale(m, scale.x, scale.y, scale.z);
+        m = Matrix4.translate(m, pos.x, pos.y, pos.z);
+        m = Matrix4.rotate(m, euler.x, euler.y, euler.z);
+
+        return m;
     }
 
     static #generateModelMatrix(pos, rot, scale) {
