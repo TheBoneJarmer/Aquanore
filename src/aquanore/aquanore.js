@@ -93,7 +93,7 @@ export class Aquanore {
     }
 
     static async #render() {
-        const gl = this.ctx
+        const gl = this.ctx;
         const ctx = this.canvas;
 
         const r = this.clearColor.r / 255.0;

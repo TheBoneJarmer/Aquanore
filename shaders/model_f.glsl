@@ -37,6 +37,7 @@ varying vec3 v_normal;
 varying vec2 v_texcoord;
 varying mat3 v_tbn;
 varying vec3 v_frag;
+varying vec4 v_debug;
 
 vec3 calc_dir_light(Light light) {
     vec3 normal = normalize(v_normal);
@@ -121,6 +122,8 @@ void main() {
             }
         }
     }
+
+    result.xyz = v_debug.xyz;
 
     gl_FragColor = result;
 }

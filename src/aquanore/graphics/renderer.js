@@ -124,9 +124,26 @@ export class Renderer {
         shader.umat3("u_normal", matNormal);
         shader.uvec3("u_camera", camera.position);
 
-        // Render mesh per mesh
-        for (let mesh of model.meshes) {
-            this.#drawModel_Mesh(model, mesh, animation, animationTime);
+        for (let child of model.data) {
+            if (child instanceof Mesh) {
+                this.#drawModel_Mesh(model, child, animation, animationTime);
+            }
+
+            if (child instanceof Joint) {
+                this.#drawModel_Joint(model, child, animation, animationTime);
+            }
+        }
+    }
+
+    static #drawModel_Joint(model, joint, animation, animationTime) {
+        for (let child of joint.children) {
+            if (child instanceof Mesh) {
+                this.#drawModel_Mesh(model, child, animation, animationTime);
+            }
+
+            if (child instanceof Joint) {
+                this.#drawModel_Joint(model, child, animation, animationTime);
+            }
         }
     }
 
@@ -138,16 +155,24 @@ export class Renderer {
             const skin = model.skins[mesh.skin];
 
             for (let i = 0; i < skin.joints.length; i++) {
-                let joint = model.joints.find(x => x.index == skin.joints[i]);
-                //let mat = skin.matrices[i];
-                let mat = Matrix4.identity();
-                
+                const joint = this.#getJoint(model.data, skin.joints[i]);
+                const transform = this.#getLocalTransform(skin.joints[i], animation, animationTime);
+                const euler = Quaternion.toEuler(transform.rotation);
+
+                let mat = skin.matrices[i];
+                //mat = Matrix4.translate(mat, joint.translation.x, joint.translation.y, joint.translation.z);
+                //mat = Matrix4.scale(mat, joint.scale.x, joint.scale.y, joint.scale.z);
+                //mat = Matrix4.rotate(mat, joint.rotation.x, joint.rotation.y, joint.rotation.z);
+
                 shader.umat4(`u_joint[${i}]`, mat);
             }
-
-            shader.umat4("u_mesh", Matrix4.identity());
         } else {
-            const mat = this.#generateAnimationMatrix(mesh.index, animation, animationTime);
+            const transform = this.#getLocalTransform(mesh.index, animation, animationTime);
+            const translation = Vector3.add(mesh.translation, transform.translation);
+            const rotation = Vector3.add(mesh.rotation, transform.rotation);
+            const scale = Vector3.mult(mesh.scale, transform.scale);
+
+            const mat = this.#generateModelMatrix(translation, rotation, scale);
             shader.umat4("u_mesh", mat);
         }
 
@@ -156,8 +181,7 @@ export class Renderer {
             const material = pri.material;
             const geom = pri.geometry;
 
-            shader.u1b("u_has_joints", geom.joints.length > 0);
-            shader.u1b("u_has_weights", geom.weights.length > 0);
+            shader.u1b("u_skinned", mesh.skin != null);
 
             if (material instanceof BasicMaterial) {
                 shader.u1i("u_material_type", 0);
@@ -195,15 +219,40 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
-    static #generateAnimationMatrix(index, animation, animationTime) {
-        let channels = animation?.channels.filter(x => x.index == index);
+    static #getJoint(data, index) {
+        let result = data.find(x => x.index == index);
+
+        if (result != null) {
+            return result;
+        }
+
+        for (let obj of data) {
+            if (obj.children) {
+                result = this.#getJoint(obj.children, index);
+
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    static #getLocalTransform(index, animation, animationTime) {
         let pos = new Vector3(0, 0, 0);
         let rot = new Quaternion(0, 0, 0, 1);
         let scale = new Vector3(1, 1, 1);
 
         if (animation == null) {
-            return Matrix4.identity();
+            return {
+                translation: pos,
+                rotation: Quaternion.toEuler(rot),
+                scale: scale
+            };
         }
+
+        const channels = animation.channels.filter(x => x.index == index);
 
         for (let channel of channels) {
             let prevTime = 0;
@@ -271,13 +320,11 @@ export class Renderer {
             }
         }
 
-        let euler = Quaternion.toEuler(rot);
-        let m = Matrix4.identity();
-        m = Matrix4.scale(m, scale.x, scale.y, scale.z);
-        m = Matrix4.translate(m, pos.x, pos.y, pos.z);
-        m = Matrix4.rotate(m, euler.x, euler.y, euler.z);
-
-        return m;
+        return {
+            translation: pos,
+            rotation: rot,
+            scale: scale
+        };
     }
 
     static #generateModelMatrix(pos, rot, scale) {

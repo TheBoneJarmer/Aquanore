@@ -158,17 +158,12 @@ export class GltfLoader {
             }
         }
 
-        for (let i = 0; i < gltf.nodes.length; i++) {
-            const node = gltf.nodes[i];
-            const data = await this.#parseNode(gltf, node, i);
+        for (let i = 0; i < scene.nodes.length; i++) {
+            const index = scene.nodes[i];
+            const node = gltf.nodes[index];
 
-            if (data instanceof Mesh) {
-                this.#result.meshes.push(data);
-            }
-
-            if (data instanceof Joint) {
-                this.#result.joints.push(data);
-            }
+            const data = await this.#parseNode(gltf, node, index);
+            this.#result.data.push(data);
         }
     }
 
@@ -319,6 +314,15 @@ export class GltfLoader {
             joint.rotation = Quaternion.toEuler(q);
         }
 
+        if (obj.children != null) {
+            for (let i of obj.children) {
+                const node = gltf.nodes[i];
+                const child = await this.#parseNode(gltf, node, i);
+
+                joint.children.push(child);
+            }
+        }
+
         return joint;
     }
 
@@ -360,86 +364,8 @@ export class GltfLoader {
 
         // Generate primitives
         for (let objPri of objMesh.primitives) {
-            const vao = this.#generateVao();
             const mat = this.#getMaterial(gltf, objPri);
-
-            const geom = new Geometry();
-            geom.vao = vao;
-
-            if (objPri.indices != null) {
-                const buffer = this.#getAccessorBuffer(gltf, objPri.indices);
-                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.indices);
-
-                geom.indices = bufferArray;
-                this.#generateEbo(vao, buffer.data);
-            }
-
-            if (objPri.attributes.POSITION != null) {
-                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.POSITION);
-                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.POSITION);
-
-                geom.vertices = bufferArray;
-                this.#generateVbo(vao, 0, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
-            }
-
-            if (objPri.attributes.NORMAL != null) {
-                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.NORMAL);
-                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.NORMAL);
-
-                geom.normals = bufferArray;
-                this.#generateVbo(vao, 1, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
-            }
-
-            if (objPri.attributes.TEXCOORD_0 != null) {
-                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.TEXCOORD_0);
-                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.TEXCOORD_0);
-
-                geom.uvs = bufferArray;
-                this.#generateVbo(vao, 2, buffer.data, buffer.dataType, 2, buffer.dataStride, 0);
-            }
-
-            if (objPri.attributes.JOINTS_0 != null) {
-                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.JOINTS_0);
-                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.JOINTS_0);
-
-                geom.joints = bufferArray;
-                this.#generateVbo(vao, 4, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
-            }
-
-            if (objPri.attributes.WEIGHTS_0 != null) {
-                const buffer = this.#getAccessorBuffer(gltf, objPri.attributes.WEIGHTS_0);
-                const bufferArray = this.#getAccessorBufferArray(gltf, objPri.attributes.WEIGHTS_0);
-
-                geom.weights = bufferArray;
-                this.#generateVbo(vao, 5, buffer.data, buffer.dataType, 3, buffer.dataStride, 0);
-            }
-
-            // Fill up required arrays if the model does not provide the data
-            if (geom.normals.length == 0) {
-                const gl = Aquanore.ctx;
-
-                for (let i = 0; i < geom.vertices.length; i += 3) {
-                    geom.normals.push(0);
-                    geom.normals.push(0);
-                    geom.normals.push(0);
-                }
-
-                this.#generateVbo(vao, 1, new Float32Array(geom.normals), gl.FLOAT, 3, 0, 0);
-            }
-
-            if (geom.uvs.length == 0) {
-                const gl = Aquanore.ctx;
-
-                for (let i = 0; i < geom.vertices.length; i += 3) {
-                    geom.uvs.push(0);
-                    geom.uvs.push(0);
-                }
-
-                this.#generateVbo(vao, 2, new Float32Array(geom.normals), gl.FLOAT, 2, 0, 0);
-            }
-
-            // Generate tangents and bitangents
-            geom.updateArrays();
+            const geom = this.#generateGeometry(gltf, objPri);
 
             const pri = new Primitive(geom, mat);
             mesh.primitives.push(pri);
@@ -449,13 +375,13 @@ export class GltfLoader {
     }
 
     async #parseSkin(gltf, obj) {
-        const buffer = this.#getAccessorBufferArray(gltf, obj.inverseBindMatrices);
+        const arr = this.#getAccessorBufferArray(gltf, obj.inverseBindMatrices);
 
         const skin = new MeshSkin();
         skin.joints = obj.joints;
 
-        for (let i = 0; i < buffer.length; i += 16) {
-            const values = buffer.slice(i, i + 16);
+        for (let i = 0; i < arr.length; i += 16) {
+            const values = arr.slice(i, i + 16);
             const matrix = new Matrix4(values);
 
             skin.matrices.push(matrix);
@@ -465,6 +391,86 @@ export class GltfLoader {
     }
 
     /* HELPER FUNCTIONS */
+    #generateGeometry(gltf, objPri) {
+        const vao = this.#generateVao();
+
+        const geom = new Geometry();
+        geom.vao = vao;
+        geom.indices = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.indices);
+        geom.vertices = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.POSITION, 0);
+
+        if (objPri.attributes.NORMAL) {
+            geom.normals = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.NORMAL, 1);
+        }
+
+        if (objPri.attributes.TEXCOORD_0) {
+            geom.uvs = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.TEXCOORD_0, 2);
+        }
+
+        if (objPri.attributes.JOINTS_0) {
+            geom.joints = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.JOINTS_0, 5);
+        }
+
+        if (objPri.attributes.WEIGHTS_0) {
+            geom.weights = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.WEIGHTS_0, 6);
+        }
+
+        this.#generateGeometry_FixArrays(vao, geom);
+
+        return geom;
+    }
+
+    #generateGeometry_FixArrays(vao, geom) {
+        // Fill up required arrays if the model does not provide the data
+        if (geom.normals.length == 0) {
+            const gl = Aquanore.ctx;
+
+            for (let i = 0; i < geom.vertices.length; i += 3) {
+                geom.normals.push(0);
+                geom.normals.push(0);
+                geom.normals.push(0);
+            }
+
+            this.#generateVbo(vao, 1, new Float32Array(geom.normals), gl.FLOAT, 3, 0, 0);
+        }
+
+        if (geom.uvs.length == 0) {
+            const gl = Aquanore.ctx;
+
+            for (let i = 0; i < geom.vertices.length; i += 3) {
+                geom.uvs.push(0);
+                geom.uvs.push(0);
+            }
+
+            this.#generateVbo(vao, 2, new Float32Array(geom.normals), gl.FLOAT, 2, 0, 0);
+        }
+
+        // Generate tangents and bitangents
+        // geom.updateArrays();
+    }
+
+    #generateGeometry_CreateBuffer(vao, gltf, accessorIndex, index = -1) {
+        const accessor = gltf.accessors[accessorIndex];
+        const bufferView = gltf.bufferViews[accessor.bufferView];
+
+        const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
+        const dataSize = this.#getAccessorDataSize(gltf, accessorIndex);
+        const byteStride = this.#getAccessorBufferStride(gltf, accessorIndex);
+        const target = bufferView.target || 34962;
+
+        // ARRAY_BUFFER
+        if (target == 34962) {
+            this.#generateVbo(vao, index, buffer, accessor.componentType, dataSize, byteStride, 0);
+        }
+
+        // ELEMENT_ARRAY_BUFFER
+        if (target == 34963) {
+            this.#generateEbo(vao, buffer);
+        }
+
+        return this.#convertBufferToArray(buffer, accessor.componentType);
+    }
+
     #generateVbo(vao, index, data, dataType, dataSize, dataStride, dataOffset) {
         const gl = Aquanore.ctx;
         const id = gl.createBuffer();
@@ -545,68 +551,138 @@ export class GltfLoader {
         return mat;
     }
 
-    #getAccessorBuffer(gltf, accessorIndex) {
-        const accesor = gltf.accessors[accessorIndex];
-        const bufferView = gltf.bufferViews[accesor.bufferView];
+    #getAccessorDataSize(gltf, accessorIndex) {
+        const accessor = gltf.accessors[accessorIndex];
 
-        const offset = (accesor.byteOffset ?? 0) + (bufferView.byteOffset ?? 0);
-        const stride = bufferView.byteStride ?? 0;
-        const length = bufferView.byteLength ?? 0;
-        const buffer = this.#buffers[bufferView.buffer]?.slice(offset, offset + length);
+        switch (accessor.type) {
+            case "SCALAR":
+                return 1;
 
-        if (buffer == null) {
-            throw new Error(`Unable to fetch buffer for accessor ${accessorIndex}`);
+            case "VEC2":
+                return 2;
+
+            case "VEC3":
+                return 3;
+
+            case "VEC4":
+                return 4;
+
+            case "MAT3":
+                return 9;
+
+            case "MAT4":
+                return 16;
+
+            default:
+                throw new Error(`Unknown accessor type ${accessor.type}`);
         }
+    }
 
-        return {
-            data: buffer,
-            dataType: accesor.componentType,
-            dataStride: stride
-        };
+    #getAccessorBuffer(gltf, accessorIndex) {
+        const accessor = gltf.accessors[accessorIndex];
+        const bufferView = gltf.bufferViews[accessor.bufferView];
+        const bufferSize = this.#getAccessorBufferSize(gltf, accessorIndex);
+        const bufferOffset = this.#getAccessorBufferOffset(gltf, accessorIndex);
+
+        let buffer = this.#buffers[bufferView.buffer];
+        buffer = buffer.slice(bufferOffset, bufferOffset + bufferSize);
+
+        return buffer;
     }
 
     #getAccessorBufferArray(gltf, accessorIndex) {
-        const accesor = gltf.accessors[accessorIndex];
+        const accessor = gltf.accessors[accessorIndex];
         const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
 
+        return this.#convertBufferToArray(buffer, accessor.componentType);
+    }
+
+    #getAccessorBufferOffset(gltf, accessorIndex) {
+        const accessor = gltf.accessors[accessorIndex];
+        const bufferView = gltf.bufferViews[accessor.bufferView];
+
+        return (accessor.byteOffset || 0) + (bufferView.byteOffset || 0);
+    }
+
+    #getAccessorBufferStride(gltf, accessorIndex) {
+        const accessor = gltf.accessors[accessorIndex];
+        const bv = gltf.bufferViews[accessor.bufferView];
+
+        return bv.byteStride ?? 0;
+    }
+
+    #getAccessorBufferSize(gltf, accessorIndex) {
+        const accessor = gltf.accessors[accessorIndex];
+        const type = accessor.componentType;
+        const size = this.#getAccessorDataSize(gltf, accessorIndex);
+        const stride = this.#getAccessorBufferStride(gltf, accessorIndex);
+
+        // If there is a stride there is no point of calculating the size based on the data type
+        // since the bytes needed for the accessor are part of the bytes the stride covers
+        if (stride > 0) {
+            return accessor.count * stride;
+        }
+
+        // Bytes and unsigned bytes both take.. 1 byte per.. byte.. obviously.
+        if (type == 5120 || type == 5121) {
+            return accessor.count * size;
+        }
+
+        // Shorts and unsigned shorts and are both 16-bit integers so they use 2 bytes.
+        if (type == 5122 || type == 5123) {
+            return accessor.count * size * 2;
+        }
+
+        // Integers and floats both use 4 bytes.
+        if (type == 5125 || type == 5126) {
+            return accessor.count * size * 4;
+        }
+
+        return 0;
+    }
+
+    #getBuffer(gltf, bufferViewIndex) {
+        const bufferView = gltf.bufferViews[bufferViewIndex];
+
+        let offset = bufferView.byteOffset || 0;
+        let length = bufferView.byteLength;
+        let buffer = this.#buffers[bufferView.buffer];
+        buffer = buffer.slice(offset, offset + length);
+
+        return buffer;
+    }
+
+    #convertBufferToArray(buffer, componentType) {
         // BYTE
-        if (accesor.componentType == 5120) {
-            return Array.from(new Int8Array(buffer.data));
+        if (componentType == 5120) {
+            return Array.from(new Int8Array(buffer));
         }
 
         // UNSIGNED_BYTE
-        if (accesor.componentType == 5121) {
-            return Array.from(new Uint8Array(buffer.data));
+        if (componentType == 5121) {
+            return Array.from(new Uint8Array(buffer));
         }
 
         // SHORT
-        if (accesor.componentType == 5122) {
-            return Array.from(new Int16Array(buffer.data));
+        if (componentType == 5122) {
+            return Array.from(new Int16Array(buffer));
         }
 
         // UNSIGNED_SHORT
-        if (accesor.componentType == 5123) {
-            return Array.from(new Uint16Array(buffer.data));
+        if (componentType == 5123) {
+            return Array.from(new Uint16Array(buffer));
         }
 
         // UNSIGNED INT
-        if (accesor.componentType == 5125) {
-            return Array.from(new Uint32Array(buffer.data));
+        if (componentType == 5125) {
+            return Array.from(new Uint32Array(buffer));
         }
 
         // FLOAT
-        if (accesor.componentType == 5126) {
-            return Array.from(new Float32Array(buffer.data));
+        if (componentType == 5126) {
+            return Array.from(new Float32Array(buffer));
         }
 
-        throw new Error(`Unsupported component type ${accesor.componentType} was used in accessor ${accessorIndex}`);
-    }
-
-    #getBuffer(gltf, index) {
-        const bufferView = gltf.bufferViews[index];
-        const offset = bufferView.byteOffset;
-        const length = bufferView.byteLength;
-
-        return this.#buffers[bufferView.buffer].slice(offset, offset + length);
+        throw new Error(`Unsupported component type ${componentType}`);
     }
 }

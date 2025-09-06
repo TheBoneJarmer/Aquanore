@@ -1,8 +1,11 @@
 import { Vector3 } from "../math";
 import { Mesh } from "./mesh";
 
+export type JointChildren = (Mesh | Joint)[];
+
 export class Joint {
-    get children(): (Mesh | Joint)[];
+    get children(): JointChildren;
+    set children(value: JointChildren);
     get name(): string;
     set name(value: string);
     get translation(): Vector3;

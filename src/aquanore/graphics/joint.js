@@ -6,6 +6,7 @@ export class Joint {
     #scale = null;
     #name = null;
     #index = 0;
+    #children = [];
 
     get translation() {
         return this.#translation;
@@ -47,11 +48,20 @@ export class Joint {
         this.#index = value;
     }
 
+    get children() {
+        return this.#children;
+    }
+
+    set children(value) {
+        this.#children = value;
+    }
+
     constructor() {
         this.#translation = new Vector3(0, 0, 0);
         this.#rotation = new Vector3(0, 0, 0);
         this.#scale = new Vector3(1, 1, 1);
         this.#name = "Joint";
         this.#index = 0;
+        this.#children = [];
     }
 }

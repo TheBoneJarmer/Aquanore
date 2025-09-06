@@ -29,18 +29,18 @@ Aquanore.onLoad = async () => {
     let loader = new GltfLoader();
     model = await loader.load("debug.gltf");
 
-    for (let mesh of model.meshes) {
-        for (let pri of mesh.primitives) {
-            pri.material = new BasicMaterial();
+    model.data.forEach((child) => {
+        if (child instanceof Mesh) {
+            child.primitives[0].material = new BasicMaterial();
         }
-    }
+    });
 
     console.log(model);
 };
 
 Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
-    time += dt / 5;
+    time += dt;
 
     if (time > model.animations[anim].getDuration()) {
         time = 0;
@@ -73,8 +73,8 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    // Renderer.drawModel(model, cam, lights, pos, rot, scale, model.animations[anim], time);
-    Renderer.drawModel(model, cam, lights, pos, rot, scale);
+    Renderer.drawModel(model, cam, lights, pos, rot, scale, model.animations[anim], time);
+    //Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
 
 Aquanore.run();
