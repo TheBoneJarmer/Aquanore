@@ -14,6 +14,10 @@ export class Mesh {
     set scale(value: Vector3);
     get skin(): MeshSkin;
     set skin(value: MeshSkin);
+    get parent(): number;
+    set parent(value: number);
+    get index(): number;
+    set index(value: number);
 
     constructor();
 }

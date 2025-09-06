@@ -14,6 +14,10 @@ export class Joint {
     set rotation(value: Vector3);
     get scale(): Vector3;
     set scale(value: Vector3);
+    get parent(): number;
+    set parent(value: number);
+    get index(): number;
+    set index(value: number);
 
     constructor();
 }

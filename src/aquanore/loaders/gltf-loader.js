@@ -162,7 +162,7 @@ export class GltfLoader {
             const index = scene.nodes[i];
             const node = gltf.nodes[index];
 
-            const data = await this.#parseNode(gltf, node, index);
+            const data = await this.#parseNode(gltf, node, index, null);
             this.#result.data.push(data);
         }
     }
@@ -277,18 +277,19 @@ export class GltfLoader {
         }
     }
 
-    async #parseNode(gltf, obj, index) {
+    async #parseNode(gltf, obj, index, parent) {
         if ("mesh" in obj) {
-            return await this.#parseMeshNode(gltf, obj, index);
+            return await this.#parseMeshNode(gltf, obj, index, parent);
         }
 
-        return await this.#parseJointNode(gltf, obj, index);
+        return await this.#parseJointNode(gltf, obj, index, parent);
     }
 
-    async #parseJointNode(gltf, obj, index) {
+    async #parseJointNode(gltf, obj, index, parent) {
         const joint = new Joint();
         joint.name = obj.name;
         joint.index = index;
+        joint.parent = parent;
 
         if (obj.translation) {
             joint.translation = new Vector3();
@@ -317,7 +318,7 @@ export class GltfLoader {
         if (obj.children != null) {
             for (let i of obj.children) {
                 const node = gltf.nodes[i];
-                const child = await this.#parseNode(gltf, node, i);
+                const child = await this.#parseNode(gltf, node, i, index);
 
                 joint.children.push(child);
             }
@@ -326,13 +327,14 @@ export class GltfLoader {
         return joint;
     }
 
-    async #parseMeshNode(gltf, obj, index) {
+    async #parseMeshNode(gltf, obj, index, parent) {
         const objMesh = gltf.meshes[obj.mesh];
 
         // Generate mesh
         const mesh = new Mesh();
         mesh.name = objMesh.name;
         mesh.index = index;
+        mesh.parent = parent;
 
         if (obj.translation) {
             mesh.translation = new Vector3();
@@ -396,31 +398,25 @@ export class GltfLoader {
 
         const geom = new Geometry();
         geom.vao = vao;
-        geom.indices = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.indices);
-        geom.vertices = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.POSITION, 0);
+        geom.indices = this.#generateGeometry_CreateEbo(vao, gltf, objPri.indices);
+        geom.vertices = this.#generateGeometry_CreateVbo(vao, gltf, objPri.attributes.POSITION, 0);
 
         if (objPri.attributes.NORMAL) {
-            geom.normals = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.NORMAL, 1);
+            geom.normals = this.#generateGeometry_CreateVbo(vao, gltf, objPri.attributes.NORMAL, 1);
         }
 
         if (objPri.attributes.TEXCOORD_0) {
-            geom.uvs = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.TEXCOORD_0, 2);
+            geom.uvs = this.#generateGeometry_CreateVbo(vao, gltf, objPri.attributes.TEXCOORD_0, 2);
         }
 
         if (objPri.attributes.JOINTS_0) {
-            geom.joints = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.JOINTS_0, 5);
+            geom.joints = this.#generateGeometry_CreateVbo(vao, gltf, objPri.attributes.JOINTS_0, 5);
         }
 
         if (objPri.attributes.WEIGHTS_0) {
-            geom.weights = this.#generateGeometry_CreateBuffer(vao, gltf, objPri.attributes.WEIGHTS_0, 6);
+            geom.weights = this.#generateGeometry_CreateVbo(vao, gltf, objPri.attributes.WEIGHTS_0, 6);
         }
 
-        this.#generateGeometry_FixArrays(vao, geom);
-
-        return geom;
-    }
-
-    #generateGeometry_FixArrays(vao, geom) {
         // Fill up required arrays if the model does not provide the data
         if (geom.normals.length == 0) {
             const gl = Aquanore.ctx;
@@ -447,28 +443,30 @@ export class GltfLoader {
 
         // Generate tangents and bitangents
         // geom.updateArrays();
+
+        return geom;
     }
 
-    #generateGeometry_CreateBuffer(vao, gltf, accessorIndex, index = -1) {
+    #generateGeometry_CreateEbo(vao, gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
-        const bufferView = gltf.bufferViews[accessor.bufferView];
+        const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
 
+        const id = this.#generateEbo(vao, buffer);
+        const array = this.#convertBufferToArray(buffer, accessor.componentType);
+
+        return array;
+    }
+
+    #generateGeometry_CreateVbo(vao, gltf, accessorIndex, index) {
+        const accessor = gltf.accessors[accessorIndex];
         const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
         const dataSize = this.#getAccessorDataSize(gltf, accessorIndex);
         const byteStride = this.#getAccessorBufferStride(gltf, accessorIndex);
-        const target = bufferView.target || 34962;
 
-        // ARRAY_BUFFER
-        if (target == 34962) {
-            this.#generateVbo(vao, index, buffer, accessor.componentType, dataSize, byteStride, 0);
-        }
+        const id = this.#generateVbo(vao, index, buffer, accessor.componentType, dataSize, byteStride, 0);
+        const array = this.#convertBufferToArray(buffer, accessor.componentType);
 
-        // ELEMENT_ARRAY_BUFFER
-        if (target == 34963) {
-            this.#generateEbo(vao, buffer);
-        }
-
-        return this.#convertBufferToArray(buffer, accessor.componentType);
+        return array;
     }
 
     #generateVbo(vao, index, data, dataType, dataSize, dataStride, dataOffset) {

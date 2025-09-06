@@ -25,8 +25,6 @@ varying vec3 v_normal;
 varying mat3 v_tbn;
 varying vec3 v_frag;
 
-varying vec4 v_debug;
-
 mat4 get_matrix_skin() {
     if(u_skinned) {
         mat4 x = a_weight.x * u_joint[int(a_joint.x)];
@@ -41,14 +39,7 @@ mat4 get_matrix_skin() {
 }
 
 mat4 get_matrix_mvp() {
-    mat4 mat_skin = get_matrix_skin();
-    mat4 mat_mvp = u_projection * u_view * u_model * u_mesh;
-
-    if(u_skinned) {
-        mat_mvp = u_projection * u_view * u_model * mat_skin;
-    }
-
-    return mat_mvp;
+    return u_projection * u_view * u_model * u_mesh;
 }
 
 mat3 get_matrix_tbn() {
@@ -61,8 +52,13 @@ mat3 get_matrix_tbn() {
 
 void main() {
     mat4 mat_mvp = get_matrix_mvp();
+    mat4 mat_skin = get_matrix_skin();
     mat3 mat_tbn = get_matrix_tbn();
     vec4 v = vec4(a_vertex, 1.0);
+
+    if (u_skinned) {
+        mat_mvp *= mat_skin;
+    }
 
     v_texcoord = a_texcoord;
     v_vertex = a_vertex;
@@ -70,7 +66,6 @@ void main() {
 
     v_tbn = mat_tbn;
     v_frag = vec3(u_model * v);
-    v_debug = a_joint;
 
     gl_Position = mat_mvp * v;
 }

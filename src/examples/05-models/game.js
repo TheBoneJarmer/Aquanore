@@ -13,37 +13,48 @@ let lights = [];
 let pos = new Vector3();
 let rot = new Vector3();
 let scale = new Vector3(1, 1, 1);
-let time = 0;
-let anim = 0;
+let animation = null;
+let animationTime = 0;
+let animationPaused = false;
 
 Aquanore.init();
 Aquanore.clearColor = new Color(55, 55, 55);
 
 Aquanore.onLoad = async () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -8;
-    cam.position.y = 0;
+    cam.position.z = -4;
+    cam.position.y = -1;
 
     lights[0] = new Light(LightType.Directional);
 
     let loader = new GltfLoader();
-    model = await loader.load("debug.gltf");
+    model = await loader.load("mage.glb");
+    animation = model.animations.find(x => x.name == "Idle");
 
-    model.data.forEach((child) => {
-        if (child instanceof Mesh) {
-            child.primitives[0].material = new BasicMaterial();
-        }
-    });
+    // model = await loader.load("debug.gltf");
+    // model.data.forEach((child) => {
+    //     if (child instanceof Mesh) {
+    //         child.primitives[0].material = new BasicMaterial();
+    //     }
+    // });
+    // animation = model.animations[0];
+
+    // model = await loader.load("axis.glb");
+    // animation = model.animations[0];
+    // scale = new Vector3(0.25, 0.25, 0.25);
 
     console.log(model);
 };
 
 Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
-    time += dt;
+    
+    if (!animationPaused) {
+        animationTime += dt;
+    }
 
-    if (time > model.animations[anim].getDuration()) {
-        time = 0;
+    if (animationTime > animation.getDuration()) {
+        animationTime = 0;
     }
 
     if (Keyboard.keyDown(Keys.Up)) {
@@ -66,6 +77,10 @@ Aquanore.onUpdate = (dt) => {
         rot.x = 0;
         rot.y = 0;
     }
+
+    if (Keyboard.keyPressed(Keys.Space)) {
+        animationPaused = !animationPaused;
+    }
 };
 
 Aquanore.onRender2D = () => {
@@ -73,7 +88,7 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, cam, lights, pos, rot, scale, model.animations[anim], time);
+    Renderer.drawModel(model, cam, lights, pos, rot, scale, animation, animationTime);
     //Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
 

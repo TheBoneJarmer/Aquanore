@@ -47,4 +47,5 @@ export class Matrix4 {
     static perspective(fov: number, aspect: number, near: number, far: number): Matrix4;
     static transpose(mat: Matrix4): Matrix4;
     static inverse(mat: Matrix4): Matrix4;
+    static multiply(m1: Matrix4, m2: Matrix4): Matrix4;
 }

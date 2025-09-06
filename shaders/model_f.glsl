@@ -123,7 +123,5 @@ void main() {
         }
     }
 
-    result.xyz = v_debug.xyz;
-
     gl_FragColor = result;
 }

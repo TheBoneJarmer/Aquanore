@@ -7,6 +7,7 @@ export class Mesh {
     #primitives = null;
     #name = null;
     #index = null;
+    #parent = null;
     #skin = null;
 
     get translation() {
@@ -51,6 +52,14 @@ export class Mesh {
 
     set index(value) {
         this.#index = value;
+    }
+
+    get parent() {
+        return this.#parent;
+    }
+
+    set parent(value) {
+        this.#parent = value;
     }
 
     get skin() {

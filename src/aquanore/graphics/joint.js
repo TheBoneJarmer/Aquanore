@@ -5,7 +5,8 @@ export class Joint {
     #rotation = null;
     #scale = null;
     #name = null;
-    #index = 0;
+    #index = null;
+    #parent = null;
     #children = [];
 
     get translation() {
@@ -54,6 +55,14 @@ export class Joint {
 
     set children(value) {
         this.#children = value;
+    }
+
+    get parent() {
+        return this.#parent;
+    }
+
+    set parent(value) {
+        this.#parent = value;
     }
 
     constructor() {

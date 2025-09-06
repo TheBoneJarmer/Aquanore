@@ -7,4 +7,6 @@ export class ModelAnimation {
     set channels(value: ModelAnimationChannel[]);
 
     constructor();
+
+    getDuration(): number;
 }
