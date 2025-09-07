@@ -8,9 +8,6 @@ attribute vec3 a_bitangent;
 attribute vec4 a_joint;
 attribute vec4 a_weight;
 
-uniform float u_has_joints;
-uniform float u_has_weights;
-
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
@@ -33,6 +30,7 @@ mat4 get_matrix_skin() {
         mat4 w = a_weight.w * u_joint[int(a_joint.w)];
 
         return x + y + z + w;
+        //return u_joint[1];
     }
 
     return mat4(1);
@@ -51,14 +49,10 @@ mat3 get_matrix_tbn() {
 }
 
 void main() {
-    mat4 mat_mvp = get_matrix_mvp();
     mat4 mat_skin = get_matrix_skin();
+    mat4 mat_mvp = get_matrix_mvp();
     mat3 mat_tbn = get_matrix_tbn();
     vec4 v = vec4(a_vertex, 1.0);
-
-    if (u_skinned) {
-        mat_mvp *= mat_skin;
-    }
 
     v_texcoord = a_texcoord;
     v_vertex = a_vertex;
@@ -67,5 +61,5 @@ void main() {
     v_tbn = mat_tbn;
     v_frag = vec3(u_model * v);
 
-    gl_Position = mat_mvp * v;
+    gl_Position = mat_mvp * mat_skin * v;
 }

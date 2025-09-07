@@ -1,8 +1,6 @@
 import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
 import { BasicMaterial, StandardMaterial } from "./materials";
-import { Mesh } from "./mesh";
-import { Joint } from "./joint";
 import { Shaders } from "./shaders";
 
 export class Renderer {
@@ -124,49 +122,12 @@ export class Renderer {
         shader.umat3("u_normal", matNormal);
         shader.uvec3("u_camera", camera.position);
 
-        // TODO
-        /*
-            Instead of traversing through the hierachy of all joints and meshes I should only process the meshes
-            The hierachy is no longer needed because I now can track back the parent nodes of the meshes
-            I should use this to calculate the parent-to-child transform and use that as the global transform
-        */
-
-        // for (let child of model.data) {
-        //     const mat = Matrix4.identity();
-
-        //     if (child instanceof Mesh) {
-        //         this.#drawModel_Mesh(model, child, mat, animation, animationTime);
-        //     }
-
-        //     if (child instanceof Joint) {
-        //         this.#drawModel_Joint(model, child, mat, animation, animationTime);
-        //     }
-        // }
-    }
-
-    static #drawModel_Joint(model, joint, matGlobal, animation, animationTime) {
-        const matAnimation = this.#generateAnimationMatrix(joint.index, animation, animationTime);
-
-        // let matLocal = Matrix4.identity();
-        // matLocal = Matrix4.rotate(matLocal, joint.rotation.x, joint.rotation.y, joint.rotation.z);
-        // matLocal = Matrix4.scale(matLocal, joint.scale.x, joint.scale.y, joint.scale.z);
-        // matLocal = Matrix4.translate(matLocal, joint.translation.x, joint.translation.y, joint.translation.z);
-
-        //matGlobal = Matrix4.multiply(matGlobal, matLocal);
-        matGlobal = Matrix4.multiply(matGlobal, matAnimation);
-
-        for (let child of joint.children) {
-            if (child instanceof Mesh) {
-                this.#drawModel_Mesh(model, child, matGlobal, animation, animationTime);
-            }
-
-            if (child instanceof Joint) {
-                this.#drawModel_Joint(model, child, matGlobal, animation, animationTime);
-            }
+        for (let mesh of model.meshes) {
+            this.#drawModel_Mesh(model, mesh, animation, animationTime);
         }
     }
 
-    static #drawModel_Mesh(model, mesh, matGlobal, animation, animationTime) {
+    static #drawModel_Mesh(model, mesh, animation, animationTime) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
@@ -174,46 +135,40 @@ export class Renderer {
             const skin = model.skins[mesh.skin];
 
             for (let i = 0; i < skin.joints.length; i++) {
-                const joint = this.#getJoint(model.data, skin.joints[i]);
-                const matAnimation = this.#generateAnimationMatrix(skin.joints[i], animation, animationTime);
-
-                let matLocal = Matrix4.identity();
-                matLocal = Matrix4.rotate(matLocal, joint.rotation.x, joint.rotation.y, joint.rotation.z);
-                matLocal = Matrix4.scale(matLocal, joint.scale.x, joint.scale.y, joint.scale.z);
-                matLocal = Matrix4.translate(matLocal, joint.translation.x, joint.translation.y, joint.translation.z);
-
-                let matTransform = Matrix4.identity();
-                matTransform = Matrix4.multiply(matTransform, matGlobal);
-                matTransform = Matrix4.multiply(matTransform, matLocal);
-                matTransform = Matrix4.multiply(matTransform, matAnimation);
+                const transform = this.getJointTransform(model, skin.joints[i], animation, animationTime);
 
                 let matJoint = Matrix4.identity();
-                matJoint = Matrix4.multiply(matJoint, matTransform);
+                matJoint = Matrix4.multiply(matJoint, transform);
                 matJoint = Matrix4.multiply(matJoint, skin.matrices[i]);
 
-                shader.umat4(`u_joint[${i}]`, matJoint);
+                let mat = Matrix4.identity();
+                mat = Matrix4.multiply(mat, matJoint);
+
+                shader.umat4(`u_joint[${i}]`, mat);
             }
 
-            let matMesh = Matrix4.identity();
-            matMesh = Matrix4.rotate(matMesh, mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
-            matMesh = Matrix4.scale(matMesh, mesh.scale.x, mesh.scale.y, mesh.scale.z);
-            matMesh = Matrix4.translate(matMesh, mesh.translation.x, mesh.translation.y, mesh.translation.z);
-
+            const matMesh = Matrix4.identity();
             shader.umat4("u_mesh", matMesh);
         } else {
-            const matAnimation = this.#generateAnimationMatrix(mesh.index, animation, animationTime);
+            const localTransform = this.#generateMatrix(mesh);
+            const animatedTransform = this.getAnimatedTransform(mesh.index, animation, animationTime);
 
-            let matLocal = Matrix4.identity();
-            matLocal = Matrix4.rotate(matLocal, mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
-            matLocal = Matrix4.scale(matLocal, mesh.scale.x, mesh.scale.y, mesh.scale.z);
-            matLocal = Matrix4.translate(matLocal, mesh.translation.x, mesh.translation.y, mesh.translation.z);
+            if (mesh.parent == null) {
+                let mat = Matrix4.identity();
+                mat = Matrix4.multiply(mat, localTransform);
+                mat = Matrix4.multiply(mat, animatedTransform);
 
-            let matMesh = Matrix4.identity();
-            matMesh = Matrix4.multiply(matMesh, matGlobal);
-            matMesh = Matrix4.multiply(matMesh, matLocal);
-            matMesh = Matrix4.multiply(matMesh, matAnimation);
+                shader.umat4("u_mesh", mat);
+            } else {
+                const globalTransform = this.getJointTransform(model, mesh.parent, animation, animationTime);
 
-            shader.umat4("u_mesh", matMesh);
+                let mat = Matrix4.identity();
+                mat = Matrix4.multiply(mat, globalTransform);
+                mat = Matrix4.multiply(mat, localTransform);
+                mat = Matrix4.multiply(mat, animatedTransform);
+
+                shader.umat4("u_mesh", mat);
+            }
         }
 
         // Render primitive per primitive
@@ -259,29 +214,41 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
-    static #getJoint(data, index) {
-        let result = data.find(x => x.index == index);
-
-        if (result != null) {
-            return result;
+    static #hasAnimations(animation, index) {
+        if (animation == null) {
+            return false;
         }
 
-        for (let obj of data) {
-            if (obj.children) {
-                result = this.#getJoint(obj.children, index);
-
-                if (result != null) {
-                    return result;
-                }
-            }
-        }
-
-        return null;
+        const channels = animation.channels.filter(x => x.index == index);
+        return channels.length > 0;
     }
 
-    static #generateAnimationMatrix(index, animation, animationTime) {
-        let pos = new Vector3(0, 0, 0);
-        let rot = new Quaternion(0, 0, 0, 1);
+    /* TRANSFORM FUNCTIONS */
+    static getJointTransform(model, jointIndex, animation, animationTime, transform = null) {
+        let joint = model.joints.find(x => x.index == jointIndex);
+        let animatedTransform = this.getAnimatedTransform(jointIndex, animation, animationTime);
+        let localTransform = this.#generateMatrix(joint);
+
+        if (transform == null) {
+            transform = Matrix4.identity();
+        }
+
+        if (!this.#hasAnimations(animation, jointIndex)) {
+            transform = Matrix4.multiply(transform, localTransform);
+        } else {
+            transform = Matrix4.multiply(transform, animatedTransform);
+        }
+
+        if (joint.parent != null) {
+            transform = this.getJointTransform(model, joint.parent, animation, animationTime, transform);
+        }
+
+        return transform;
+    }
+
+    static getAnimatedTransform(index, animation, animationTime) {
+        let translation = new Vector3(0, 0, 0);
+        let rotation = new Quaternion(0, 0, 0, 1);
         let scale = new Vector3(1, 1, 1);
 
         if (animation == null) {
@@ -335,7 +302,7 @@ export class Renderer {
                     const next = channel.output[nextIndex];
                     const lerp = Vector3.lerp(prev, next, value);
 
-                    pos = Vector3.add(pos, lerp);
+                    translation = Vector3.add(translation, lerp);
                 }
 
                 if (channel.path === "rotation") {
@@ -343,7 +310,7 @@ export class Renderer {
                     const next = channel.output[nextIndex];
                     const slerp = Quaternion.slerp(prev, next, value);
 
-                    rot = Quaternion.mult(rot, slerp);
+                    rotation = Quaternion.mult(rotation, slerp);
                 }
 
                 if (channel.path === "scale") {
@@ -354,21 +321,44 @@ export class Renderer {
                     scale = Vector3.mult(scale, lerp);
                 }
             }
+
+            if (interpolation == "CUBICSPLINE") {
+                throw new Error("Cubic spline interpolation is not yet supported");
+            }
         }
 
-        let euler = Quaternion.toEuler(rot);
+        let euler = Quaternion.toEuler(rotation);
         let m = Matrix4.identity();
+        m = Matrix4.translate(m, translation.x, translation.y, translation.z);
         m = Matrix4.rotate(m, euler.x, euler.y, euler.z);
         m = Matrix4.scale(m, scale.x, scale.y, scale.z);
-        m = Matrix4.translate(m, pos.x, pos.y, pos.z);
+
+        return m;
+    }
+
+    /* MATRIX GENERATION FUNCTIONS */
+    static #generateMatrix(obj) {
+        let m = Matrix4.identity();
+        m = Matrix4.translate(m, obj.translation.x, obj.translation.y, obj.translation.z);
+        m = Matrix4.rotate(m, obj.rotation.x, obj.rotation.y, obj.rotation.z);
+        m = Matrix4.scale(m, obj.scale.x, obj.scale.y, obj.scale.z);
+
+        return m;
+    }
+
+    static #generateTransformMatrix(transform) {
+        let m = Matrix4.identity();
+        m = Matrix4.translate(m, transform.translation.x, transform.translation.y, transform.translation.z);
+        m = Matrix4.rotate(m, transform.rotation.x, transform.rotation.y, transform.rotation.z);
+        m = Matrix4.scale(m, transform.scale.x, transform.scale.y, transform.scale.z);
 
         return m;
     }
 
     static #generateModelMatrix(pos, rot, scale) {
         let m = Matrix4.identity();
-        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
         m = Matrix4.scale(m, scale.x, scale.y, scale.z);
+        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
         m = Matrix4.translate(m, pos.x, pos.y, pos.z);
 
         return m;

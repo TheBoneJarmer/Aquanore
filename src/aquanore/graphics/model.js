@@ -1,14 +1,23 @@
 export class Model {
-    #data = [];
+    #meshes = [];
+    #joints = [];
     #animations = [];
     #skins = [];
     
-    get data() {
-        return this.#data;
+    get meshes() {
+        return this.#meshes;
     }
 
-    set data(value) {
-        this.#data = value;
+    set meshes(value) {
+        this.#meshes = value;
+    }
+
+    get joints() {
+        return this.#joints;
+    }
+
+    set joints(value) {
+        this.#joints = value;
     }
 
     get animations() {
@@ -28,7 +37,8 @@ export class Model {
     }
 
     constructor() {
-        this.#data = [];
+        this.#meshes = [];
+        this.#joints = [];
         this.#animations = [];
         this.#skins = [];
     }

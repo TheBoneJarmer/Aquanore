@@ -1,3 +1,6 @@
+import { MathHelper } from "./mathhelper";
+import { Vector3 } from "./vector3";
+
 export class Matrix4 {
     #array = [];
 
@@ -398,5 +401,58 @@ export class Matrix4 {
         te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
 
         return new Matrix4(te);
+    }
+
+    static extractTranslation(m) {
+        const v = new Vector3();
+        v.x = m.values[12];
+        v.y = m.values[13];
+        v.z = m.values[14];
+
+        return v;
+    }
+
+    static extractScale(m) {
+        const sx = new Vector3();
+        sx.x = m.values[0];
+        sx.y = m.values[1];
+        sx.z = m.values[2];
+
+        const sy = new Vector3();
+        sy.x = m.values[4];
+        sy.y = m.values[5];
+        sy.z = m.values[6];
+
+        const sz = new Vector3();
+        sz.x = m.values[8];
+        sz.y = m.values[9];
+        sz.z = m.values[10];
+
+        const v = new Vector3();
+        v.x = Vector3.length(sx);
+        v.y = Vector3.length(sy);
+        v.z = Vector3.length(sz);
+
+        return v;
+    }
+
+    static extractRotation(m) {
+        const te = m.values;
+        const m11 = te[0], m12 = te[4], m13 = te[8];
+        const m21 = te[1], m22 = te[5], m23 = te[9];
+        const m31 = te[2], m32 = te[6], m33 = te[10];
+
+        const v = new Vector3();
+        v.y = Math.asin(MathHelper.clamp(m13, - 1, 1));
+
+        if (Math.abs(m13) < 0.9999999) {
+            v.x = Math.atan2(- m23, m33);
+            v.z = Math.atan2(- m12, m11);
+        } else {
+            v.x = Math.atan2(m32, m22);
+            v.z = 0;
+        }
+
+        return v;
     }
 }

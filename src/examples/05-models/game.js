@@ -1,12 +1,14 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Mesh, Renderer } from "../../aquanore/graphics";
-import { MathHelper, Vector3 } from "../../aquanore/math";
+import { Camera, Color, Light, Mesh, Model, Primitive, Renderer } from "../../aquanore/graphics";
+import { MathHelper, Vector3, Matrix4 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Keyboard } from "../../aquanore/input";
 import { BasicMaterial } from "../../aquanore/graphics/materials";
+import { CubeGeometry } from "../../aquanore/graphics/geometries";
 
-let model = null;
+let modelGltf = null;
+let modelJoint = null;
 let cam = null;
 let lights = [];
 
@@ -27,33 +29,43 @@ Aquanore.onLoad = async () => {
 
     lights[0] = new Light(LightType.Directional);
 
-    let loader = new GltfLoader();
-    model = await loader.load("mage.glb");
-    animation = model.animations.find(x => x.name == "Idle");
+    const geomJoint = new CubeGeometry(0.1);
+    const matJoint = new BasicMaterial();
+    matJoint.color = new Color(255, 0, 0);
 
-    // model = await loader.load("debug.gltf");
-    // model.data.forEach((child) => {
-    //     if (child instanceof Mesh) {
-    //         child.primitives[0].material = new BasicMaterial();
-    //     }
-    // });
-    // animation = model.animations[0];
+    const priJoint = new Primitive(geomJoint, matJoint);
+
+    const meshJoint = new Mesh();
+    meshJoint.primitives.push(priJoint);
+
+    modelJoint = new Model();
+    modelJoint.meshes.push(meshJoint);
+
+    let loader = new GltfLoader();
+    // model = await loader.load("mage.glb");
+    // animation = model.animations.find(x => x.name == "Idle");
+
+    modelGltf = await loader.load("debug.gltf");
+    modelGltf.meshes.forEach((mesh) => {
+        mesh.primitives[0].material = new BasicMaterial();
+    });
+    animation = modelGltf.animations[0];
 
     // model = await loader.load("axis.glb");
     // animation = model.animations[0];
     // scale = new Vector3(0.25, 0.25, 0.25);
 
-    console.log(model);
+    console.log(modelGltf);
 };
 
 Aquanore.onUpdate = (dt) => {
     cam.aspect = innerWidth / innerHeight;
-    
+
     if (!animationPaused) {
         animationTime += dt;
     }
 
-    if (animationTime > animation.getDuration()) {
+    if (animation && animationTime > animation.getDuration()) {
         animationTime = 0;
     }
 
@@ -88,8 +100,33 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, cam, lights, pos, rot, scale, animation, animationTime);
-    //Renderer.drawModel(model, cam, lights, pos, rot, scale);
+    const skin = modelGltf.skins[0];
+
+    Renderer.drawModel(modelGltf, cam, lights, pos, rot, scale, animation, animationTime);
+
+    for (let i=0; i<skin.joints.length; i++) {
+        const joint = modelGltf.joints.find(x => x.index == skin.joints[i]);
+        const transform = Renderer.getJointTransform(modelGltf, joint.index, animation, animationTime);
+
+        let matLocal = Matrix4.identity();
+        matLocal = Matrix4.multiply(matLocal, transform);
+        matLocal = Matrix4.multiply(matLocal, skin.matrices[i]);
+
+        let matGlobal = Matrix4.identity();
+        matGlobal = Matrix4.scale(matGlobal, scale.x, scale.y, scale.z);
+        matGlobal = Matrix4.rotate(matGlobal, rot.x, rot.y, rot.z);
+        matGlobal = Matrix4.translate(matGlobal, pos.x, pos.y, pos.z);
+
+        let mat = Matrix4.identity();
+        mat = Matrix4.multiply(mat, matLocal);
+        mat = Matrix4.multiply(mat, matGlobal);
+
+        const jointTranslation = Matrix4.extractTranslation(mat);
+        const jointRotation = Matrix4.extractRotation(mat);
+        const jointScale = Matrix4.extractScale(mat);
+
+        Renderer.drawModel(modelJoint, cam, lights, jointTranslation, jointRotation, jointScale);
+    }
 };
 
 Aquanore.run();

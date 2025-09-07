@@ -161,9 +161,8 @@ export class GltfLoader {
         for (let i = 0; i < scene.nodes.length; i++) {
             const index = scene.nodes[i];
             const node = gltf.nodes[index];
-
-            const data = await this.#parseNode(gltf, node, index, null);
-            this.#result.data.push(data);
+            
+            await this.#parseNode(gltf, node, index, null);
         }
     }
 
@@ -279,15 +278,17 @@ export class GltfLoader {
 
     async #parseNode(gltf, obj, index, parent) {
         if ("mesh" in obj) {
-            return await this.#parseMeshNode(gltf, obj, index, parent);
+            await this.#parseMeshNode(gltf, obj, index, parent);
+            return;
         }
 
-        return await this.#parseJointNode(gltf, obj, index, parent);
+        await this.#parseJointNode(gltf, obj, index, parent);
     }
 
     async #parseJointNode(gltf, obj, index, parent) {
         const joint = new Joint();
         joint.name = obj.name;
+        joint.children = obj.children;
         joint.index = index;
         joint.parent = parent;
 
@@ -317,14 +318,11 @@ export class GltfLoader {
 
         if (obj.children != null) {
             for (let i of obj.children) {
-                const node = gltf.nodes[i];
-                const child = await this.#parseNode(gltf, node, i, index);
-
-                joint.children.push(child);
+                await this.#parseNode(gltf, gltf.nodes[i], i, index);
             }
         }
 
-        return joint;
+        this.#result.joints.push(joint);
     }
 
     async #parseMeshNode(gltf, obj, index, parent) {
@@ -373,7 +371,7 @@ export class GltfLoader {
             mesh.primitives.push(pri);
         }
 
-        return mesh;
+        this.#result.meshes.push(mesh);
     }
 
     async #parseSkin(gltf, obj) {
