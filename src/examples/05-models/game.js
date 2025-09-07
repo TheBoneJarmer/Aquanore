@@ -104,22 +104,26 @@ Aquanore.onRender3D = () => {
 
     Renderer.drawModel(modelGltf, cam, lights, pos, rot, scale, animation, animationTime);
 
-    for (let i=0; i<skin.joints.length; i++) {
+    for (let i = 0; i < skin.joints.length; i++) {
         const joint = modelGltf.joints.find(x => x.index == skin.joints[i]);
-        const transform = Renderer.getJointTransform(modelGltf, joint.index, animation, animationTime);
+        const matInverse = skin.matrices[i];
+        const matGlobal = Renderer.getGlobalTransform(modelGltf, joint.index, animation, animationTime);
 
         let matLocal = Matrix4.identity();
-        matLocal = Matrix4.multiply(matLocal, transform);
-        matLocal = Matrix4.multiply(matLocal, skin.matrices[i]);
+        matLocal = Matrix4.translate(matLocal, joint.translation.x, joint.translation.y, joint.translation.z);
+        matLocal = Matrix4.rotate(matLocal, joint.rotation.x, joint.rotation.y, joint.rotation.z);
+        matLocal = Matrix4.scale(matLocal, joint.scale.x, joint.scale.y, joint.scale.z);
 
-        let matGlobal = Matrix4.identity();
-        matGlobal = Matrix4.scale(matGlobal, scale.x, scale.y, scale.z);
-        matGlobal = Matrix4.rotate(matGlobal, rot.x, rot.y, rot.z);
-        matGlobal = Matrix4.translate(matGlobal, pos.x, pos.y, pos.z);
+        let matWorld = Matrix4.identity();
+        matWorld = Matrix4.scale(matWorld, scale.x, scale.y, scale.z);
+        matWorld = Matrix4.rotate(matWorld, rot.x, rot.y, rot.z);
+        matWorld = Matrix4.translate(matWorld, pos.x, pos.y, pos.z);
 
         let mat = Matrix4.identity();
+        mat = Matrix4.multiply(mat, matInverse);
         mat = Matrix4.multiply(mat, matLocal);
         mat = Matrix4.multiply(mat, matGlobal);
+        //mat = Matrix4.multiply(mat, matWorld);
 
         const jointTranslation = Matrix4.extractTranslation(mat);
         const jointRotation = Matrix4.extractRotation(mat);

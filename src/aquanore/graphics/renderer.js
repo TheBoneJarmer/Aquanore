@@ -135,14 +135,19 @@ export class Renderer {
             const skin = model.skins[mesh.skin];
 
             for (let i = 0; i < skin.joints.length; i++) {
-                const transform = this.getJointTransform(model, skin.joints[i], animation, animationTime);
+                const joint = model.joints.find(x => x.index == skin.joints[i]);
+                const matInverse = skin.matrices[i];
+                const matGlobal = this.getGlobalTransform(model, skin.joints[i], animation, animationTime);
 
-                let matJoint = Matrix4.identity();
-                matJoint = Matrix4.multiply(matJoint, transform);
-                matJoint = Matrix4.multiply(matJoint, skin.matrices[i]);
+                let matLocal = Matrix4.identity();
+                matLocal = Matrix4.translate(matLocal, joint.translation.x, joint.translation.y, joint.translation.z);
+                matLocal = Matrix4.rotate(matLocal, joint.rotation.x, joint.rotation.y, joint.rotation.z);
+                matLocal = Matrix4.scale(matLocal, joint.scale.x, joint.scale.y, joint.scale.z);
 
                 let mat = Matrix4.identity();
-                mat = Matrix4.multiply(mat, matJoint);
+                mat = Matrix4.multiply(mat, matLocal);
+                mat = Matrix4.multiply(mat, matGlobal);
+                mat = Matrix4.multiply(mat, matInverse);
 
                 shader.umat4(`u_joint[${i}]`, mat);
             }
@@ -160,7 +165,7 @@ export class Renderer {
 
                 shader.umat4("u_mesh", mat);
             } else {
-                const globalTransform = this.getJointTransform(model, mesh.parent, animation, animationTime);
+                const globalTransform = this.getGlobalTransform(model, mesh.parent, animation, animationTime);
 
                 let mat = Matrix4.identity();
                 mat = Matrix4.multiply(mat, globalTransform);
@@ -224,23 +229,18 @@ export class Renderer {
     }
 
     /* TRANSFORM FUNCTIONS */
-    static getJointTransform(model, jointIndex, animation, animationTime, transform = null) {
+    static getGlobalTransform(model, jointIndex, animation, animationTime, transform = null) {
         let joint = model.joints.find(x => x.index == jointIndex);
         let animatedTransform = this.getAnimatedTransform(jointIndex, animation, animationTime);
-        let localTransform = this.#generateMatrix(joint);
 
         if (transform == null) {
             transform = Matrix4.identity();
         }
 
-        if (!this.#hasAnimations(animation, jointIndex)) {
-            transform = Matrix4.multiply(transform, localTransform);
-        } else {
-            transform = Matrix4.multiply(transform, animatedTransform);
-        }
+        transform = Matrix4.multiply(transform, animatedTransform);
 
         if (joint.parent != null) {
-            transform = this.getJointTransform(model, joint.parent, animation, animationTime, transform);
+            transform = this.getGlobalTransform(model, joint.parent, animation, animationTime, transform);
         }
 
         return transform;
@@ -357,9 +357,9 @@ export class Renderer {
 
     static #generateModelMatrix(pos, rot, scale) {
         let m = Matrix4.identity();
-        m = Matrix4.scale(m, scale.x, scale.y, scale.z);
-        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
         m = Matrix4.translate(m, pos.x, pos.y, pos.z);
+        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
+        m = Matrix4.scale(m, scale.x, scale.y, scale.z);
 
         return m;
     }
