@@ -237,7 +237,13 @@ export class Renderer {
             transform = Matrix4.identity();
         }
 
-        transform = Matrix4.multiply(transform, animatedTransform);
+        if (this.#hasAnimations(animation, jointIndex)) {
+            transform = Matrix4.multiply(transform, animatedTransform);
+        } else {
+            transform = Matrix4.translate(transform, joint.translation.x, joint.translation.y, joint.translation.z);
+            transform = Matrix4.rotate(transform, joint.rotation.x, joint.rotation.y, joint.rotation.z);
+            transform = Matrix4.scale(transform, joint.scale.x, joint.scale.z, joint.scale.z);
+        }
 
         if (joint.parent != null) {
             transform = this.getGlobalTransform(model, joint.parent, animation, animationTime, transform);
