@@ -253,7 +253,7 @@ export class GltfLoader {
             const format = parts[1].split(",")[0];
 
             if (mimetype != "application/gltf-buffer") {
-                throw new Error(`Failed to parse buffer. Unsupported data URI mimetype ${mimetype}`);
+                //throw new Error(`Failed to parse buffer. Unsupported data URI mimetype ${mimetype}`);
             }
 
             if (format == "base64") {

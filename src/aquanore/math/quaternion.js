@@ -1,3 +1,4 @@
+import { Matrix4 } from "./matrix4";
 import { Vector3 } from "./vector3";
 
 export class Quaternion {
@@ -62,27 +63,10 @@ export class Quaternion {
     }
 
     static toEuler(q) {
-        const x = q.x;
-        const y = q.y;
-        const z = q.z;
-        const w = q.w;
+        const m = Matrix4.compose(Vector3.ZERO, q, Vector3.ONE);
+        const euler = Matrix4.extractRotation(m);
 
-        // Roll (x-axis rotation)
-        const sinr_cosp = 2 * (w * x + y * z);
-        const cosr_cosp = 1 - 2 * (x * x + y * y);
-        const roll = Math.atan2(sinr_cosp, cosr_cosp);
-
-        // Pitch (y-axis rotation)
-        let sinp = 2 * (w * y - z * x);
-        sinp = Math.max(-1, Math.min(1, sinp)); // clamp for numerical stability
-        const pitch = Math.asin(sinp);
-
-        // Yaw (z-axis rotation)
-        const siny_cosp = 2 * (w * z + x * y);
-        const cosy_cosp = 1 - 2 * (y * y + z * z);
-        const yaw = Math.atan2(siny_cosp, cosy_cosp);
-
-        return new Vector3(roll, pitch, yaw);
+        return euler;
     }
 
     static fromEuler(v) {

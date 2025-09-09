@@ -30,7 +30,6 @@ mat4 get_matrix_skin() {
         mat4 w = a_weight.w * u_joint[int(a_joint.w)];
 
         return x + y + z + w;
-        //return u_joint[1];
     }
 
     return mat4(1);

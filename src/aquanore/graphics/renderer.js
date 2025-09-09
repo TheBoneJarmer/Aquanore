@@ -132,10 +132,18 @@ export class Renderer {
         if (mesh.skin != null) {
             const skin = model.skins[mesh.skin];
             const root = model.joints.find(x => x.parent == null);
-            const transforms = this.getJointTransforms(model, root.index, animation, time, Matrix4.identity());
+            const transforms = this.#getJointTransforms(model, root.index, animation, time, Matrix4.identity());
 
             for (let i = 0; i < skin.joints.length; i++) {
-                let mat = transforms.get(skin.joints[i]);
+                const joint = model.joints.find(x => x.index == skin.joints[i]);
+
+                let jointTransform = transforms.get(skin.joints[i]);
+                let localTransform = this.#getTransform(joint);
+
+                let mat = Matrix4.identity();
+                //mat = Matrix4.multiply(mat, Matrix4.inverse(localTransform));
+                //mat = Matrix4.multiply(mat, localTransform);
+                mat = Matrix4.multiply(mat, jointTransform);
                 mat = Matrix4.multiply(mat, skin.matrices[i]);
 
                 shader.umat4(`u_joint[${i}]`, mat);
@@ -144,8 +152,8 @@ export class Renderer {
             const matMesh = Matrix4.identity();
             shader.umat4("u_mesh", matMesh);
         } else {
-            const localTransform = this.getTransform(mesh);
-            const animatedTransform = this.getAnimatedTransform(mesh.index, animation, time);
+            const localTransform = this.#getTransform(mesh);
+            const animatedTransform = this.#getAnimatedTransform(mesh.index, animation, time);
 
             if (mesh.parent == null) {
                 let mat = Matrix4.identity();
@@ -155,7 +163,7 @@ export class Renderer {
                 shader.umat4("u_mesh", mat);
             } else {
                 const root = model.joints.find(x => x.parent == null);
-                const transforms = this.getJointTransforms(model, root.index, animation, time, Matrix4.identity());
+                const transforms = this.#getJointTransforms(model, root.index, animation, time, Matrix4.identity());
                 const globalTransform = transforms.get(mesh.parent);
 
                 let mat = Matrix4.identity();
@@ -210,17 +218,17 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
-    static #hasAnimations(animation, index) {
+    static #hasAnimationChannels(animation, obj) {
         if (animation == null) {
             return false;
         }
 
-        const channels = animation.channels.filter(x => x.index == index);
+        const channels = animation.channels.filter(x => x.index == obj.index);
         return channels.length > 0;
     }
 
     /* TRANSFORM FUNCTIONS */
-    static getTransform(obj) {
+    static #getTransform(obj) {
         let m = Matrix4.identity();
         m = Matrix4.translate(m, obj.translation.x, obj.translation.y, obj.translation.z);
         m = Matrix4.rotate(m, obj.rotation.x, obj.rotation.y, obj.rotation.z);
@@ -229,7 +237,7 @@ export class Renderer {
         return m;
     }
 
-    static getJointTransforms(model, jointIndex, animation, time, parent) {
+    static #getJointTransforms(model, jointIndex, animation, time, parent) {
         const result = new Map();
         const joint = model.joints.find(x => x.index == jointIndex);
 
@@ -237,15 +245,22 @@ export class Renderer {
             return [];
         }
 
-        let pose = this.getAnimatedTransform(jointIndex, animation, time);
-        let transform = this.getTransform(joint);
-        
+        let transform = this.#getTransform(joint);
+        let pose = this.#getAnimatedTransform(jointIndex, animation, time);
+
         let t = Matrix4.identity();
-        t = Matrix4.multiply(parent, pose);
-        t = Matrix4.multiply(t, transform);
+        t = Matrix4.multiply(t, parent);
+
+        if (animation == null) {
+            t = Matrix4.multiply(t, transform);
+        } else if (!this.#hasAnimationChannels(animation, joint)) {
+            t = Matrix4.multiply(t, transform);
+        } else {
+            t = Matrix4.multiply(t, pose);
+        }
 
         for (let child of joint.children) {
-            const childResult = this.getJointTransforms(model, child, animation, time, t);
+            const childResult = this.#getJointTransforms(model, child, animation, time, t);
 
             childResult.forEach((value, key, map) => {
                 result.set(key, value);
@@ -256,32 +271,7 @@ export class Renderer {
         return result;
     }
 
-    static getJointTransform(model, jointIndex, animation, animationTime, transform = null) {
-        let joint = model.joints.find(x => x.index == jointIndex);
-        let pose = this.getAnimatedTransform(jointIndex, animation, animationTime);
-
-        if (transform == null) {
-            transform = Matrix4.identity();
-        }
-
-        if (this.#hasAnimations(animation, jointIndex)) {
-            transform = Matrix4.multiply(transform, pose);
-        }
-
-        if (joint != null) {
-            //transform = Matrix4.translate(transform, joint.translation.x, joint.translation.y, joint.translation.z);
-            //transform = Matrix4.rotate(transform, joint.rotation.x, joint.rotation.y, joint.rotation.z);
-            //transform = Matrix4.scale(transform, joint.scale.x, joint.scale.z, joint.scale.z);
-
-            if (joint.parent != null) {
-                transform = this.getJointTransform(model, joint.parent, animation, animationTime, transform);
-            }
-        }
-
-        return transform;
-    }
-
-    static getAnimatedTransform(index, animation, animationTime) {
+    static #getAnimatedTransform(index, animation, animationTime) {
         let translation = new Vector3(0, 0, 0);
         let rotation = new Quaternion(0, 0, 0, 1);
         let scale = new Vector3(1, 1, 1);
@@ -301,9 +291,9 @@ export class Renderer {
 
             // We only interpolate when the animation time is within our input range
             // Therefore we check it here because there is no point in figuring out the timesteps if we already exceeded the last one.
-            if (animationTime >= nextTime) {
-                interpolation = null;
-            }
+            // if (animationTime >= nextTime) {
+            //     interpolation = null;
+            // }
 
             if (interpolation == "STEP") {
                 // TODO: Step interpolation

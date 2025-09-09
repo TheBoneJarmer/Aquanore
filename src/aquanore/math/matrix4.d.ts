@@ -1,3 +1,5 @@
+import { Vector3 } from "./vector3";
+
 export class Matrix4 {
     get x1(): number;
     set x1(value: number);
@@ -37,6 +39,9 @@ export class Matrix4 {
     constructor(values: number[]);
 
     clone(): Matrix4;
+
+    static identity(): Matrix4;
+    static compose(translation: Vector3, rotation: Vector3, scale: Vector3);
     static translate(mat: Matrix4, x: number, y: number, z: number): Matrix4;
     static scale(mat: Matrix4, x: number, y:number, z:number): Matrix4;
     static rotate(mat: Matrix4, x: number, y:number, z:number): Matrix4;
@@ -48,4 +53,7 @@ export class Matrix4 {
     static transpose(mat: Matrix4): Matrix4;
     static inverse(mat: Matrix4): Matrix4;
     static multiply(m1: Matrix4, m2: Matrix4): Matrix4;
+    static extractTranslation(m: Matrix4): Vector3;
+    static extractRotation(m: Matrix4): Vector3;
+    static extractScale(m: Matrix4): Vector3;
 }
