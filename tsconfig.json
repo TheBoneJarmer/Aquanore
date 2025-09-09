@@ -1,0 +1,17 @@
+{
+  "include": [
+    "src/aquanore/*"
+  ],
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "outDir": "dist",
+    "declarationMap": true,
+    "removeComments": true,
+    "lib": ["ESNext"]
+  }
+}

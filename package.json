@@ -1,6 +1,6 @@
 {
   "name": "aquanore",
-  "version": "4.0.0",
+  "version": "3.1.0",
   "description": "Aquanore is a 2D and 3D WebGL game framework",
   "author": "Ruben Labruyere",
   "license": "MIT",
@@ -18,33 +18,11 @@
     "url": "https://github.com/TheBoneJarmer/aquanore/issues"
   },
   "homepage": "https://github.com/TheBoneJarmer/aquanore#readme",
-  "main": "src/aquanore/index.js",
+  "main": "index.js",
+  "types": "index.d.ts",
   "type": "module",
-  
   "devDependencies": {
     "typescript": "^5.9.2",
     "vite": "^5.3.3"
-  },
-
-  "exports": {
-    ".": {
-      "import": "./src/aquanore/index.js",
-      "types": "./src/aquanore/index.d.ts"
-    },
-    "./audio": "./src/aquanore/audio/index.js",
-    "./graphics": "./src/aquanore/graphics/index.js",
-    "./graphics/geometries": "./src/aquanore/graphics/geometries/index.js",
-    "./graphics/materials": "./src/aquanore/graphics/materials/index.js",
-    "./graphics/shaders": "./src/aquanore/graphics/shaders/index.js",
-    "./input": "./src/aquanore/input/index.js",
-    "./loaders": "./src/aquanore/loaders/index.js",
-    "./math": "./src/aquanore/math/index.js",
-    "./enums": "./src/aquanore/enums.js"
-  },
-  "files": [
-    "src/aquanore/*",
-    "LICENSE",
-    "README.md",
-    "package.json"
-  ]
+  }
 }

@@ -29,7 +29,7 @@ export class Aquanore {
     static onResize = null;
     static clearColor = new Color(0, 0, 0, 255);
 
-    static init(options) {
+    static init(options = null) {
         this.#options = new AquanoreOptions();
         this.#lastTime = 0;
 
