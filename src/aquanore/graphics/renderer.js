@@ -94,21 +94,7 @@ export class Renderer {
             return;
         }
 
-        if (this.switchShader(this.#shaderModel)) {
-            const shader = this.#shader;
-            shader.u1i("u_light_count", lights.length);
-
-            for (let i = 0; i < lights.length; i++) {
-                const light = lights[i];
-
-                shader.u1i(`u_light[${i}].type`, light.type);
-                shader.u1b(`u_light[${i}].enabled`, light.enabled);
-                shader.uvec3(`u_light[${i}].source`, light.source);
-                shader.ucolor(`u_light[${i}].color`, light.color);
-                shader.u1f(`u_light[${i}].strength`, light.strength);
-                shader.u1f(`u_light[${i}].range`, light.range);
-            }
-        }
+        this.switchShader(this.#shaderModel);
 
         const shader = this.#shader;
         const matProjection = this.#generateProjectionMatrix(camera);
@@ -121,33 +107,36 @@ export class Renderer {
         shader.umat4("u_model", matModel);
         shader.umat3("u_normal", matNormal);
         shader.uvec3("u_camera", camera.position);
+        shader.u1i("u_light_count", lights.length);
+
+        for (let i = 0; i < lights.length; i++) {
+            const light = lights[i];
+
+            shader.u1i(`u_light[${i}].type`, light.type);
+            shader.u1b(`u_light[${i}].enabled`, light.enabled);
+            shader.uvec3(`u_light[${i}].source`, light.source);
+            shader.ucolor(`u_light[${i}].color`, light.color);
+            shader.u1f(`u_light[${i}].strength`, light.strength);
+            shader.u1f(`u_light[${i}].range`, light.range);
+        }
 
         for (let mesh of model.meshes) {
             this.#drawModel_Mesh(model, mesh, animation, animationTime);
         }
     }
 
-    static #drawModel_Mesh(model, mesh, animation, animationTime) {
+    static #drawModel_Mesh(model, mesh, animation, time) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
         if (mesh.skin != null) {
             const skin = model.skins[mesh.skin];
+            const root = model.joints.find(x => x.parent == null);
+            const transforms = this.getJointTransforms(model, root.index, animation, time, Matrix4.identity());
 
             for (let i = 0; i < skin.joints.length; i++) {
-                const joint = model.joints.find(x => x.index == skin.joints[i]);
-                const matInverse = skin.matrices[i];
-                const matGlobal = this.getGlobalTransform(model, skin.joints[i], animation, animationTime);
-
-                let matLocal = Matrix4.identity();
-                matLocal = Matrix4.translate(matLocal, joint.translation.x, joint.translation.y, joint.translation.z);
-                matLocal = Matrix4.rotate(matLocal, joint.rotation.x, joint.rotation.y, joint.rotation.z);
-                matLocal = Matrix4.scale(matLocal, joint.scale.x, joint.scale.y, joint.scale.z);
-
-                let mat = Matrix4.identity();
-                mat = Matrix4.multiply(mat, matLocal);
-                mat = Matrix4.multiply(mat, matGlobal);
-                mat = Matrix4.multiply(mat, matInverse);
+                let mat = transforms.get(skin.joints[i]);
+                mat = Matrix4.multiply(mat, skin.matrices[i]);
 
                 shader.umat4(`u_joint[${i}]`, mat);
             }
@@ -155,8 +144,8 @@ export class Renderer {
             const matMesh = Matrix4.identity();
             shader.umat4("u_mesh", matMesh);
         } else {
-            const localTransform = this.#generateMatrix(mesh);
-            const animatedTransform = this.getAnimatedTransform(mesh.index, animation, animationTime);
+            const localTransform = this.getTransform(mesh);
+            const animatedTransform = this.getAnimatedTransform(mesh.index, animation, time);
 
             if (mesh.parent == null) {
                 let mat = Matrix4.identity();
@@ -165,7 +154,9 @@ export class Renderer {
 
                 shader.umat4("u_mesh", mat);
             } else {
-                const globalTransform = this.getGlobalTransform(model, mesh.parent, animation, animationTime);
+                const root = model.joints.find(x => x.parent == null);
+                const transforms = this.getJointTransforms(model, root.index, animation, time, Matrix4.identity());
+                const globalTransform = transforms.get(mesh.parent);
 
                 let mat = Matrix4.identity();
                 mat = Matrix4.multiply(mat, globalTransform);
@@ -229,24 +220,62 @@ export class Renderer {
     }
 
     /* TRANSFORM FUNCTIONS */
-    static getGlobalTransform(model, jointIndex, animation, animationTime, transform = null) {
+    static getTransform(obj) {
+        let m = Matrix4.identity();
+        m = Matrix4.translate(m, obj.translation.x, obj.translation.y, obj.translation.z);
+        m = Matrix4.rotate(m, obj.rotation.x, obj.rotation.y, obj.rotation.z);
+        m = Matrix4.scale(m, obj.scale.x, obj.scale.y, obj.scale.z);
+
+        return m;
+    }
+
+    static getJointTransforms(model, jointIndex, animation, time, parent) {
+        const result = new Map();
+        const joint = model.joints.find(x => x.index == jointIndex);
+
+        if (joint == null) {
+            return [];
+        }
+
+        let pose = this.getAnimatedTransform(jointIndex, animation, time);
+        let transform = this.getTransform(joint);
+        
+        let t = Matrix4.identity();
+        t = Matrix4.multiply(parent, pose);
+        t = Matrix4.multiply(t, transform);
+
+        for (let child of joint.children) {
+            const childResult = this.getJointTransforms(model, child, animation, time, t);
+
+            childResult.forEach((value, key, map) => {
+                result.set(key, value);
+            });
+        }
+
+        result.set(jointIndex, t);
+        return result;
+    }
+
+    static getJointTransform(model, jointIndex, animation, animationTime, transform = null) {
         let joint = model.joints.find(x => x.index == jointIndex);
-        let animatedTransform = this.getAnimatedTransform(jointIndex, animation, animationTime);
+        let pose = this.getAnimatedTransform(jointIndex, animation, animationTime);
 
         if (transform == null) {
             transform = Matrix4.identity();
         }
 
         if (this.#hasAnimations(animation, jointIndex)) {
-            transform = Matrix4.multiply(transform, animatedTransform);
-        } else {
-            transform = Matrix4.translate(transform, joint.translation.x, joint.translation.y, joint.translation.z);
-            transform = Matrix4.rotate(transform, joint.rotation.x, joint.rotation.y, joint.rotation.z);
-            transform = Matrix4.scale(transform, joint.scale.x, joint.scale.z, joint.scale.z);
+            transform = Matrix4.multiply(transform, pose);
         }
 
-        if (joint.parent != null) {
-            transform = this.getGlobalTransform(model, joint.parent, animation, animationTime, transform);
+        if (joint != null) {
+            //transform = Matrix4.translate(transform, joint.translation.x, joint.translation.y, joint.translation.z);
+            //transform = Matrix4.rotate(transform, joint.rotation.x, joint.rotation.y, joint.rotation.z);
+            //transform = Matrix4.scale(transform, joint.scale.x, joint.scale.z, joint.scale.z);
+
+            if (joint.parent != null) {
+                transform = this.getJointTransform(model, joint.parent, animation, animationTime, transform);
+            }
         }
 
         return transform;
@@ -343,24 +372,6 @@ export class Renderer {
     }
 
     /* MATRIX GENERATION FUNCTIONS */
-    static #generateMatrix(obj) {
-        let m = Matrix4.identity();
-        m = Matrix4.translate(m, obj.translation.x, obj.translation.y, obj.translation.z);
-        m = Matrix4.rotate(m, obj.rotation.x, obj.rotation.y, obj.rotation.z);
-        m = Matrix4.scale(m, obj.scale.x, obj.scale.y, obj.scale.z);
-
-        return m;
-    }
-
-    static #generateTransformMatrix(transform) {
-        let m = Matrix4.identity();
-        m = Matrix4.translate(m, transform.translation.x, transform.translation.y, transform.translation.z);
-        m = Matrix4.rotate(m, transform.rotation.x, transform.rotation.y, transform.rotation.z);
-        m = Matrix4.scale(m, transform.scale.x, transform.scale.y, transform.scale.z);
-
-        return m;
-    }
-
     static #generateModelMatrix(pos, rot, scale) {
         let m = Matrix4.identity();
         m = Matrix4.translate(m, pos.x, pos.y, pos.z);

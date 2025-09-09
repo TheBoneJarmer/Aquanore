@@ -8,6 +8,8 @@ export class Cursor {
     static #prevY = 0;
     static #moveX = 0;
     static #moveY = 0;
+    static #wheelX = 0;
+    static #wheelY = 0;
 
     static get x() {
         return this.#x;
@@ -31,6 +33,14 @@ export class Cursor {
 
     static get moveY() {
         return this.#moveY;
+    }
+
+    static get wheelX() {
+        return this.#wheelX;
+    }
+
+    static get wheelY() {
+        return this.#wheelY;
     }
 
     static init() {
@@ -70,6 +80,11 @@ export class Cursor {
             this.#y = e.clientY - cnv.getBoundingClientRect().top;
         });
 
+        cnv.addEventListener("wheel", (ev) => {
+            this.#wheelX = ev.deltaX;
+            this.#wheelY = ev.deltaY;
+        });
+
         cnv.addEventListener("contextmenu", (e) => {
             e.preventDefault();
         });
@@ -78,6 +93,8 @@ export class Cursor {
     static update() {
         this.#moveX = 0;
         this.#moveY = 0;
+        this.#wheelX = 0;
+        this.#wheelY = 0;
 
         for (let i = 0; i < this.#states.length; i++) {
             const state = this.#states[i];

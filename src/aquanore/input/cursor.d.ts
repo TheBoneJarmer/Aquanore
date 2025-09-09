@@ -5,6 +5,8 @@ export class Cursor {
     static get prevY(): number;
     static get moveX(): number;
     static get moveY(): number;
+    static get wheelX(): number;
+    static get wheelY(): number;
 
     static isButtonDown(button: number): boolean;
     static isButtonUp(button: number): boolean;

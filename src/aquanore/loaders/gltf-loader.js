@@ -288,7 +288,6 @@ export class GltfLoader {
     async #parseJointNode(gltf, obj, index, parent) {
         const joint = new Joint();
         joint.name = obj.name;
-        joint.children = obj.children;
         joint.index = index;
         joint.parent = parent;
 
@@ -317,6 +316,8 @@ export class GltfLoader {
         }
 
         if (obj.children != null) {
+            joint.children = obj.children;
+            
             for (let i of obj.children) {
                 await this.#parseNode(gltf, gltf.nodes[i], i, index);
             }
