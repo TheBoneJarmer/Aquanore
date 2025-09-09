@@ -1,6 +1,6 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Texture, Renderer, Mesh, MeshPrimitive } from "../../aquanore/graphics";
+import { Camera, Color, Light, Model, Renderer, Mesh, Primitive } from "../../aquanore/graphics";
 import { SphereGeometry, TorusGeometry } from "../../aquanore/graphics/geometries";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
 import { MathHelper, Vector3 } from "../../aquanore/math";
@@ -25,16 +25,16 @@ Aquanore.onLoad = async () => {
     matLight.color = new Color(255, 255, 255);
 
     const meshRock = new Mesh();
-    meshRock.primitives[0] = new MeshPrimitive(new TorusGeometry(), matRock);
+    meshRock.primitives[0] = new Primitive(new TorusGeometry(), matRock);
 
     const meshLight = new Mesh();
-    meshLight.primitives[0] = new MeshPrimitive(new SphereGeometry(0.1), matLight);
+    meshLight.primitives[0] = new Primitive(new SphereGeometry(0.1), matLight);
 
     modelRock = new Model();
-    modelRock.data = meshRock;
+    modelRock.meshes.push(meshRock);
 
     modelLight = new Model();
-    modelLight.data = meshLight;
+    modelLight.meshes.push(meshLight);
 
     lights[0] = new Light(LightType.POINT);
     lights[0].source = new Vector3(-1, 0, -1);

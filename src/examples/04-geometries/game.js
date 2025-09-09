@@ -1,6 +1,6 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Mesh, MeshPrimitive, Model, Renderer } from "../../aquanore/graphics";
+import { Camera, Color, Light, Mesh, Primitive, Model, Renderer } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector3 } from "../../aquanore/math";
@@ -16,7 +16,7 @@ let scale = new Vector3(1, 1, 1);
 let index = 0;
 let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
 
-await Aquanore.init();
+Aquanore.init();
 
 Aquanore.onLoad = () => {
     cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
@@ -58,6 +58,8 @@ Aquanore.onRender2D = () => {
 Aquanore.onRender3D = () => {
     Renderer.drawModel(model, cam, lights, pos, rot, scale);
 };
+
+Aquanore.run();
 
 window.addEventListener("load", () => {
     const left = document.getElementById("arrow-left");
@@ -114,12 +116,10 @@ function updateModel() {
     if (index == 7) geom = new TorusKnotGeometry();
     if (index == 8) geom = new RingGeometry();
 
-    const pri = new MeshPrimitive(geom, mat);
+    const pri = new Primitive(geom, mat);
     const mesh = new Mesh();
     mesh.primitives.push(pri);
 
     model = new Model();
-    model.data = mesh;
+    model.meshes.push(mesh);
 }
-
-await Aquanore.run();
