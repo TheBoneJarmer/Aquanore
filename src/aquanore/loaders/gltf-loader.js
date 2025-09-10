@@ -36,8 +36,7 @@ export class GltfLoader {
 
         if (res.ok) {
             const gltf = await res.json();
-            await this.#parseGltf(gltf);
-            console.log(gltf);
+            await this.#parseGltf(gltf, path);
         } else {
             throw new Error(`Failed to load GLTF`);
         }
@@ -58,7 +57,6 @@ export class GltfLoader {
                 if (chunk.type == "JSON") {
                     const json = decoder.decode(chunk.buffer);
                     gltf = JSON.parse(json);
-                    console.log(gltf);
                 }
 
                 if (chunk.type == "BIN") {
@@ -67,7 +65,7 @@ export class GltfLoader {
             }
 
             await this.#compareVersion(header.version, gltf.asset.version);
-            await this.#parseGltf(gltf);
+            await this.#parseGltf(gltf, path);
         } else {
             throw new Error(`Failed to load GLB`);
         }
@@ -131,18 +129,18 @@ export class GltfLoader {
     }
 
     /* PARSE */
-    async #parseGltf(gltf) {
+    async #parseGltf(gltf, path) {
         const scene = gltf.scenes[gltf.scene];
 
         if (gltf.buffers) {
             for (let obj of gltf.buffers) {
-                await this.#parseBuffer(obj);
+                await this.#parseBuffer(gltf, obj, path);
             }
         }
 
         if (gltf.textures) {
             for (let obj of gltf.textures) {
-                await this.#parseTexture(gltf, obj);
+                await this.#parseTexture(gltf, obj, path);
             }
         }
 
@@ -215,14 +213,17 @@ export class GltfLoader {
         this.#result.animations.push(animation);
     }
 
-    async #parseTexture(gltf, objTex) {
-        const source = objTex.source;
+    async #parseTexture(gltf, obj, path) {
+        const source = obj.source;
         const objImage = gltf.images[source];
 
         if (objImage.uri) {
+            const folder = this.#getFolder(`${path}${objImage.uri}`);
+            const filename = this.#getFilename(objImage.uri);
+
             try {
                 const loader = new TextureLoader();
-                const tex = await loader.load(objImage.uri);
+                const tex = await loader.load(`${folder}/${filename}`);
 
                 this.#textures.push(tex);
             } catch (err) {
@@ -238,8 +239,8 @@ export class GltfLoader {
         }
     }
 
-    async #parseBuffer(objBuffer) {
-        const uri = objBuffer.uri;
+    async #parseBuffer(gltf, obj, path) {
+        const uri = obj.uri;
 
         // In case of GLB the buffer is already provided so there wont be a URI property
         if (!uri) {
@@ -265,7 +266,9 @@ export class GltfLoader {
                 throw new Error(`Failed to parse buffer. Unsupported data URI format ${format}`);
             }
         } else {
-            const res = await fetch(uri);
+            const folder = this.#getFolder(`${path}${uri}`);
+            const filename = this.#getFilename(uri);
+            const res = await fetch(`${folder}/${filename}`);
 
             if (res.ok) {
                 const buffer = await res.arrayBuffer();
@@ -392,6 +395,20 @@ export class GltfLoader {
     }
 
     /* HELPER FUNCTIONS */
+    #getFolder(path) {
+        let folder = path.replace("\\", "/");
+        folder = folder.substring(0, folder.lastIndexOf("/") + 1);
+
+        return folder;
+    }
+
+    #getFilename(path) {
+        let filename = path.replace("\\", "/");
+        filename = filename.substring(filename.lastIndexOf("/") + 1);
+
+        return filename;
+    }
+
     #generateGeometry(gltf, objPri) {
         const vao = this.#generateVao();
 

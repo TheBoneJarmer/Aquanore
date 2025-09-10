@@ -4,7 +4,6 @@ import { Camera, Color, Light, Renderer } from "../../aquanore/graphics";
 import { Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Cursor, Keyboard } from "../../aquanore/input";
-import { BasicMaterial } from "../../aquanore/graphics/materials";
 
 let model = null;
 
@@ -54,10 +53,12 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    model = await loader.load("mage.glb");
+    model = await loader.load("models/Skeleton_Mage.glb");
 
-    animation = model.animations[index];
-    console.log(animation.name);
+    if (model.animations.length > 0) {
+        animation = model.animations[index];
+        console.log(animation.name);
+    }
 }
 
 /* UPDATE */
@@ -69,13 +70,13 @@ async function updateInput(dt) {
     if (Keyboard.keyDown(Keys.Q)) cam.position.y -= dt;
     if (Keyboard.keyDown(Keys.E)) cam.position.y += dt;
 
-    if (Keyboard.keyPressed(Keys.PageUp)) {
-        index++;       
+    if (Keyboard.keyPressed(Keys.PageUp) && index < model.animations.length - 1) {
+        index++;
         animation = model.animations[index];
         console.log(animation.name);
     }
 
-    if (Keyboard.keyPressed(Keys.PageDown)) {
+    if (Keyboard.keyPressed(Keys.PageDown) && index > 0) {
         index--;
         animation = model.animations[index];
         console.log(animation.name);

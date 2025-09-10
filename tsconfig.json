@@ -1,6 +1,11 @@
 {
   "include": [
-    "src/aquanore/*"
+    "src/aquanore/*",
+    "src/aquanore/audio/*",
+    "src/aquanore/graphics/*",
+    "src/aquanore/input/*",
+    "src/aquanore/loaders/*",
+    "src/aquanore/math/*",
   ],
   "compilerOptions": {
     "target": "esnext",
