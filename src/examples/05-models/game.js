@@ -4,6 +4,7 @@ import { Camera, Color, Light, Renderer } from "../../aquanore/graphics";
 import { Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Cursor, Keyboard } from "../../aquanore/input";
+import { BasicMaterial } from "../../aquanore/graphics/materials";
 
 let model = null;
 
@@ -53,11 +54,18 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    model = await loader.load("models/Skeleton_Mage.glb");
+    //model = await loader.load("models/Skeleton_Mage.glb");
+    model = await loader.load("models/debug.gltf");
+
+    model.meshes.forEach((child) => {
+        child.primitives[0].material = new BasicMaterial();
+    });
+
+    console.log(model);
 
     if (model.animations.length > 0) {
         animation = model.animations[index];
-        console.log(animation.name);
+        console.log(animation.name || "Animation");
     }
 }
 

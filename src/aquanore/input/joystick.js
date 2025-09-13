@@ -79,11 +79,11 @@ export class Joystick {
     }
 
     /* CALLBACKS */
-    static #onConnect(eEvent) {
+    static #onConnect(e) {
         const gamepad = e.gamepad;
     }
 
-    static #onDisconnect(eEvent) {
+    static #onDisconnect(e) {
         const gamepad = e.gamepad;
     }
 }

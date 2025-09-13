@@ -159,9 +159,11 @@ export class GltfLoader {
         for (let i = 0; i < scene.nodes.length; i++) {
             const index = scene.nodes[i];
             const node = gltf.nodes[index];
-            
+
             await this.#parseNode(gltf, node, index, null);
         }
+
+        console.log(gltf);
     }
 
     async #parseAnimation(gltf, objAnimation) {
@@ -233,7 +235,7 @@ export class GltfLoader {
 
         if (objImage.bufferView) {
             const buffer = this.#getBuffer(gltf, objImage.bufferView);
-            const tex = await this.#getTexture(buffer);
+            const tex = await this.#generateTexture(buffer);
 
             this.#textures.push(tex);
         }
@@ -320,7 +322,7 @@ export class GltfLoader {
 
         if (obj.children != null) {
             joint.children = obj.children;
-            
+
             for (let i of obj.children) {
                 await this.#parseNode(gltf, gltf.nodes[i], i, index);
             }
@@ -368,7 +370,7 @@ export class GltfLoader {
 
         // Generate primitives
         for (let objPri of objMesh.primitives) {
-            const mat = this.#getMaterial(gltf, objPri);
+            const mat = this.#generateMaterial(gltf, objPri);
             const geom = this.#generateGeometry(gltf, objPri);
 
             const pri = new Primitive(geom, mat);
@@ -394,21 +396,7 @@ export class GltfLoader {
         this.#result.skins.push(skin);
     }
 
-    /* HELPER FUNCTIONS */
-    #getFolder(path) {
-        let folder = path.replace("\\", "/");
-        folder = folder.substring(0, folder.lastIndexOf("/") + 1);
-
-        return folder;
-    }
-
-    #getFilename(path) {
-        let filename = path.replace("\\", "/");
-        filename = filename.substring(filename.lastIndexOf("/") + 1);
-
-        return filename;
-    }
-
+    /* GENERATION FUNCTIONS */
     #generateGeometry(gltf, objPri) {
         const vao = this.#generateVao();
 
@@ -466,22 +454,20 @@ export class GltfLoader {
     #generateGeometry_CreateEbo(vao, gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
         const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
+        const array = this.#bufferToArray(buffer, accessor.componentType);
 
-        const id = this.#generateEbo(vao, buffer);
-        const array = this.#convertBufferToArray(buffer, accessor.componentType);
-
+        this.#generateEbo(vao, buffer);
         return array;
     }
 
     #generateGeometry_CreateVbo(vao, gltf, accessorIndex, index) {
         const accessor = gltf.accessors[accessorIndex];
         const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
-        const dataSize = this.#getAccessorDataSize(gltf, accessorIndex);
-        const byteStride = this.#getAccessorBufferStride(gltf, accessorIndex);
+        const array = this.#getAccessorBufferArray(gltf, accessorIndex);
+        const accessorSize = this.#getAccessorTypeSize(gltf, accessorIndex);
+        const byteStride = this.#getAccessorByteStride(gltf, accessorIndex);
 
-        const id = this.#generateVbo(vao, index, buffer, accessor.componentType, dataSize, byteStride, 0);
-        const array = this.#convertBufferToArray(buffer, accessor.componentType);
-
+        this.#generateVbo(vao, index, buffer, accessor.componentType, accessorSize, byteStride, 0);
         return array;
     }
 
@@ -520,7 +506,7 @@ export class GltfLoader {
         return id;
     }
 
-    #getTexture(buffer) {
+    #generateTexture(buffer) {
         return new Promise((resolve, reject) => {
             const blob = new Blob([buffer]);
             const url = URL.createObjectURL(blob);
@@ -539,7 +525,7 @@ export class GltfLoader {
         });
     }
 
-    #getMaterial(gltf, objPri) {
+    #generateMaterial(gltf, objPri) {
         const mat = new StandardMaterial();
 
         if (objPri.material != null) {
@@ -565,7 +551,14 @@ export class GltfLoader {
         return mat;
     }
 
-    #getAccessorDataSize(gltf, accessorIndex) {
+    /* ACCESSOR FUNCTIONS */
+    /**
+     * Returns the total amount of vertices used by the accessor's type.
+     * @param {any} gltf - The GLTF object
+     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @returns The number of vertices
+     */
+    #getAccessorTypeSize(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
 
         switch (accessor.type) {
@@ -592,11 +585,17 @@ export class GltfLoader {
         }
     }
 
+    /**
+     * This function will return the accessor's portion of the associated bufferview's buffer as `ArrayBuffer`.
+     * @param {any} gltf - The GLTF object
+     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @returns The accessor's buffer
+     */
     #getAccessorBuffer(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
         const bufferView = gltf.bufferViews[accessor.bufferView];
         const bufferSize = this.#getAccessorBufferSize(gltf, accessorIndex);
-        const bufferOffset = this.#getAccessorBufferOffset(gltf, accessorIndex);
+        const bufferOffset = this.#getAccessorByteOffset(gltf, accessorIndex);
 
         let buffer = this.#buffers[bufferView.buffer];
         buffer = buffer.slice(bufferOffset, bufferOffset + bufferSize);
@@ -604,69 +603,130 @@ export class GltfLoader {
         return buffer;
     }
 
+    /**
+     * This function will return the accessor's portion of the associated bufferview's buffer as an array.
+     * @param {any} gltf - The GLTF object
+     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @returns The accessor's buffer as array
+     */
     #getAccessorBufferArray(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
-        const buffer = this.#getAccessorBuffer(gltf, accessorIndex);
+        const byteStride = this.#getAccessorByteStride(gltf, accessorIndex);
+        const typeSize = this.#getAccessorTypeSize(gltf, accessorIndex);
+        let buffer = this.#getAccessorBuffer(gltf, accessorIndex);
 
-        return this.#convertBufferToArray(buffer, accessor.componentType);
+        if (byteStride > 0) {
+            buffer = this.#removeStrideFromBuffer(buffer, byteStride, accessor.componentType, typeSize);
+        }
+
+        return this.#bufferToArray(buffer, accessor.componentType);
     }
 
-    #getAccessorBufferOffset(gltf, accessorIndex) {
+    /**
+     * Returns the byte offset from the bufferview the accessor points at.
+     * @param {any} gltf - The GLTF object
+     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @returns 
+     */
+    #getAccessorByteOffset(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
         const bufferView = gltf.bufferViews[accessor.bufferView];
 
         return (accessor.byteOffset || 0) + (bufferView.byteOffset || 0);
     }
 
-    #getAccessorBufferStride(gltf, accessorIndex) {
+    /**
+     * Returns the byte stride from the bufferview the accessor points at.
+     * @param {any} gltf - The GLTF object
+     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @returns The accessor's buffer byte stride
+     */
+    #getAccessorByteStride(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
         const bv = gltf.bufferViews[accessor.bufferView];
 
         return bv.byteStride ?? 0;
     }
 
+    /**
+     * Calculates the total number of bytes required for the accessor's `ArrayBuffer` instance.
+     * @param {any} gltf  - The GLTF object
+     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @returns The size in bytes as number
+     */
     #getAccessorBufferSize(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
-        const type = accessor.componentType;
-        const size = this.#getAccessorDataSize(gltf, accessorIndex);
-        const stride = this.#getAccessorBufferStride(gltf, accessorIndex);
+        const byteStride = this.#getAccessorByteStride(gltf, accessorIndex);
 
-        // If there is a stride there is no point of calculating the size based on the data type
+        // If there is a stride there is no point of calculating the size based on the accessor's type
         // since the bytes needed for the accessor are part of the bytes the stride covers
-        if (stride > 0) {
-            return accessor.count * stride;
-        }
+        if (byteStride > 0) {
+            return accessor.count * byteStride;
+        } else {
+            const typeSize = this.#getAccessorTypeSize(gltf, accessorIndex);
+            const byteCount = this.#totalBytesUsed(accessor.componentType);
 
+            return accessor.count * typeSize * byteCount;
+        }
+    }
+
+    /* BUFFER FUNCTIONS */
+    /**
+    * Returns the total amount of bytes used for a number encoded using the given component type.
+    * @param {number} componentType 
+    * @returns The total amount of bytes
+    */
+    #totalBytesUsed(componentType) {
         // Bytes and unsigned bytes both take.. 1 byte per.. byte.. obviously.
-        if (type == 5120 || type == 5121) {
-            return accessor.count * size;
+        if (componentType == 5120 || componentType == 5121) {
+            return 1;
         }
 
         // Shorts and unsigned shorts and are both 16-bit integers so they use 2 bytes.
-        if (type == 5122 || type == 5123) {
-            return accessor.count * size * 2;
+        if (componentType == 5122 || componentType == 5123) {
+            return 2;
         }
 
         // Integers and floats both use 4 bytes.
-        if (type == 5125 || type == 5126) {
-            return accessor.count * size * 4;
+        if (componentType == 5125 || componentType == 5126) {
+            return 4;
         }
 
         return 0;
     }
 
-    #getBuffer(gltf, bufferViewIndex) {
-        const bufferView = gltf.bufferViews[bufferViewIndex];
+    /**
+     * Removes the stride from the buffer so the buffer data becomes as closely packed as possible.
+     * @param {ArrayBuffer} buffer - The instance of `ArrayBuffer`
+     * @param {number} byteStride - The byte stride of the buffer
+     * @param {number} componentType - The buffer's component type. This refers to the allowed GLTF component types.
+     * @param {number} componentSize - The buffer's component size. For example a `VEC3` has a component size of 3 because it consists of 3 vertices.
+     * @returns The buffer without stride.
+     */
+    #removeStrideFromBuffer(buffer, byteStride, componentType, componentSize) {
+        let byteCount = this.#totalBytesUsed(componentType) * componentSize;
+        let total = (buffer.byteLength / byteStride) * byteCount;
+        let result = new Uint8Array(total);
 
-        let offset = bufferView.byteOffset || 0;
-        let length = bufferView.byteLength;
-        let buffer = this.#buffers[bufferView.buffer];
-        buffer = buffer.slice(offset, offset + length);
+        for (let i = 0; i < buffer.byteLength; i += byteStride) {
+            for (let j = 0; j < byteCount; j++) {
+                const chunk = buffer.slice(i, i + byteCount);
+                const chunkArray = new Uint8Array(chunk);
 
-        return buffer;
+                result[(i / byteStride) * byteCount + j] = chunkArray[j];
+            }
+        }
+
+        return result.buffer;
     }
 
-    #convertBufferToArray(buffer, componentType) {
+    /**
+     * Converts an instance of type `ArrayBuffer` to a typed array based on the provided component type.
+     * @param {ArrayBuffer} buffer - The instance of the `ArrayBuffer`
+     * @param {number} componentType - The component type of the buffer
+     * @returns An array
+     */
+    #bufferToArray(buffer, componentType) {
         // BYTE
         if (componentType == 5120) {
             return Array.from(new Int8Array(buffer));
@@ -698,5 +758,31 @@ export class GltfLoader {
         }
 
         throw new Error(`Unsupported component type ${componentType}`);
+    }
+
+    #getBuffer(gltf, bufferViewIndex) {
+        const bufferView = gltf.bufferViews[bufferViewIndex];
+
+        let offset = bufferView.byteOffset || 0;
+        let length = bufferView.byteLength;
+        let buffer = this.#buffers[bufferView.buffer];
+        buffer = buffer.slice(offset, offset + length);
+
+        return buffer;
+    }
+
+    /* IO FUNCTIONS */
+    #getFolder(path) {
+        let folder = path.replace("\\", "/");
+        folder = folder.substring(0, folder.lastIndexOf("/") + 1);
+
+        return folder;
+    }
+
+    #getFilename(path) {
+        let filename = path.replace("\\", "/");
+        filename = filename.substring(filename.lastIndexOf("/") + 1);
+
+        return filename;
     }
 }
