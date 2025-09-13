@@ -54,14 +54,7 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    //model = await loader.load("models/Skeleton_Mage.glb");
-    model = await loader.load("models/debug.gltf");
-
-    model.meshes.forEach((child) => {
-        child.primitives[0].material = new BasicMaterial();
-    });
-
-    console.log(model);
+    model = await loader.load("models/Skeleton_Mage.glb");
 
     if (model.animations.length > 0) {
         animation = model.animations[index];

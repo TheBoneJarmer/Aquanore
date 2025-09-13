@@ -84,7 +84,7 @@ export class Geometry {
         this.#joints = value;
     }
 
-    updateArrays() {
+    generateTangents() {
         const vertices = [];
         const uvs = [];
         const tangents = [];
@@ -161,7 +161,6 @@ export class Geometry {
 
     generateBuffers() {
         const gl = Aquanore.ctx;
-
         const vao = gl.createVertexArray();
         const ebo = gl.createBuffer();
         const vboVertex = gl.createBuffer();
@@ -171,6 +170,26 @@ export class Geometry {
         const vboBitangent = gl.createBuffer();
         const vboJoint = gl.createBuffer();
         const vboWeight = gl.createBuffer();
+
+        if (this.#vertices.length % 3 > 0) {
+            throw new Error("Vertex array length not size of 3");
+        }
+
+        if (this.#normals.length % 3 > 0) {
+            throw new Error("Normal array length not size of 3");
+        }
+
+        if (this.#uvs.length % 2 > 0) {
+            throw new Error("UV array length not size of 2");
+        }
+
+        if (this.#normals.length != this.#vertices.length) {
+            throw new Error("Normal array length mismatch");
+        }
+
+        if (this.#uvs.length / 2 != this.#vertices.length / 3) {
+            throw new Error("UV array length mismatch");
+        }
 
         gl.bindVertexArray(vao);
 
@@ -200,8 +219,8 @@ export class Geometry {
         gl.enableVertexAttribArray(4);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vboJoint);
-        gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(this.#joints), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(5, 4, gl.UNSIGNED_SHORT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#joints), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(5, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(5);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vboWeight);

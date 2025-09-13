@@ -49,7 +49,7 @@ export class CylinderGeometry extends Geometry {
         this.uvs = uvs;
         this.indices = indices;
 
-        this.updateArrays();
+        this.generateTangents();
         this.generateBuffers();
     }
 
