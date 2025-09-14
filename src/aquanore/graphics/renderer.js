@@ -1,21 +1,50 @@
 import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
+import { Camera } from "./camera";
+import { Color } from "./color";
+import { Light } from "./light";
 import { BasicMaterial, StandardMaterial } from "./materials";
-import { Shaders } from "./shaders";
+import { Model } from "./model";
+import { ModelAnimation } from "./model-animation";
+import { Polygon } from "./polygon";
+import { Shader, Shaders } from "./shaders";
+import { Sprite } from "./sprite";
+import { Texture } from "./texture";
 
 export class Renderer {
     static #shader = null;
     static #shaderPolygon = null;
     static #shaderModel = null;
 
+    /**
+     * Sets the polygon shader
+     * @param {Shader} value - The shader
+     */
     static set shaderPolygon(value) {
         this.#shaderPolygon = value;
     }
 
+    /**
+     * Sets the model shader
+     * @param {Shader} value - The shader
+     */
     static set shaderModel(value) {
         this.#shaderModel = value;
     }
 
+    static init() {
+        const options = Aquanore.options;
+
+        if (options.graphics.shadow.enabled) {
+            
+        }
+
+        this.reset();
+    }
+
+    /**
+     * Resets the renderer to its defaults. This method is automatically called every frame at the end of the loop.
+     */
     static reset() {
         this.#shader = null;
         this.#shaderPolygon = Shaders.polygon;
@@ -24,6 +53,11 @@ export class Renderer {
         Aquanore.ctx.useProgram(null);
     }
 
+    /**
+     * Manually switch to another shader. This function is called by every render function below but can be called manually as well.
+     * @param {Shader} shader - The shader
+     * @returns True if the switch succeeded or false if it didn't.
+     */
     static switchShader(shader) {
         if (shader == null) {
             return false;
@@ -39,6 +73,19 @@ export class Renderer {
         return true;
     }
 
+    /**
+     * Draws a sprite
+     * @param {Sprite} sprite - The sprite to draw
+     * @param {Vector2} pos - The sprite's position
+     * @param {Vector2} scale - The sprite's scale
+     * @param {Vector2} origin - The sprite's point of origin
+     * @param {number} frameHor - If the sprite is a spritesheet, sets the horizontal frame.
+     * @param {number} frameVert - If the sprite is a spritesheet, sets the vertical frame.
+     * @param {number} angle - The sprite's angle in degrees
+     * @param {boolean} flipHor - If true, flips the sprite horizontally
+     * @param {boolean} flipVert - If true, flips the sprite vertically
+     * @param {Color} color - The sprite's color
+     */
     static drawSprite(sprite, pos, scale, origin, frameHor, frameVert, angle, flipHor, flipVert, color) {
         const offset = new Vector2(0, 0);
         offset.x = (1.0 / sprite.framesHor) * frameHor;
@@ -47,6 +94,19 @@ export class Renderer {
         this.drawPolygon(sprite.poly, pos, scale, origin, angle, color, sprite.tex, offset, flipHor, flipVert);
     }
 
+    /**
+     * Draws a polygon
+     * @param {Polygon} polygon - The polygon to draw
+     * @param {Vector2} pos - The polygon's position
+     * @param {Vector2} scale - The polygon's scale
+     * @param {Vector2} origin - The polygon's point of origin
+     * @param {number} angle - The polygon's angle in degrees
+     * @param {Color} color - The polygon's color
+     * @param {Texture} texture - The polygon's texture
+     * @param {Vector2} textureOffset - if a texture is set, this value sets the texture's offset.
+     * @param {boolean} flipTextureHor - If a texture is set, flips the texture horizontally
+     * @param {boolean} flipTextureVert - If a texture is set, flips the texture vertically
+     */
     static drawPolygon(polygon, pos, scale, origin, angle, color, texture = null, textureOffset = null, flipTextureHor = false, flipTextureVert = false) {
         if (!polygon) {
             return;
@@ -89,6 +149,17 @@ export class Renderer {
         gl.bindVertexArray(null);
     }
 
+    /**
+     * 
+     * @param {Model} model - The model to draw
+     * @param {Camera} camera - The current active camera
+     * @param {Light[]} lights - An array of lights
+     * @param {Vector3} pos - The model's position
+     * @param {Vector3} rot - The model's rotation in euler angles
+     * @param {Vector3} scale - The model's scale
+     * @param {ModelAnimation} animation - If set, transforms the model's primitives based on the animation channels
+     * @param {number} animationTime - If an animation is set, provides the current time for interpolation.
+     */
     static drawModel(model, camera, lights, pos, rot, scale, animation = null, animationTime = 0) {
         if (!model) {
             return;

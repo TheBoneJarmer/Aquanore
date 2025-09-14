@@ -10,6 +10,10 @@ export class Aquanore {
     static #options = null;
     static #lastTime = 0;
 
+    /**
+     * Returns the WebGL context from the canvas
+     * @returns {WebGL2RenderingContext}
+     */
     static get ctx() {
         if (this.#ctx == null) {
             this.#ctx = this.#canvas.getContext("webgl2");
@@ -18,8 +22,20 @@ export class Aquanore {
         return this.#ctx;
     }
 
+    /**
+     * Returns the HTML canvas element
+     * @returns {HTMLCanvasElement}
+     */
     static get canvas() {
         return this.#canvas;
+    }
+
+    /**
+     * Returns the options
+     * @returns {AquanoreOptions}
+     */
+    static get options() {
+        return this.#options;
     }
 
     static onUpdate = null;
@@ -29,13 +45,13 @@ export class Aquanore {
     static onResize = null;
     static clearColor = new Color(0, 0, 0, 255);
 
-    static init(options = null) {
-        this.#options = new AquanoreOptions();
+    /**
+     * Initializes Aquanore. This **must** be ran before doing anything else.
+     * @param {AquanoreOptions} options (Optional) Initializes aquanore with a configuration
+     */
+    static init(options = new AquanoreOptions()) {
+        this.#options = options;
         this.#lastTime = 0;
-
-        if (options) {
-            this.#options = options;
-        }
 
         this.#initCanvas();
         this.#initListeners();
@@ -44,9 +60,12 @@ export class Aquanore {
         Shaders.init();
         Cursor.init();
         Joystick.init();
-        Renderer.reset();
+        Renderer.init();
     }
 
+    /**
+     * Starts the main loop
+     */
     static async run() {
         this.#lastTime = 0;
 
@@ -58,17 +77,22 @@ export class Aquanore {
     }
 
     static #initCanvas() {
-        this.#canvas = document.createElement("canvas");
-        this.#canvas.style.touchAction = "none";
-        this.#canvas.width = this.#options.width;
-        this.#canvas.height = this.#options.height;
+        if (this.#options.canvas.dom == null) {
+            this.#canvas = document.createElement("canvas");
+            this.#canvas.width = window.innerWidth;
+            this.#canvas.height = window.innerHeight;
 
-        document.body.appendChild(this.#canvas);
+            document.body.appendChild(this.#canvas);
+        } else {
+            this.#canvas = this.#options.canvas.dom;
+        }
+
+        this.#canvas.style.touchAction = "none";
     }
 
     static #initListeners() {
         window.addEventListener("resize", (e) => {
-            if (this.#options.autoResize) {
+            if (this.#options.canvas.autoResize) {
                 this.#canvas.width = window.innerWidth;
                 this.#canvas.height = window.innerHeight;
             }
@@ -94,7 +118,7 @@ export class Aquanore {
 
     static async #render() {
         const gl = this.ctx;
-        const ctx = this.canvas;
+        const cnv = this.canvas;
 
         const r = this.clearColor.r / 255.0;
         const g = this.clearColor.g / 255.0;
@@ -106,7 +130,7 @@ export class Aquanore {
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.viewport(0, 0, ctx.width, ctx.height);
+        gl.viewport(0, 0, cnv.width, cnv.height);
         gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

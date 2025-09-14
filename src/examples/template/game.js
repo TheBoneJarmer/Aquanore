@@ -1,25 +1,30 @@
-import {Aquanore, AquanoreOptions} from "../../aquanore/aquanore";
+import { Aquanore } from "../../aquanore/aquanore";
 
-await Aquanore.init();
+Aquanore.init();
+Aquanore.onLoad = onLoad;
+Aquanore.onUpdate = onUpdate;
+Aquanore.onRender2D = onRender2D;
+Aquanore.onRender3D = onRender3D;
+Aquanore.onResize = onResize;
+Aquanore.run();
 
-Aquanore.onLoad = () => {
+/* CALLBACKS */
+async function onLoad() {
 
-};
+}
 
-Aquanore.onUpdate = (dt) => {
+async function onUpdate(dt) {
 
-};
+}
 
-Aquanore.onRender2D = () => {
+async function onRender2D() {
 
-};
+}
 
-Aquanore.onRender3D = () => {
+async function onRender3D() {
 
-};
+}
 
-Aquanore.onResize = () => {
+async function onResize() {
 
-};
-
-await Aquanore.run();
+}

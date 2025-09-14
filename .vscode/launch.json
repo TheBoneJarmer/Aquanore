@@ -48,6 +48,15 @@
             "cwd": "${workspaceFolder}/src/examples/05-models",
             "internalConsoleOptions": "neverOpen",
             "args": []
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "06 - Shadows",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/06-shadows",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
         }
     ]
 }
