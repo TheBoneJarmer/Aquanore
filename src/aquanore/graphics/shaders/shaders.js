@@ -13,7 +13,8 @@ export class Shaders {
         return this.#model;
     }
 
-    static init() {
+    /* INTERNAL FUNCTIONS */
+    static __init() {
         this.#polygon = new Shader(ShaderSources.POLYGON_V, ShaderSources.POLYGON_F);
         this.#model = new Shader(ShaderSources.MODEL_V, ShaderSources.MODEL_F);
     }

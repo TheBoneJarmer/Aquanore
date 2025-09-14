@@ -15,6 +15,10 @@ export class Renderer {
     static #shader = null;
     static #shaderPolygon = null;
     static #shaderModel = null;
+    static #clearColor = null;
+    
+    static #texShadow = null;
+    static #fboShadow = null;
 
     /**
      * Sets the polygon shader
@@ -32,23 +36,30 @@ export class Renderer {
         this.#shaderModel = value;
     }
 
-    static init() {
-        const options = Aquanore.options;
+    /**
+     * Returns the current clear color
+     * @returns {Color}
+     */
+    static get clearColor() {
+        return this.#clearColor;
+    }
 
-        if (options.graphics.shadow.enabled) {
-            
-        }
-
-        this.reset();
+    /**
+     * Sets the current clear color
+     * @param {Color} value
+     */
+    static set clearColor(value) {
+        this.#clearColor = value;
     }
 
     /**
      * Resets the renderer to its defaults. This method is automatically called every frame at the end of the loop.
      */
-    static reset() {
+    static #reset() {
         this.#shader = null;
         this.#shaderPolygon = Shaders.polygon;
         this.#shaderModel = Shaders.model;
+        this.#clearColor = new Color(0, 0, 0);
 
         Aquanore.ctx.useProgram(null);
     }
@@ -285,6 +296,88 @@ export class Renderer {
             gl.bindVertexArray(geom.vao);
             gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
             gl.bindVertexArray(null);
+        }
+    }
+
+    /* INTERNAL FUNCTIONS */
+    static __init() {
+        this.#__initShadows();
+
+        this.#reset();
+    }
+
+    static #__initShadows() {
+        const gl = Aquanore.ctx;
+        const options = Aquanore.options.graphics.shadow;
+
+        if (!options.enabled) {
+            return;
+        }
+
+        // Generate the depth texture
+        let tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, options.map.width, options.map.height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, options.map.wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, options.map.wrapT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, options.map.minFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, options.map.magFilter);
+
+        // Generate the frame buffer
+        let fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, tex, 0);
+
+        // Check if the framebuffer is ok
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error("Framebuffer is not complete");
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+
+        this.#fboShadow = fbo;
+        this.#texShadow = tex;
+    }
+
+    static async __begin() {
+        const gl = Aquanore.ctx;
+        const cnv = Aquanore.canvas;
+
+        const r = this.#clearColor.r / 255.0;
+        const g = this.#clearColor.g / 255.0;
+        const b = this.#clearColor.b / 255.0;
+        const a = this.#clearColor.a / 255.0;
+
+        gl.enable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        gl.clearColor(r, g, b, a);
+    }
+
+    static async __end() {
+        this.#reset();
+    }
+
+    static async __render3D() {
+        const gl = Aquanore.ctx;
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        if (Aquanore.onRender3D != null) {
+            await Aquanore.onRender3D();
+        }
+    }
+
+    static async __render2D() {
+        const gl = Aquanore.ctx;
+
+        if (Aquanore.onRender2D != null) {
+            gl.disable(gl.CULL_FACE);
+            gl.disable(gl.DEPTH_TEST);
+
+            await Aquanore.onRender2D();
         }
     }
 

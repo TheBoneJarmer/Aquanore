@@ -12,7 +12,7 @@ export class Aquanore {
 
     /**
      * Returns the WebGL context from the canvas
-     * @returns {WebGL2RenderingContext}
+     * @returns {WebGLRenderingContext}
      */
     static get ctx() {
         if (this.#ctx == null) {
@@ -43,7 +43,6 @@ export class Aquanore {
     static onRender3D = null;
     static onLoad = null;
     static onResize = null;
-    static clearColor = new Color(0, 0, 0, 255);
 
     /**
      * Initializes Aquanore. This **must** be ran before doing anything else.
@@ -56,11 +55,11 @@ export class Aquanore {
         this.#initCanvas();
         this.#initListeners();
 
-        Keyboard.init();
-        Shaders.init();
-        Cursor.init();
-        Joystick.init();
-        Renderer.init();
+        Keyboard.__init();
+        Shaders.__init();
+        Cursor.__init();
+        Joystick.__init();
+        Renderer.__init();
     }
 
     /**
@@ -111,41 +110,15 @@ export class Aquanore {
             await this.onUpdate(deltaTime / 1000.0);
         }
 
-        Keyboard.update();
-        Cursor.update();
-        Joystick.update();
+        Keyboard.__update();
+        Cursor.__update();
     }
 
     static async #render() {
-        const gl = this.ctx;
-        const cnv = this.canvas;
-
-        const r = this.clearColor.r / 255.0;
-        const g = this.clearColor.g / 255.0;
-        const b = this.clearColor.b / 255.0;
-        const a = this.clearColor.a / 255.0;
-
-        gl.enable(gl.BLEND);
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.viewport(0, 0, cnv.width, cnv.height);
-        gl.clearColor(r, g, b, a);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        if (this.onRender3D != null) {
-            await this.onRender3D();
-        }
-
-        if (this.onRender2D != null) {
-            gl.disable(gl.CULL_FACE);
-            gl.disable(gl.DEPTH_TEST);
-
-            await this.onRender2D();
-        }
-
-        Renderer.reset();
+        await Renderer.__begin();
+        await Renderer.__render3D();
+        await Renderer.__render2D();
+        await Renderer.__end();
     }
 
     static async #callback(time) {

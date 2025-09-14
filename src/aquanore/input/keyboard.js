@@ -15,12 +15,43 @@ class KeyState {
 export class Keyboard {
     static #states= [];
 
-    static init() {
-        this.#initStates();
-        this.#initListeners();
+    static keyDown(key) {
+        const state = this.#getStateByKey(key);
+
+        if (state != null) {
+            return state.value > 0;
+        }
+
+        return false;
     }
 
-    static #initListeners() {
+    static keyUp(key) {
+        const state = this.#getStateByKey(key);
+
+        if (state != null) {
+            return state.value == 3;
+        }
+
+        return false;
+    }
+
+    static keyPressed(key) {
+        const state = this.#getStateByKey(key);
+
+        if (state != null) {
+            return state.value == 1;
+        }
+
+        return false;
+    }
+
+    /* INTERNAL FUNCTIONS */
+    static __init() {
+        this.#__initStates();
+        this.#__initListeners();
+    }
+
+    static #__initListeners() {
         window.addEventListener("keydown", (e) => {
             const state = this.#getStateByCode(e.code);
 
@@ -44,7 +75,7 @@ export class Keyboard {
         });
     }
 
-    static #initStates() {
+    static #__initStates() {
         this.#states.push(new KeyState('ArrowUp', Keys.Up));
         this.#states.push(new KeyState('ArrowDown', Keys.Down));
         this.#states.push(new KeyState('ArrowLeft', Keys.Left));
@@ -135,7 +166,7 @@ export class Keyboard {
         this.#states.push(new KeyState('NumpadDecimal', Keys.NumpadDecimal));
     }
 
-    static update() {
+    static __update() {
         for (let i = 0; i < this.#states.length; i++) {
             const state = this.#states[i];
 
@@ -147,36 +178,6 @@ export class Keyboard {
                 this.#states[i].value = 0;
             }
         }
-    }
-
-    static keyDown(key) {
-        const state = this.#getStateByKey(key);
-
-        if (state != null) {
-            return state.value > 0;
-        }
-
-        return false;
-    }
-
-    static keyUp(key) {
-        const state = this.#getStateByKey(key);
-
-        if (state != null) {
-            return state.value == 3;
-        }
-
-        return false;
-    }
-
-    static keyPressed(key) {
-        const state = this.#getStateByKey(key);
-
-        if (state != null) {
-            return state.value == 1;
-        }
-
-        return false;
     }
 
     /* HELPER FUNCTIONS */

@@ -328,13 +328,44 @@ export class Matrix4 {
         return m;
     }
 
-    static transpose(mat) {
-        const x2 = mat.y1, x3 = mat.z1, x4 = mat.w1;
-        const y1 = mat.x2, y3 = mat.z2, y4 = mat.w2;
-        const z1 = mat.x3, z2 = mat.y3, z4 = mat.w3;
-        const w1 = mat.x4, w2 = mat.y4, w3 = mat.z4;
+    static ortho(left, right, top, bottom, near, far) {
+        const te = [];
+        const x = 2 / (right - left);
+        const y = 2 / (top - bottom);
+        const a = - (right + left) / (right - left);
+        const b = - (top + bottom) / (top - bottom);
+        const c = - 2 / (far - near);
+        const d = - (far + near) / (far - near);
 
-        const result = mat.clone();
+        te[0] = x; te[4] = 0; te[8] = 0; te[12] = a;
+        te[1] = 0; te[5] = y; te[9] = 0; te[13] = b;
+        te[2] = 0; te[6] = 0; te[10] = c; te[14] = d;
+        te[3] = 0; te[7] = 0; te[11] = 0; te[15] = 1;
+
+        return new Matrix4(te);
+    }
+
+    static lookAt(eye, target, up) {
+        const m = Matrix4.identity();
+        const zaxis = Vector3.normalized(Vector3.sub(eye, target));
+        const xaxis = Vector3.normalized(Vector3.cross(up, zaxis));
+        const yaxis = Vector3.cross(zaxis, xaxis);
+
+        m.x1 = xaxis.x; m.y1 = yaxis.x; m.z1 = zaxis.x; m.w1 = 0;
+        m.x2 = xaxis.y; m.y2 = yaxis.y; m.z2 = zaxis.y; m.w2 = 0;
+        m.x3 = xaxis.z; m.y3 = yaxis.z; m.z3 = zaxis.z; m.w3 = 0;
+        m.x4 = 0; m.y4 = 0; m.z4 = 0; m.w4 = 1;
+
+        return m;
+    }
+
+    static transpose(m) {
+        const x2 = m.y1, x3 = m.z1, x4 = m.w1;
+        const y1 = m.x2, y3 = m.z2, y4 = m.w2;
+        const z1 = m.x3, z2 = m.y3, z4 = m.w3;
+        const w1 = m.x4, w2 = m.y4, w3 = m.z4;
+
+        const result = m.clone();
         result.y1 = y1; result.z1 = z1; result.w1 = w1;
         result.x2 = x2; result.z2 = z2; result.w2 = w2;
         result.x3 = x3; result.y3 = y3; result.w3 = w3;
@@ -343,12 +374,12 @@ export class Matrix4 {
         return result;
     }
 
-    static inverse(mat) {
+    static inverse(m) {
         const
-            a = mat.x1, b = mat.y1, c = mat.z1, d = mat.w1,
-            e = mat.x2, f = mat.y2, g = mat.z2, h = mat.w2,
-            i = mat.x3, j = mat.y3, k = mat.z3, l = mat.w3,
-            m = mat.x4, n = mat.y4, o = mat.z4, p = mat.w4;
+            a = m.x1, b = m.y1, c = m.z1, d = m.w1,
+            e = m.x2, f = m.y2, g = m.z2, h = m.w2,
+            i = m.x3, j = m.y3, k = m.z3, l = m.w3,
+            m = m.x4, n = m.y4, o = m.z4, p = m.w4;
 
         const q = f * k * p + j * o * h + n * g * l - f * l * o - g * j * p - h * k * n;
         const r = e * k * p + i * o * h + m * g * l - e * l * o - g * i * p - h * k * m;
@@ -358,7 +389,7 @@ export class Matrix4 {
         const delta = (a * q - b * r + c * s - d * t);
 
         if (delta === 0) {
-            return mat.clone();
+            return m.clone();
         };
 
         const detM = 1 / delta;
@@ -389,7 +420,7 @@ export class Matrix4 {
         const m3x3 = m2z1, m3y3 = m2z2, m3z3 = m2z3, m3w3 = m2z4;
         const m3x4 = m2w1, m3y4 = m2w2, m3z4 = m2w3, m3w4 = m2w4;
 
-        const result = mat.clone();
+        const result = m.clone();
         result.x1 = m3x1 * detM; result.y1 = m3y1 * detM; result.z1 = m3z1 * detM; result.w1 = m3w1 * detM;
         result.x2 = m3x2 * detM; result.y2 = m3y2 * detM; result.z2 = m3z2 * detM; result.w2 = m3w2 * detM;
         result.x3 = m3x3 * detM; result.y3 = m3y3 * detM; result.z3 = m3z3 * detM; result.w3 = m3w3 * detM;

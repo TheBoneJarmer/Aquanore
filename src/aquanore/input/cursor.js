@@ -43,19 +43,32 @@ export class Cursor {
         return this.#wheelY;
     }
 
-    static init() {
-        this.#initStates();
+    static isButtonDown(button) {
+        return this.#states[button] > 0 && this.#states[button] < 3;
     }
 
-    static #initStates() {
+    static isButtonUp(button) {
+        return this.#states[button] == 3;
+    }
+
+    static isButtonPressed(button) {
+        return this.#states[button] == 1;
+    }
+
+    /* INTERNAL FUNCTIONS */
+    static __init() {
+        this.#__initStates();
+    }
+
+    static #__initStates() {
         for (let i = 0; i < 10; i++) {
             this.#states[i] = 0;
         }
 
-        this.#initListeners();
+        this.#__initListeners();
     }
 
-    static #initListeners() {
+    static #__initListeners() {
         const cnv = Aquanore.canvas;
 
         cnv.addEventListener("pointerdown", (e) => {
@@ -90,7 +103,7 @@ export class Cursor {
         });
     }
 
-    static update() {
+    static __update() {
         this.#moveX = 0;
         this.#moveY = 0;
         this.#wheelX = 0;
@@ -107,17 +120,5 @@ export class Cursor {
                 this.#states[i] = 0;
             }
         }
-    }
-
-    static isButtonDown(button) {
-        return this.#states[button] > 0 && this.#states[button] < 3;
-    }
-
-    static isButtonUp(button) {
-        return this.#states[button] == 3;
-    }
-
-    static isButtonPressed(button) {
-        return this.#states[button] == 1;
     }
 }

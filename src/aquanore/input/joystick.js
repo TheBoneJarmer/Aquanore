@@ -1,18 +1,4 @@
 export class Joystick {
-    static init() {
-        this.#initEventHandlers();
-    }
-
-    static #initEventHandlers() {
-        window.addEventListener("gamepadconnected", this.#onConnect);
-        window.addEventListener("gamepaddisconnected", this.#onDisconnect);
-    }
-
-    static update() {
-        
-    }
-
-    /* GAMEPAD */
     static getGamepads() {
         return navigator.getGamepads().filter(x => x != null);
     }
@@ -76,6 +62,12 @@ export class Joystick {
     static getName(jid) {
         const gamepad = this.getGamepad(jid);
         return gamepad.id;
+    }
+
+    /* INTERNAL FUNCTIONS */
+    static __init() {
+        window.addEventListener("gamepadconnected", this.#onConnect);
+        window.addEventListener("gamepaddisconnected", this.#onDisconnect);
     }
 
     /* CALLBACKS */
