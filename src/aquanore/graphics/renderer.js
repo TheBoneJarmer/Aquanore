@@ -16,7 +16,7 @@ export class Renderer {
     static #shaderPolygon = null;
     static #shaderModel = null;
     static #clearColor = null;
-    
+
     static #texShadow = null;
     static #fboShadow = null;
 
@@ -203,66 +203,72 @@ export class Renderer {
         }
 
         for (let mesh of model.meshes) {
-            this.#drawModel_Mesh(model, mesh, animation, animationTime);
+            this.#drawMesh_Animation(model, mesh, animation, animationTime);
+            this.#drawMesh_Primitives(mesh);
         }
     }
 
-    static #drawModel_Mesh(model, mesh, animation, time) {
+    static #drawMesh_Animation(model, mesh, animation, time) {
+        if (mesh.skin != null) {
+            this.#drawMesh_Animation_Skinned(model, mesh, animation, time);
+        } else {
+            this.#drawMesh_Animation_Normal(model, mesh, animation, time);
+        }
+    }
+
+    static #drawMesh_Animation_Normal(model, mesh, animation, time) {
+        const shader = this.#shader;
+        const localTransform = this.#getTransform(mesh);
+        const animatedTransform = this.#getAnimatedTransform(mesh.index, animation, time);
+
+        if (mesh.parent == null) {
+            let mat = Matrix4.identity();
+            mat = Matrix4.multiply(mat, localTransform);
+            mat = Matrix4.multiply(mat, animatedTransform);
+
+            shader.umat4("u_mesh", mat);
+        } else {
+            const root = model.joints.find(x => x.parent == null);
+            const transforms = this.#getJointTransforms(model, root.index, animation, time, Matrix4.identity());
+            const globalTransform = transforms.get(mesh.parent);
+
+            let mat = Matrix4.identity();
+            mat = Matrix4.multiply(mat, globalTransform);
+            mat = Matrix4.multiply(mat, localTransform);
+            mat = Matrix4.multiply(mat, animatedTransform);
+
+            shader.umat4("u_mesh", mat);
+        }
+    }
+
+    static #drawMesh_Animation_Skinned(model, mesh, animation, time) {
+        const shader = this.#shader;
+        const skin = model.skins[mesh.skin];
+        const root = model.joints.find(x => x.parent == null);
+        const transforms = this.#getJointTransforms(model, root.index, animation, time, Matrix4.identity());
+
+        for (let i = 0; i < skin.joints.length; i++) {
+            const transform = transforms.get(skin.joints[i]);
+
+            let mat = Matrix4.identity();
+            mat = Matrix4.multiply(mat, transform);
+            mat = Matrix4.multiply(mat, skin.matrices[i]);
+
+            shader.umat4(`u_joint[${i}]`, mat);
+        }
+
+        const matMesh = Matrix4.identity();
+        shader.umat4("u_mesh", matMesh);
+        shader.u1b("u_skinned", true);
+    }
+
+    static #drawMesh_Primitives(mesh) {
         const gl = Aquanore.ctx;
         const shader = this.#shader;
 
-        if (mesh.skin != null) {
-            const skin = model.skins[mesh.skin];
-            const root = model.joints.find(x => x.parent == null);
-            const transforms = this.#getJointTransforms(model, root.index, animation, time, Matrix4.identity());
-
-            for (let i = 0; i < skin.joints.length; i++) {
-                const joint = model.joints.find(x => x.index == skin.joints[i]);
-
-                let jointTransform = transforms.get(skin.joints[i]);
-                let localTransform = this.#getTransform(joint);
-
-                let mat = Matrix4.identity();
-                //mat = Matrix4.multiply(mat, Matrix4.inverse(localTransform));
-                //mat = Matrix4.multiply(mat, localTransform);
-                mat = Matrix4.multiply(mat, jointTransform);
-                mat = Matrix4.multiply(mat, skin.matrices[i]);
-
-                shader.umat4(`u_joint[${i}]`, mat);
-            }
-
-            const matMesh = Matrix4.identity();
-            shader.umat4("u_mesh", matMesh);
-        } else {
-            const localTransform = this.#getTransform(mesh);
-            const animatedTransform = this.#getAnimatedTransform(mesh.index, animation, time);
-
-            if (mesh.parent == null) {
-                let mat = Matrix4.identity();
-                mat = Matrix4.multiply(mat, localTransform);
-                mat = Matrix4.multiply(mat, animatedTransform);
-
-                shader.umat4("u_mesh", mat);
-            } else {
-                const root = model.joints.find(x => x.parent == null);
-                const transforms = this.#getJointTransforms(model, root.index, animation, time, Matrix4.identity());
-                const globalTransform = transforms.get(mesh.parent);
-
-                let mat = Matrix4.identity();
-                mat = Matrix4.multiply(mat, globalTransform);
-                mat = Matrix4.multiply(mat, localTransform);
-                mat = Matrix4.multiply(mat, animatedTransform);
-
-                shader.umat4("u_mesh", mat);
-            }
-        }
-
-        // Render primitive per primitive
         for (let pri of mesh.primitives) {
             const material = pri.material;
             const geom = pri.geometry;
-
-            shader.u1b("u_skinned", mesh.skin != null);
 
             if (material instanceof BasicMaterial) {
                 shader.u1i("u_material_type", 0);
