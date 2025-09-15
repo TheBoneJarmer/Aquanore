@@ -1,16 +1,15 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { AquanoreOptions } from "../../aquanore/aquanore-options";
 import { LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Renderer } from "../../aquanore/graphics";
-import { MathHelper, Vector3 } from "../../aquanore/math";
+import { Camera, Color, Light, Model, Polygon, Renderer, Scene } from "../../aquanore/graphics";
+import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
 
 let modelCube = null;
 let modelSphere = null;
 let modelCylinder = null;
 let modelFloor = null;
 
-let camera = null;
-let lights = null;
+let poly = null;
 
 let rotation = null;
 let scale = null;
@@ -39,11 +38,11 @@ async function onUpdate(dt) {
 }
 
 async function onRender2D() {
-
+    await render2D();
 }
 
 async function onRender3D() {
-    await renderScene();
+    await render3D();
 }
 
 async function onResize() {
@@ -52,16 +51,14 @@ async function onResize() {
 
 /* INIT */
 async function initScene() {
-    camera = new Camera(60, innerWidth / innerHeight, 0.001, 1000);
-    camera.position.z = -8;
-    camera.position.y = -7;
-    camera.rotation.x = MathHelper.radians(45);
-
-    lights = [];
-    lights[0] = new Light(LightType.Directional);
+    Scene.camera.position.z = -8;
+    Scene.camera.position.y = -7;
+    Scene.camera.rotation.x = MathHelper.radians(45);
 
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);
+
+    poly = Polygon.rectangle(innerWidth, innerHeight);
 }
 
 async function initModels() {
@@ -78,23 +75,30 @@ async function initModels() {
 
 /* UPDATE */
 async function updateScene(dt) {
-    camera.aspect = innerWidth / innerHeight;
-
     rotation.x += dt;
     rotation.y += dt;
     rotation.z += dt;
 }
 
 /* RENDER */
-async function renderScene() {
+async function render2D() {
+    const polyPos = new Vector2(0, 0);
+    const polyScale = new Vector2(1, 1);
+    const polyOrigin = new Vector2(0, 0);
+    const polyColor = new Color(255, 255, 255);
+
+    Renderer.drawPolygon(poly, polyPos, polyScale, polyOrigin, 0, polyColor, Renderer.shadowMap);
+}
+
+async function render3D() {
     const posFloor = new Vector3(0, 0, 0);
     const rotFloor = new Vector3(0, 0, 0);
     const posCube = new Vector3(-3, 2, 0);
     const posCylinder = new Vector3(0, 2, 0);
     const posSphere = new Vector3(3, 2, 0);
 
-    Renderer.drawModel(modelFloor, camera, lights, posFloor, rotFloor, scale);
-    Renderer.drawModel(modelCube, camera, lights, posCube, rotation, scale);
-    Renderer.drawModel(modelCylinder, camera, lights, posCylinder, rotation, scale);
-    Renderer.drawModel(modelSphere, camera, lights, posSphere, rotation, scale);
+    Renderer.drawModel(modelFloor, posFloor, rotFloor, scale);
+    Renderer.drawModel(modelCube, posCube, rotation, scale);
+    Renderer.drawModel(modelCylinder, posCylinder, rotation, scale);
+    Renderer.drawModel(modelSphere, posSphere, rotation, scale);
 }

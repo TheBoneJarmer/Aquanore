@@ -1,5 +1,5 @@
 import { Renderer } from "./graphics/renderer";
-import { Color } from "./graphics";
+import { Color, Scene } from "./graphics";
 import { Shaders } from "./graphics/shaders";
 import { Joystick, Keyboard, Cursor } from "./input";
 import { AquanoreOptions } from "./aquanore-options";
@@ -61,6 +61,7 @@ export class Aquanore {
         Cursor.__init();
         Joystick.__init();
         Renderer.__init();
+        Scene.__init();
     }
 
     static #initCanvas() {
@@ -123,15 +124,20 @@ export class Aquanore {
             await this.onUpdate(deltaTime / 1000.0);
         }
 
+        Scene.__update();
         Keyboard.__update();
         Cursor.__update();
     }
 
     static async #render() {
-        await Renderer.__begin();
-        await Renderer.__render3D();
-        await Renderer.__render2D();
-        await Renderer.__end();
+        await Renderer.__render();
+
+        const gl = this.#ctx;
+        const error = gl.getError();
+
+        if (error != 0) {
+            throw new Error(`OpenGL error ${error}`);
+        }
     }
 
     static async #callback(time) {

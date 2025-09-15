@@ -9,3 +9,7 @@ export * from "./texture";
 export * from "./color";
 export * from "./camera";
 export * from "./renderer";
+export * from "./scene";
+export * from "./mesh-skin";
+export * from "./model-animation";
+export * from "./model-animation-channel";
