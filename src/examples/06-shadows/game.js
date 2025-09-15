@@ -28,6 +28,8 @@ Aquanore.run();
 
 /* CALLBACKS */
 async function onLoad() {
+    Aquanore.info();
+
     await initModels();
     await initScene();
 }

@@ -330,7 +330,7 @@ export class Renderer {
 
         // Check if the framebuffer is ok
         if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
-            throw new Error("Framebuffer is not complete");
+            throw new Error("Failed to generate shadowmap.");
         } else {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }

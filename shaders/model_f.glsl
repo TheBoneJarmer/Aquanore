@@ -1,3 +1,4 @@
+#version 300 es
 precision highp float;
 
 #define POINT_LIGHT 0
@@ -32,18 +33,19 @@ uniform int u_light_count;
 uniform Material u_material;
 uniform int u_material_type;
 
-varying vec3 v_vertex;
-varying vec3 v_normal;
-varying vec2 v_texcoord;
-varying mat3 v_tbn;
-varying vec3 v_frag;
-varying vec4 v_debug;
+in vec3 v_vertex;
+in vec3 v_normal;
+in vec2 v_texcoord;
+in mat3 v_tbn;
+in vec3 v_frag;
+
+out vec4 result;
 
 vec3 calc_dir_light(Light light) {
     vec3 normal = normalize(v_normal);
 
     if(u_material.normal_map_active) {
-        normal = texture2D(u_material.normal_map, v_texcoord).rgb;
+        normal = texture(u_material.normal_map, v_texcoord).rgb;
         normal = normal * 2.0 - 1.0;
         normal = normalize(v_tbn * normal);
     }
@@ -55,7 +57,7 @@ vec3 calc_dir_light(Light light) {
     vec4 diffuse = u_material.color * light_diff;
 
     if(u_material.color_map_active) {
-        vec4 color = texture2D(u_material.color_map, v_texcoord);
+        vec4 color = texture(u_material.color_map, v_texcoord);
 
         ambient *= color;
         diffuse *= color;
@@ -68,7 +70,7 @@ vec3 calc_point_light(Light light) {
     vec3 normal = normalize(v_normal);
 
     if(u_material.normal_map_active) {
-        normal = texture2D(u_material.normal_map, v_texcoord).rgb;
+        normal = texture(u_material.normal_map, v_texcoord).rgb;
         normal = normal * 2.0 - 1.0;
         normal = normalize(v_tbn * normal);
     }
@@ -87,7 +89,7 @@ vec3 calc_point_light(Light light) {
     vec4 diffuse = u_material.color * light_diff * light_att;
 
     if(u_material.color_map_active) {
-        vec4 color = texture2D(u_material.color_map, v_texcoord);
+        vec4 color = texture(u_material.color_map, v_texcoord);
 
         ambient *= color;
         diffuse *= color;
@@ -97,7 +99,7 @@ vec3 calc_point_light(Light light) {
 }
 
 void main() {
-    vec4 result = vec4(0, 0, 0, 1);
+    result = vec4(0, 0, 0, 1);
 
     if(u_material_type == BASIC_MATERIAL) {
         result.xyz = u_material.color.xyz;
@@ -122,6 +124,4 @@ void main() {
             }
         }
     }
-
-    gl_FragColor = result;
 }

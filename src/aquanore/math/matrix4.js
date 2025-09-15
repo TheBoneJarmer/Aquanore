@@ -374,12 +374,12 @@ export class Matrix4 {
         return result;
     }
 
-    static inverse(m) {
+    static inverse(mat) {
         const
-            a = m.x1, b = m.y1, c = m.z1, d = m.w1,
-            e = m.x2, f = m.y2, g = m.z2, h = m.w2,
-            i = m.x3, j = m.y3, k = m.z3, l = m.w3,
-            m = m.x4, n = m.y4, o = m.z4, p = m.w4;
+            a = mat.x1, b = mat.y1, c = mat.z1, d = mat.w1,
+            e = mat.x2, f = mat.y2, g = mat.z2, h = mat.w2,
+            i = mat.x3, j = mat.y3, k = mat.z3, l = mat.w3,
+            m = mat.x4, n = mat.y4, o = mat.z4, p = mat.w4;
 
         const q = f * k * p + j * o * h + n * g * l - f * l * o - g * j * p - h * k * n;
         const r = e * k * p + i * o * h + m * g * l - e * l * o - g * i * p - h * k * m;
@@ -389,7 +389,7 @@ export class Matrix4 {
         const delta = (a * q - b * r + c * s - d * t);
 
         if (delta === 0) {
-            return m.clone();
+            return mat.clone();
         };
 
         const detM = 1 / delta;
@@ -420,7 +420,7 @@ export class Matrix4 {
         const m3x3 = m2z1, m3y3 = m2z2, m3z3 = m2z3, m3w3 = m2z4;
         const m3x4 = m2w1, m3y4 = m2w2, m3z4 = m2w3, m3w4 = m2w4;
 
-        const result = m.clone();
+        const result = mat.clone();
         result.x1 = m3x1 * detM; result.y1 = m3y1 * detM; result.z1 = m3z1 * detM; result.w1 = m3w1 * detM;
         result.x2 = m3x2 * detM; result.y2 = m3y2 * detM; result.z2 = m3z2 * detM; result.w2 = m3w2 * detM;
         result.x3 = m3x3 * detM; result.y3 = m3y3 * detM; result.z3 = m3z3 * detM; result.w3 = m3w3 * detM;

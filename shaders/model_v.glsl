@@ -1,12 +1,13 @@
+#version 300 es
 precision highp float;
 
-attribute vec3 a_vertex;
-attribute vec3 a_normal;
-attribute vec2 a_texcoord;
-attribute vec3 a_tangent;
-attribute vec3 a_bitangent;
-attribute vec4 a_joint;
-attribute vec4 a_weight;
+layout(location = 0) in vec3 a_vertex;
+layout(location = 1) in vec3 a_normal;
+layout(location = 2) in vec2 a_texcoord;
+layout(location = 3) in vec3 a_tangent;
+layout(location = 4) in vec3 a_bitangent;
+layout(location = 5) in vec4 a_joint;
+layout(location = 6) in vec4 a_weight;
 
 uniform mat4 u_model;
 uniform mat4 u_view;
@@ -16,11 +17,11 @@ uniform mat4 u_mesh;
 uniform mat4 u_joint[99];
 uniform bool u_skinned;
 
-varying vec2 v_texcoord;
-varying vec3 v_vertex;
-varying vec3 v_normal;
-varying mat3 v_tbn;
-varying vec3 v_frag;
+out vec2 v_texcoord;
+out vec3 v_vertex;
+out vec3 v_normal;
+out mat3 v_tbn;
+out vec3 v_frag;
 
 mat4 get_matrix_skin() {
     if(u_skinned) {

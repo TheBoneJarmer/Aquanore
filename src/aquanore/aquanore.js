@@ -55,24 +55,12 @@ export class Aquanore {
         this.#initCanvas();
         this.#initListeners();
 
+        // Run all init methods from the static classes
         Keyboard.__init();
         Shaders.__init();
         Cursor.__init();
         Joystick.__init();
         Renderer.__init();
-    }
-
-    /**
-     * Starts the main loop
-     */
-    static async run() {
-        this.#lastTime = 0;
-
-        if (this.onLoad != null) {
-            await this.onLoad();
-        }
-
-        this.#callback(0);
     }
 
     static #initCanvas() {
@@ -100,6 +88,31 @@ export class Aquanore {
                 this.onResize(window.innerWidth, window.innerHeight);
             }
         });
+    }
+
+    /**
+     * Starts the main loop
+     */
+    static async run() {
+        this.#lastTime = 0;
+
+        if (this.onLoad != null) {
+            await this.onLoad();
+        }
+
+        this.#callback(0);
+    }
+
+    /**
+     * Log WebGL related info
+     */
+    static info() {
+        const gl = this.#ctx;
+        const webglVersion = gl.getParameter(gl.VERSION);
+        const glslVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+
+        console.log(`WebGL Version: ${webglVersion}`);
+        console.log(`GLSL Version: ${glslVersion}`);
     }
 
     static async #update(time) {
