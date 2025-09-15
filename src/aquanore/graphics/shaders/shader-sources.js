@@ -15,11 +15,19 @@ export class ShaderSources {
 		return "#version 300 es\nprecision highp float;\n\nlayout(location = 0) in vec2 a_vertex;\nlayout(location = 1) in vec2 a_uv;\n\nuniform vec2 u_resolution;\nuniform vec2 u_rotation;\nuniform vec2 u_translation;\nuniform vec2 u_scale;\nuniform vec2 u_origin;\nuniform vec2 u_offset;\nuniform int u_flip_hor;\nuniform int u_flip_vert;\n\nout vec2 v_uv;\n\nvec2 generate_vertex() {\n    vec2 v = a_vertex - u_origin;\n    v = v * u_scale;\n    v = vec2(v.x * u_rotation.y + v.y * u_rotation.x, v.y * u_rotation.y - v.x * u_rotation.x);\n    v = v + u_translation;\n    v = v / u_resolution;\n    v = (v * 2.0f) - 1.0f;\n\n    return v;\n}\n\nvec2 generate_uv() {\n    vec2 v = a_uv + u_offset;\n\n    if(u_flip_hor == 1) {\n        v.x *= -1.0f;\n    }\n\n    if(u_flip_vert == 1) {\n        v.y *= -1.0f;\n    }\n\n    return v;\n}\n\nvoid main() {\n    vec2 vertex = generate_vertex();\n    vec2 uv = generate_uv();\n\n    v_uv = uv;\n\n    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);\n}\n";
 	}
 
+	static get SCREEN_F() {
+		return "#version 300 es\nprecision highp float;\n\nuniform sampler2D u_tex_color;\nuniform sampler2D u_tex_depth;\n\nin vec2 v_uv;\n\nout vec4 result;\n\nvoid main() {\n    vec4 frag = vec4(1);\n    frag *= texture(u_tex_color, v_uv);\n    //frag *= texture(u_tex_depth, v_uv).r;\n\n    result = frag;\n}\n";
+	}
+
+	static get SCREEN_V() {
+		return "#version 300 es\nprecision highp float;\n\nlayout(location = 0) in vec2 a_vertex;\nlayout(location = 1) in vec2 a_uv;\n\nuniform vec2 u_resolution;\n\nout vec2 v_uv;\n\nvoid main() {\n    vec2 vertex = a_vertex;\n    vertex = vertex / u_resolution;\n    vertex = (vertex * 2.0f) - 1.0f;\n\n    v_uv = a_uv;\n\n    gl_Position = vec4(vertex.x, vertex.y, 0, 1);\n}\n";
+	}
+
 	static get SHADOW_F() {
-		return "#version 300 es\nprecision highp float;\n\n//layout(location = 0) out float result;\nlayout(location = 0) out vec4 color;\n\nvoid main() {\n    color = vec4(0,1,0, 1);\n}\n";
+		return "#version 300 es\nprecision highp float;\n\nlayout(location = 0) out float result;\n\nvoid main() {\n    result = gl_FragCoord.z;\n}\n";
 	}
 
 	static get SHADOW_V() {
-		return "#version 300 es\nprecision highp float;\n\nlayout(location = 0) in vec3 a_vertex;\n\nuniform mat4 u_model_depth;\nuniform mat4 u_view_depth;\nuniform mat4 u_projection_depth;\n\nuniform mat4 u_model;\nuniform mat4 u_view;\nuniform mat4 u_projection;\nuniform mat4 u_mesh;\n\nvoid main() {\n    //mat4 mat_mvp = u_projection_depth * u_view_depth * u_model_depth;\n    mat4 mat_mvp = u_projection * u_view * u_model * u_mesh;\n    vec4 v = vec4(a_vertex, 1.0);\n\n    gl_Position = mat_mvp * v;\n}\n";
+		return "#version 300 es\nprecision highp float;\n\nlayout(location = 0) in vec3 a_vertex;\n\nuniform mat4 u_depth_view;\nuniform mat4 u_depth_projection;\nuniform mat4 u_model;\nuniform mat4 u_mesh;\n\nvoid main() {\n    mat4 mat_mvp = u_depth_projection * u_depth_view * u_model * u_mesh;\n    //mat4 mat_mvp = u_projection * u_view * u_model * u_mesh;\n    vec4 v = vec4(a_vertex, 1.0);\n\n    gl_Position = mat_mvp * v;\n}\n";
 	}
 }

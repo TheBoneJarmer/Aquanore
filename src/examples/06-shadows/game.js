@@ -9,8 +9,6 @@ let modelSphere = null;
 let modelCylinder = null;
 let modelFloor = null;
 
-let poly = null;
-
 let rotation = null;
 let scale = null;
 
@@ -57,8 +55,6 @@ async function initScene() {
 
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);
-
-    poly = Polygon.rectangle(innerWidth, innerHeight);
 }
 
 async function initModels() {
@@ -82,12 +78,7 @@ async function updateScene(dt) {
 
 /* RENDER */
 async function render2D() {
-    const polyPos = new Vector2(0, 0);
-    const polyScale = new Vector2(1, 1);
-    const polyOrigin = new Vector2(0, 0);
-    const polyColor = new Color(255, 255, 255);
-
-    Renderer.drawPolygon(poly, polyPos, polyScale, polyOrigin, 0, polyColor, Renderer.shadowMap);
+    
 }
 
 async function render3D() {

@@ -111,9 +111,17 @@ export class Aquanore {
         const gl = this.#ctx;
         const webglVersion = gl.getParameter(gl.VERSION);
         const glslVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+        const extensions = gl.getSupportedExtensions();
 
+        console.log(`[INFO]`);
         console.log(`WebGL Version: ${webglVersion}`);
         console.log(`GLSL Version: ${glslVersion}`);
+        console.log(``);
+        console.log(`[EXTENSIONS]`);
+
+        for (let ext of extensions) {
+            console.log(ext);
+        }
     }
 
     static async #update(time) {

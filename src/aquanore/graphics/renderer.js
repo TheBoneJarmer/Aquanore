@@ -15,14 +15,21 @@ export class Renderer {
     static #shader = null;
     static #shaderPolygon = null;
     static #shaderModel = null;
+    static #shaderScreen = null;
     static #clearColor = null;
 
-    static #texShadow = null;
+    static #fboColor = null;
+    static #fboColorTexture = null;
+    static #fboDepth = null;
+    static #fboDepthTexture = null;
     static #fboShadow = null;
+    static #fboShadowTexture = null;
+
+    static #vao = null;
 
     /**
      * Sets the polygon shader
-     * @param {Shader} value - The shader
+     * @param {Shader} value
      */
     static set shaderPolygon(value) {
         this.#shaderPolygon = value;
@@ -30,10 +37,18 @@ export class Renderer {
 
     /**
      * Sets the model shader
-     * @param {Shader} value - The shader
+     * @param {Shader} value
      */
     static set shaderModel(value) {
         this.#shaderModel = value;
+    }
+
+    /**
+     * Sets the screen shader
+     * @param {Shader} value
+     */
+    static set shaderScreen(value) {
+        this.#shaderScreen = value;
     }
 
     /**
@@ -53,20 +68,13 @@ export class Renderer {
     }
 
     /**
-     * Returns the shadow map
-     * @returns {Texture}
-     */
-    static get shadowMap() {
-        return this.#texShadow;
-    }
-
-    /**
      * Resets the renderer to its defaults. This method is automatically called every frame at the end of the loop.
      */
     static #reset() {
         this.#shader = null;
         this.#shaderPolygon = Shaders.polygon;
         this.#shaderModel = Shaders.model;
+        this.#shaderScreen = Shaders.screen;
         this.#clearColor = new Color(0, 0, 0);
 
         Aquanore.ctx.useProgram(null);
@@ -78,6 +86,8 @@ export class Renderer {
      * @returns True if the switch succeeded or false if it didn't.
      */
     static switchShader(shader) {
+        const gl = Aquanore.ctx;
+
         if (shader == null) {
             return false;
         }
@@ -87,7 +97,7 @@ export class Renderer {
         }
 
         this.#shader = shader;
-        Aquanore.ctx.useProgram(this.#shader.id);
+        gl.useProgram(this.#shader.id);
 
         return true;
     }
@@ -313,58 +323,63 @@ export class Renderer {
 
     /* INTERNAL FUNCTIONS */
     static __init() {
-        this.#__initShadows();
+        this.#__initColorFramebuffer();
+        this.#__initDepthFramebuffer();
+        this.#__initShadowFramebuffer();
+        this.#__initVao();
 
         this.#reset();
     }
 
-    static #__initShadows() {
+    static #__initVao() {
         const gl = Aquanore.ctx;
-        const options = Aquanore.options.graphics.shadow;
+        const vertices = [0, 0, innerWidth, 0, 0, innerHeight, innerWidth, 0, 0, innerHeight, innerWidth, innerHeight];
+        const uvs = [0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1];
 
-        if (!options.enabled) {
-            return;
-        }
+        const vao = gl.createVertexArray();
+        const vboVertices = gl.createBuffer();
+        const vboUVs = gl.createBuffer();
 
-        // Generate the framebuffer
-        let fbo = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.bindVertexArray(vao);
 
-        // Generate the depth texture
-        let tex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, options.map.width, options.map.height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, options.map.width, options.map.height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, options.map.wrapS);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, options.map.wrapT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, options.map.minFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, options.map.magFilter);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboVertices);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
 
-        // Create a render buffer
-        let rbo = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, options.map.width, options.map.height);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rbo);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboUVs);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(1);
 
-        // Bind the framebuffer to the texture
-        // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, tex, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-        // gl.drawBuffers([gl.NONE]);
-        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindVertexArray(null);
 
-        // Check if the framebuffer is ok
-        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        this.#vao = vao;
+    }
 
-        if (status != gl.FRAMEBUFFER_COMPLETE) {
-            throw new Error(`Failed to generate shadowmap. Framebuffer status is ${status}.`);
-        } else {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
+    static #__initColorFramebuffer() {
+        const cnv = Aquanore.canvas;
+        const result = this.#generateColorFramebuffer(cnv.width, cnv.height);
 
-        this.#fboShadow = fbo;
-        this.#texShadow = tex;
+        this.#fboColor = result.fbo;
+        this.#fboColorTexture = result.tex;
+    }
+
+    static #__initDepthFramebuffer() {
+        const cnv = Aquanore.canvas;
+        const result = this.#generateDepthFramebuffer(cnv.width, cnv.height);
+
+        this.#fboDepth = result.fbo;
+        this.#fboDepthTexture = result.tex;
+    }
+
+    static #__initShadowFramebuffer() {
+        const cnv = Aquanore.canvas;
+        const result = this.#generateDepthFramebuffer(cnv.width, cnv.height);
+
+        this.#fboShadow = result.fbo;
+        this.#fboShadowTexture = result.tex;
     }
 
     static async __render() {
@@ -384,40 +399,44 @@ export class Renderer {
         gl.cullFace(gl.BACK);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        // Render to the shadow map if there is one
-        if (this.#fboShadow != null && light != null) {
-            const options = Aquanore.options.graphics.shadow;
+        // Render to the shadow fbo
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
-            gl.clearColor(1, 0, 1, a);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.viewport(0, 0, options.map.width, options.map.height);
+        const matProjection = this.#generateDepthProjectionMatrix();
+        const matView = this.#generateDepthViewMatrix(light);
+        const shader = this.#shaderModel;
 
-            // Switch the model shader to the shadow shader
-            this.shaderModel = Shaders.shadow;
+        // Temp set the model shader to the shadow shader
+        this.#shaderModel = Shaders.shadow;
 
-            const matProjection = this.#generateDepthProjectionMatrix();
-            const matView = this.#generateDepthViewMatrix(light);
-            const matModel = this.#generateDepthModelMatrix();
+        // Now set the shadowmap specific uniforms and such
+        gl.useProgram(Shaders.shadow.id);
+        gl.uniformMatrix4fv(gl.getUniformLocation(Shaders.shadow.id, "u_depth_projection"), false, matProjection.values);
+        gl.uniformMatrix4fv(gl.getUniformLocation(Shaders.shadow.id, "u_depth_view"), false, matView.values);
 
-            this.switchShader(this.#shaderModel);
-            this.#shader.umat4("u_projection_depth", matProjection);
-            this.#shader.umat4("u_view_depth", matView);
-            this.#shader.umat4("u_model_depth", matModel);
-
-            if (Aquanore.onRender3D != null) {
-                await Aquanore.onRender3D();
-            }
-
-            // Switch the shader back
-            this.shaderModel = Shaders.model;
+        if (Aquanore.onRender3D != null) {
+            await Aquanore.onRender3D();
         }
 
-        // Render to the default framebuffer
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        // And now set it back
+        this.#shaderModel = shader;
+
+        // Render to the depth fbo
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboDepth);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        if (Aquanore.onRender3D != null) {
+            await Aquanore.onRender3D();
+        }
+
+        // Render to the color fbo
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboColor);
+        gl.viewport(0, 0, cnv.width, cnv.height);
         gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, cnv.width, cnv.height);
 
         if (Aquanore.onRender3D != null) {
             await Aquanore.onRender3D();
@@ -429,6 +448,32 @@ export class Renderer {
         if (Aquanore.onRender2D != null) {
             await Aquanore.onRender2D();
         }
+
+        // Render to the default fbo
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.clearColor(r, g, b, a);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.DEPTH_TEST);
+
+        gl.useProgram(this.#shaderScreen.id);
+        gl.uniform2f(gl.getUniformLocation(this.#shaderScreen.id, "u_resolution"), innerWidth, innerHeight);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_tex_color"), 0);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_tex_depth"), 1);
+
+        gl.bindVertexArray(this.#vao);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.#fboColorTexture);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.#fboDepthTexture);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindVertexArray(null);
+
+        this.#reset();
     }
 
     /* HELPER FUNCTIONS */
@@ -439,6 +484,72 @@ export class Renderer {
 
         const channels = animation.channels.filter(x => x.index == obj.index);
         return channels.length > 0;
+    }
+
+    static #generateColorFramebuffer(width, height) {
+        const gl = Aquanore.ctx;
+
+        // Generate the attachment
+        let tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // Generate the framebuffer
+        let fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+
+        // Check if the framebuffer is ok
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error(`Failed to generate color framebuffer: ${status}.`);
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+
+        return {
+            fbo: fbo,
+            tex: tex,
+        };
+    }
+
+    static #generateDepthFramebuffer(width, height) {
+        const gl = Aquanore.ctx;
+
+        // Generate the attachment
+        let tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        // Generate the framebuffer
+        let fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, tex, 0);
+
+        // Check if the framebuffer is ok
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error(`Failed to generate framebuffer: ${status}.`);
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+
+        return {
+            fbo: fbo,
+            tex: tex
+        };
     }
 
     /* TRANSFORM FUNCTIONS */
