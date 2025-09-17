@@ -53,12 +53,14 @@ async function initScene() {
     Scene.camera.position.y = -7;
     Scene.camera.rotation.x = MathHelper.radians(45);
 
+    Scene.lights[0].source = new Vector3(0.5, 1, 0.5);
+
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);
 }
 
 async function initModels() {
-    modelFloor = Model.box(10, 0.1, 10);
+    modelFloor = Model.box(10, 1, 10);
     modelCube = Model.cube();
     modelCylinder = Model.cylinder();
     modelSphere = Model.sphere();
@@ -71,22 +73,24 @@ async function initModels() {
 
 /* UPDATE */
 async function updateScene(dt) {
-    rotation.x += dt;
-    rotation.y += dt;
-    rotation.z += dt;
+    const speed = dt;
+
+    rotation.x += speed;
+    rotation.y += speed;
+    rotation.z += speed;
 }
 
 /* RENDER */
 async function render2D() {
-    
+
 }
 
 async function render3D() {
-    const posFloor = new Vector3(0, 0, 0);
+    const posFloor = new Vector3(0, -3, 0);
     const rotFloor = new Vector3(0, 0, 0);
-    const posCube = new Vector3(-3, 2, 0);
-    const posCylinder = new Vector3(0, 2, 0);
-    const posSphere = new Vector3(3, 2, 0);
+    const posCube = new Vector3(-3, 0, 0);
+    const posCylinder = new Vector3(0, 0, 0);
+    const posSphere = new Vector3(3, 0, 0);
 
     Renderer.drawModel(modelFloor, posFloor, rotFloor, scale);
     Renderer.drawModel(modelCube, posCube, rotation, scale);

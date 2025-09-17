@@ -15,17 +15,10 @@ export class Renderer {
     static #shader = null;
     static #shaderPolygon = null;
     static #shaderModel = null;
-    static #shaderScreen = null;
     static #clearColor = null;
 
-    static #fboColor = null;
-    static #fboColorTexture = null;
-    static #fboDepth = null;
-    static #fboDepthTexture = null;
     static #fboShadow = null;
     static #fboShadowTexture = null;
-
-    static #vao = null;
 
     /**
      * Sets the polygon shader
@@ -41,14 +34,6 @@ export class Renderer {
      */
     static set shaderModel(value) {
         this.#shaderModel = value;
-    }
-
-    /**
-     * Sets the screen shader
-     * @param {Shader} value
-     */
-    static set shaderScreen(value) {
-        this.#shaderScreen = value;
     }
 
     /**
@@ -74,7 +59,6 @@ export class Renderer {
         this.#shader = null;
         this.#shaderPolygon = Shaders.polygon;
         this.#shaderModel = Shaders.model;
-        this.#shaderScreen = Shaders.screen;
         this.#clearColor = new Color(0, 0, 0);
 
         Aquanore.ctx.useProgram(null);
@@ -195,15 +179,20 @@ export class Renderer {
         this.switchShader(this.#shaderModel);
 
         const shader = this.#shader;
+        const light = Scene.lights.find(x => x.type == LightType.Directional);
         const matProjection = this.#generateProjectionMatrix(Scene.camera);
         const matView = this.#generateViewMatrix(Scene.camera);
         const matModel = this.#generateModelMatrix(pos, rot, scale);
         const matNormal = this.#generateNormalMatrix(matModel);
+        const matDepthProjection = this.#generateDepthProjectionMatrix();
+        const matDepthView = this.#generateDepthViewMatrix(light);
 
         shader.umat4("u_projection", matProjection);
         shader.umat4("u_view", matView);
         shader.umat4("u_model", matModel);
         shader.umat3("u_normal", matNormal);
+        shader.umat4("u_depth_projection", matDepthProjection);
+        shader.umat4("u_depth_view", matDepthView);
         shader.uvec3("u_camera", Scene.camera.position);
         shader.u1i("u_light_count", Scene.lights.length);
 
@@ -297,6 +286,7 @@ export class Renderer {
                 shader.ucolor("u_material.ambient", material.ambient);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
+                shader.u1b("u_material.shadow_map_active", false);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
@@ -313,6 +303,14 @@ export class Renderer {
                     shader.u1i("u_material.normal_map", 1);
                     shader.u1b("u_material.normal_map_active", true);
                 }
+
+                if (this.#fboShadow != null) {
+                    gl.activeTexture(gl.TEXTURE31);
+                    gl.bindTexture(gl.TEXTURE_2D, this.#fboShadowTexture);
+
+                    shader.u1i("u_material.shadow_map", 31);
+                    shader.u1b("u_material.shadow_map_active", true);
+                }
             }
 
             gl.bindVertexArray(geom.vao);
@@ -323,58 +321,16 @@ export class Renderer {
 
     /* INTERNAL FUNCTIONS */
     static __init() {
-        this.#__initColorFramebuffer();
-        this.#__initDepthFramebuffer();
-        this.#__initShadowFramebuffer();
-        this.#__initVao();
+        this.#__initShadowMap();
 
         this.#reset();
     }
 
-    static #__initVao() {
-        const gl = Aquanore.ctx;
-        const vertices = [0, 0, innerWidth, 0, 0, innerHeight, innerWidth, 0, 0, innerHeight, innerWidth, innerHeight];
-        const uvs = [0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1];
+    static #__initShadowMap() {
+        if (!Aquanore.options.graphics.shadow.enabled) {
+            return;
+        }
 
-        const vao = gl.createVertexArray();
-        const vboVertices = gl.createBuffer();
-        const vboUVs = gl.createBuffer();
-
-        gl.bindVertexArray(vao);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vboVertices);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vboUVs);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindVertexArray(null);
-
-        this.#vao = vao;
-    }
-
-    static #__initColorFramebuffer() {
-        const cnv = Aquanore.canvas;
-        const result = this.#generateColorFramebuffer(cnv.width, cnv.height);
-
-        this.#fboColor = result.fbo;
-        this.#fboColorTexture = result.tex;
-    }
-
-    static #__initDepthFramebuffer() {
-        const cnv = Aquanore.canvas;
-        const result = this.#generateDepthFramebuffer(cnv.width, cnv.height);
-
-        this.#fboDepth = result.fbo;
-        this.#fboDepthTexture = result.tex;
-    }
-
-    static #__initShadowFramebuffer() {
         const cnv = Aquanore.canvas;
         const result = this.#generateDepthFramebuffer(cnv.width, cnv.height);
 
@@ -383,6 +339,41 @@ export class Renderer {
     }
 
     static async __render() {
+        await this.#__renderPhase1();
+        await this.#__renderPhase2();
+
+        this.#reset();
+    }
+
+    static async #__renderPhase1() {
+        if (!Aquanore.options.graphics.shadow.enabled) {
+            return;
+        }
+
+        const gl = Aquanore.ctx;
+        const cnv = Aquanore.canvas;
+        const shader = this.#shaderModel;
+
+        // Render to the shadow fbo
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        //gl.cullFace(gl.FRONT);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
+        gl.viewport(0, 0, cnv.width, cnv.height);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // Temp set the model shader to the shadow shader so every draw model call will use this shader instead
+        this.#shaderModel = Shaders.shadow;
+
+        if (Aquanore.onRender3D != null) {
+            await Aquanore.onRender3D();
+        }
+
+        // And now reset the state to render normally again
+        this.#shaderModel = shader;
+    }
+
+    static async  #__renderPhase2() {
         const gl = Aquanore.ctx;
         const cnv = Aquanore.canvas;
 
@@ -390,50 +381,13 @@ export class Renderer {
         const g = this.#clearColor.g / 255.0;
         const b = this.#clearColor.b / 255.0;
         const a = this.#clearColor.a / 255.0;
-        const light = Scene.lights.find(x => x.type == LightType.Directional);
 
-        // Set some rendering defaults
         gl.enable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        // Render to the shadow fbo
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
-        gl.viewport(0, 0, cnv.width, cnv.height);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-
-        const matProjection = this.#generateDepthProjectionMatrix();
-        const matView = this.#generateDepthViewMatrix(light);
-        const shader = this.#shaderModel;
-
-        // Temp set the model shader to the shadow shader
-        this.#shaderModel = Shaders.shadow;
-
-        // Now set the shadowmap specific uniforms and such
-        gl.useProgram(Shaders.shadow.id);
-        gl.uniformMatrix4fv(gl.getUniformLocation(Shaders.shadow.id, "u_depth_projection"), false, matProjection.values);
-        gl.uniformMatrix4fv(gl.getUniformLocation(Shaders.shadow.id, "u_depth_view"), false, matView.values);
-
-        if (Aquanore.onRender3D != null) {
-            await Aquanore.onRender3D();
-        }
-
-        // And now set it back
-        this.#shaderModel = shader;
-
-        // Render to the depth fbo
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboDepth);
-        gl.viewport(0, 0, cnv.width, cnv.height);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-
-        if (Aquanore.onRender3D != null) {
-            await Aquanore.onRender3D();
-        }
-
-        // Render to the color fbo
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboColor);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, cnv.width, cnv.height);
         gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -448,32 +402,6 @@ export class Renderer {
         if (Aquanore.onRender2D != null) {
             await Aquanore.onRender2D();
         }
-
-        // Render to the default fbo
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.clearColor(r, g, b, a);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.viewport(0, 0, cnv.width, cnv.height);
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
-
-        gl.useProgram(this.#shaderScreen.id);
-        gl.uniform2f(gl.getUniformLocation(this.#shaderScreen.id, "u_resolution"), innerWidth, innerHeight);
-        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_tex_color"), 0);
-        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_tex_depth"), 1);
-
-        gl.bindVertexArray(this.#vao);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.#fboColorTexture);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.#fboDepthTexture);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        gl.bindVertexArray(null);
-
-        this.#reset();
     }
 
     /* HELPER FUNCTIONS */
@@ -526,10 +454,10 @@ export class Renderer {
         let tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -688,10 +616,14 @@ export class Renderer {
 
     /* MATRIX FUNCTIONS */
     static #generateDepthProjectionMatrix() {
-        return Matrix4.ortho(-10, 10, -10, 10, -10, 20);
+        return Matrix4.ortho(-10, 10, 10, -10, -10, 10);
     }
 
     static #generateDepthViewMatrix(light) {
+        if (light == null) {
+            return Matrix4.identity();
+        }
+
         if (light.type == LightType.Directional) {
             return Matrix4.lookAt(light.source, Vector3.ZERO, Vector3.UP);
         }
@@ -699,10 +631,6 @@ export class Renderer {
         if (light.type == LightType.Point) {
             // TODO: Generate depth view matrix for point light
         }
-    }
-
-    static #generateDepthModelMatrix() {
-        return Matrix4.identity();
     }
 
     static #generateModelMatrix(pos, rot, scale) {

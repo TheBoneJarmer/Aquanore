@@ -9,6 +9,8 @@ layout(location = 4) in vec3 a_bitangent;
 layout(location = 5) in vec4 a_joint;
 layout(location = 6) in vec4 a_weight;
 
+uniform mat4 u_depth_projection;
+uniform mat4 u_depth_view;
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
@@ -18,10 +20,14 @@ uniform mat4 u_joint[99];
 uniform bool u_skinned;
 
 out vec2 v_texcoord;
-out vec3 v_vertex;
 out vec3 v_normal;
 out mat3 v_tbn;
 out vec3 v_frag;
+out vec4 v_frag_shadow;
+
+mat4 get_matrix_model() {
+    return u_model * u_mesh;
+}
 
 mat4 get_matrix_skin() {
     if(u_skinned) {
@@ -36,30 +42,33 @@ mat4 get_matrix_skin() {
     return mat4(1);
 }
 
-mat4 get_matrix_mvp() {
-    return u_projection * u_view * u_model * u_mesh;
+mat4 get_matrix_shadow() {
+    return u_depth_projection * u_depth_view;
 }
 
 mat3 get_matrix_tbn() {
-    vec3 t = normalize(vec3(u_model * vec4(a_tangent, 0.0)));
-    vec3 b = normalize(vec3(u_model * vec4(a_bitangent, 0.0)));
-    vec3 n = normalize(vec3(u_model * vec4(a_normal, 0.0)));
+    mat4 mat_model = get_matrix_model();
+
+    vec3 t = normalize(vec3(mat_model * vec4(a_tangent, 0.0)));
+    vec3 b = normalize(vec3(mat_model * vec4(a_bitangent, 0.0)));
+    vec3 n = normalize(vec3(mat_model * vec4(a_normal, 0.0)));
 
     return mat3(t, b, n);
 }
 
 void main() {
+    mat4 mat_model = get_matrix_model();
     mat4 mat_skin = get_matrix_skin();
-    mat4 mat_mvp = get_matrix_mvp();
     mat3 mat_tbn = get_matrix_tbn();
+    mat4 mat_shadow = get_matrix_shadow();
     vec4 v = vec4(a_vertex, 1.0);
 
     v_texcoord = a_texcoord;
-    v_vertex = a_vertex;
     v_normal = u_normal * a_normal;
 
     v_tbn = mat_tbn;
-    v_frag = vec3(u_model * v);
+    v_frag = vec3(mat_model * v);
+    v_frag_shadow = mat_shadow * mat_model * v;
 
-    gl_Position = mat_mvp * mat_skin * v;
+    gl_Position = u_projection * u_view * mat_model * mat_skin * v;
 }

@@ -1,6 +1,6 @@
 export class ModelAnimation {
     #name = null;
-    #channels = [];
+    #channels = null;
 
     get name() {
         return this.#name;
@@ -19,7 +19,8 @@ export class ModelAnimation {
     }
 
     constructor() {
-
+        this.#name = "Animation";
+        this.#channels = [];
     }
 
     getDuration() {

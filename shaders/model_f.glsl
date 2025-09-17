@@ -16,6 +16,8 @@ struct Material {
     bool color_map_active;
     sampler2D normal_map;
     bool normal_map_active;
+    sampler2D shadow_map;
+    bool shadow_map_active;
 };
 
 struct Light {
@@ -27,17 +29,16 @@ struct Light {
     float range;
 };
 
-uniform vec3 u_camera;
 uniform Light u_light[100];
 uniform int u_light_count;
 uniform Material u_material;
 uniform int u_material_type;
 
-in vec3 v_vertex;
 in vec3 v_normal;
 in vec2 v_texcoord;
 in mat3 v_tbn;
 in vec3 v_frag;
+in vec4 v_frag_shadow;
 
 out vec4 result;
 
@@ -46,12 +47,12 @@ vec3 calc_dir_light(Light light) {
 
     if(u_material.normal_map_active) {
         normal = texture(u_material.normal_map, v_texcoord).rgb;
-        normal = normal * 2.0 - 1.0;
+        normal = normal * 2.0f - 1.0f;
         normal = normalize(v_tbn * normal);
     }
 
     vec3 light_dir = normalize(light.source);
-    float light_diff = max(dot(normal, light_dir), 0.0);
+    float light_diff = max(dot(normal, light_dir), 0.0f);
 
     vec4 ambient = u_material.ambient * u_material.color;
     vec4 diffuse = u_material.color * light_diff;
@@ -63,6 +64,22 @@ vec3 calc_dir_light(Light light) {
         diffuse *= color;
     }
 
+    if(u_material.shadow_map_active) {
+        vec3 proj_coords = v_frag_shadow.xyz / v_frag_shadow.w;
+        proj_coords = proj_coords * 0.5f + 0.5f;
+
+        float closest_depth = texture(u_material.shadow_map, proj_coords.xy).r;
+        float current_depth = proj_coords.z;
+        float shadow = 0.0f;
+        float bias = max(0.05f * (1.0f - dot(v_normal, light_dir)), 0.005f);
+
+        if(current_depth - bias > closest_depth) {
+            shadow = 1.0f;
+        }
+
+        ambient *= 1.0f - shadow;
+    }
+
     return (ambient.xyz + diffuse.xyz) * light.color.xyz;
 }
 
@@ -71,15 +88,15 @@ vec3 calc_point_light(Light light) {
 
     if(u_material.normal_map_active) {
         normal = texture(u_material.normal_map, v_texcoord).rgb;
-        normal = normal * 2.0 - 1.0;
+        normal = normal * 2.0f - 1.0f;
         normal = normalize(v_tbn * normal);
     }
 
     vec3 light_dir = normalize(light.source - v_frag);
-    float light_diff = max(dot(normal, light_dir), 0.0);
+    float light_diff = max(dot(normal, light_dir), 0.0f);
 
     float light_dist = length(light.source - v_frag);
-    float light_att = 1.0 / light_dist * light.strength;
+    float light_att = 1.0f / light_dist * light.strength;
 
     if(light_dist > light.range) {
         return vec3(0, 0, 0);

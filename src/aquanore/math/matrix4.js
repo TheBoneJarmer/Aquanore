@@ -328,14 +328,19 @@ export class Matrix4 {
         return m;
     }
 
-    static ortho(left, right, top, bottom, near, far) {
+    static ortho(left, right, top, bottom, near, far, reverseDepth = false) {
         const te = [];
         const x = 2 / (right - left);
         const y = 2 / (top - bottom);
         const a = - (right + left) / (right - left);
         const b = - (top + bottom) / (top - bottom);
-        const c = - 2 / (far - near);
-        const d = - (far + near) / (far - near);
+        let c = - 2 / (far - near);
+        let d = - (far + near) / (far - near);
+
+        if (reverseDepth) {
+            c = 1 / (far - near);
+            d = far / (far - near);
+        }
 
         te[0] = x; te[4] = 0; te[8] = 0; te[12] = a;
         te[1] = 0; te[5] = y; te[9] = 0; te[13] = b;
@@ -354,7 +359,6 @@ export class Matrix4 {
         m.x1 = xaxis.x; m.y1 = yaxis.x; m.z1 = zaxis.x; m.w1 = 0;
         m.x2 = xaxis.y; m.y2 = yaxis.y; m.z2 = zaxis.y; m.w2 = 0;
         m.x3 = xaxis.z; m.y3 = yaxis.z; m.z3 = zaxis.z; m.w3 = 0;
-        m.x4 = 0; m.y4 = 0; m.z4 = 0; m.w4 = 1;
 
         return m;
     }
