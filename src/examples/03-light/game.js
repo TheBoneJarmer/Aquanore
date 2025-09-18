@@ -21,7 +21,7 @@ Aquanore.onLoad = async () => {
 
     const matRock = new StandardMaterial();
     matRock.colorMap = await texLoader.load("rock.png");
-    //matRock.normalMap = await texLoader.load("rock_normal.png");
+    matRock.normalMap = await texLoader.load("rock_normal.png");
 
     const matLight = new BasicMaterial();
     matLight.color = new Color(255, 255, 255);

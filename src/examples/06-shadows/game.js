@@ -1,13 +1,15 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { AquanoreOptions } from "../../aquanore/aquanore-options";
-import { LightType } from "../../aquanore/enums";
+import { Keys, LightType } from "../../aquanore/enums";
 import { Camera, Color, Light, Model, Polygon, Renderer, Scene } from "../../aquanore/graphics";
+import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
 
 let modelCube = null;
 let modelSphere = null;
 let modelCylinder = null;
 let modelFloor = null;
+let poly = null;
 
 let rotation = null;
 let scale = null;
@@ -33,6 +35,7 @@ async function onLoad() {
 
 async function onUpdate(dt) {
     await updateScene(dt);
+    await updateControls(dt);
 }
 
 async function onRender2D() {
@@ -49,18 +52,20 @@ async function onResize() {
 
 /* INIT */
 async function initScene() {
-    Scene.camera.position.z = -8;
-    Scene.camera.position.y = -7;
+    Scene.camera.position.z = -15;
+    Scene.camera.position.y = -15;
     Scene.camera.rotation.x = MathHelper.radians(45);
 
     Scene.lights[0].source = new Vector3(0.5, 1, 0.5);
 
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);
+
+    poly = Polygon.rectangle(innerWidth / 3, innerHeight / 3);
 }
 
 async function initModels() {
-    modelFloor = Model.box(10, 1, 10);
+    modelFloor = Model.box(50, 1, 50);
     modelCube = Model.cube();
     modelCylinder = Model.cylinder();
     modelSphere = Model.sphere();
@@ -80,9 +85,34 @@ async function updateScene(dt) {
     rotation.z += speed;
 }
 
+async function updateControls(dt) {
+    const speed = dt * 10;
+
+    if (Keyboard.keyDown(Keys.Left)) {
+        Scene.camera.position.x += speed;
+    }
+
+    if (Keyboard.keyDown(Keys.Right)) {
+        Scene.camera.position.x -= speed;
+    }
+
+    if (Keyboard.keyDown(Keys.Up)) {
+        Scene.camera.position.z += speed;
+    }
+
+    if (Keyboard.keyDown(Keys.Down)) {
+        Scene.camera.position.z -= speed;
+    }
+}
+
 /* RENDER */
 async function render2D() {
+    const pos = new Vector2(innerWidth - innerWidth / 3, 0);
+    const scale = new Vector2(1, 1);
+    const origin = new Vector2(0, 0);
+    const color = new Color(255, 255, 255);
 
+    Renderer.drawPolygon(poly, pos, scale, origin, 0, color, Renderer.shadowmap, null, false, false);
 }
 
 async function render3D() {

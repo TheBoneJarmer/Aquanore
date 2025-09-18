@@ -18,6 +18,17 @@ export class Texture {
     }
 
     constructor(width, height, data) {
+        this.#width = width;
+        this.#height = height;
+
+        if (data instanceof WebGLTexture) {
+            this.#id = data;
+        } else {
+            this.#generate(data);
+        }
+    }
+
+    #generate(data) {
         const gl = Aquanore.ctx;
         const id = gl.createTexture();
 
@@ -44,7 +55,5 @@ export class Texture {
         }
 
         this.#id = id;
-        this.#width = width;
-        this.#height = height;
     }
 }

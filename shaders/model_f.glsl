@@ -77,6 +77,10 @@ vec3 calc_dir_light(Light light) {
             shadow = 1.0f;
         }
 
+        if (proj_coords.z > 1.0f) {
+            shadow = 0.0f;
+        }
+
         ambient *= 1.0f - shadow;
     }
 

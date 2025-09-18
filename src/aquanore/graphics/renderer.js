@@ -15,10 +15,15 @@ export class Renderer {
     static #shader = null;
     static #shaderPolygon = null;
     static #shaderModel = null;
+    static #shaderScreen = null;
     static #clearColor = null;
 
+    static #vao = null;
+    static #fboColor = null;
     static #fboShadow = null;
-    static #fboShadowTexture = null;
+    static #colormap = null;
+    static #depthmap = null;
+    static #shadowmap = null;
 
     /**
      * Sets the polygon shader
@@ -53,12 +58,37 @@ export class Renderer {
     }
 
     /**
+     * Returns the texture used for calculating shadows
+     * @return {Texture}
+     */
+    static get shadowmap() {
+        return this.#shadowmap;
+    }
+
+    /**
+     * Returns the color map of the scene
+     * @return {Texture}
+     */
+    static get colormap() {
+        return this.#colormap;
+    }
+
+    /**
+     * Returns the depth map of the scene
+     * @return {Texture}
+     */
+    static get depthmap() {
+        return this.#depthmap;
+    }
+
+    /**
      * Resets the renderer to its defaults. This method is automatically called every frame at the end of the loop.
      */
     static #reset() {
         this.#shader = null;
         this.#shaderPolygon = Shaders.polygon;
         this.#shaderModel = Shaders.model;
+        this.#shaderScreen = Shaders.screen;
         this.#clearColor = new Color(0, 0, 0);
 
         Aquanore.ctx.useProgram(null);
@@ -128,11 +158,12 @@ export class Renderer {
         this.switchShader(this.#shaderPolygon);
 
         const gl = Aquanore.ctx;
+        const cnv = Aquanore.canvas;
         const cos = Math.cos(MathHelper.radians(angle + 90));
         const sin = Math.sin(MathHelper.radians(angle + 90));
 
         gl.bindVertexArray(polygon.vao);
-        gl.uniform2f(gl.getUniformLocation(this.#shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
+        gl.uniform2f(gl.getUniformLocation(this.#shader.id, "u_resolution"), cnv.width, cnv.height);
         gl.uniform2f(gl.getUniformLocation(this.#shader.id, "u_rotation"), cos, sin);
         gl.uniform2f(gl.getUniformLocation(this.#shader.id, "u_translation"), pos.x, pos.y);
         gl.uniform2f(gl.getUniformLocation(this.#shader.id, "u_scale"), scale.x, scale.y);
@@ -144,8 +175,8 @@ export class Renderer {
         gl.uniform1i(gl.getUniformLocation(this.#shader.id, "u_flip_vert"), 0);
 
         if (texture != null) {
-            gl.bindTexture(gl.TEXTURE_2D, texture.id);
             gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture.id);
 
             gl.uniform1i(gl.getUniformLocation(this.#shader.id, "u_texture_active"), 1);
             gl.uniform1i(gl.getUniformLocation(this.#shader.id, "u_flip_hor"), flipTextureHor ? 1 : 0);
@@ -306,7 +337,7 @@ export class Renderer {
 
                 if (this.#fboShadow != null) {
                     gl.activeTexture(gl.TEXTURE31);
-                    gl.bindTexture(gl.TEXTURE_2D, this.#fboShadowTexture);
+                    gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
 
                     shader.u1i("u_material.shadow_map", 31);
                     shader.u1b("u_material.shadow_map_active", true);
@@ -321,9 +352,47 @@ export class Renderer {
 
     /* INTERNAL FUNCTIONS */
     static __init() {
+        this.#__initVao();
+        this.#__initColorAndDepthMap();
         this.#__initShadowMap();
 
         this.#reset();
+    }
+
+    static #__initVao() {
+        const gl = Aquanore.ctx;
+        const vertices = [0, 0, innerWidth, 0, 0, innerHeight, innerWidth, 0, 0, innerHeight, innerWidth, innerHeight];
+        const uvs = [0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1];
+
+        const vao = gl.createVertexArray();
+        const vboVertices = gl.createBuffer();
+        const vboUVs = gl.createBuffer();
+
+        gl.bindVertexArray(vao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboVertices);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboUVs);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindVertexArray(null);
+
+        this.#vao = vao;
+    }
+
+    static #__initColorAndDepthMap() {
+        const cnv = Aquanore.canvas;
+        const result = this.#generateColorFramebuffer(cnv.width, cnv.height);
+
+        this.#fboColor = result.fbo;
+        this.#colormap = result.texColor;
+        this.#depthmap = result.texDepth;
     }
 
     static #__initShadowMap() {
@@ -335,12 +404,13 @@ export class Renderer {
         const result = this.#generateDepthFramebuffer(cnv.width, cnv.height);
 
         this.#fboShadow = result.fbo;
-        this.#fboShadowTexture = result.tex;
+        this.#shadowmap = result.tex;
     }
 
     static async __render() {
         await this.#__renderPhase1();
         await this.#__renderPhase2();
+        await this.#__renderPhase3();
 
         this.#reset();
     }
@@ -357,7 +427,7 @@ export class Renderer {
         // Render to the shadow fbo
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        //gl.cullFace(gl.FRONT);
+        gl.cullFace(gl.FRONT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
         gl.viewport(0, 0, cnv.width, cnv.height);
         gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -387,7 +457,7 @@ export class Renderer {
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboColor);
         gl.viewport(0, 0, cnv.width, cnv.height);
         gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -395,10 +465,39 @@ export class Renderer {
         if (Aquanore.onRender3D != null) {
             await Aquanore.onRender3D();
         }
+    }
 
+    static async #__renderPhase3() {
+        const gl = Aquanore.ctx;
+        const cnv = Aquanore.canvas;
+
+        const r = this.#clearColor.r / 255.0;
+        const g = this.#clearColor.g / 255.0;
+        const b = this.#clearColor.b / 255.0;
+        const a = this.#clearColor.a / 255.0;
+
+        // Render the color map to the screen using the screen shader
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.clearColor(r, g, b, a);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(0, 0, cnv.width, cnv.height);
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
 
+        gl.useProgram(this.#shaderScreen.id);
+        gl.uniform2f(gl.getUniformLocation(this.#shaderScreen.id, "u_resolution"), innerWidth, innerHeight);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_texture"), 0);
+
+        gl.bindVertexArray(this.#vao);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.#colormap.id);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindVertexArray(null);
+
+        // And render the 2D scene on top of it
         if (Aquanore.onRender2D != null) {
             await Aquanore.onRender2D();
         }
@@ -417,19 +516,29 @@ export class Renderer {
     static #generateColorFramebuffer(width, height) {
         const gl = Aquanore.ctx;
 
-        // Generate the attachment
-        let tex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tex);
+        // Generate the color attachment
+        let texColor = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texColor);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
+        // Generate the depth attachment
+        let texDepth = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texDepth);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texColor, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texDepth, 0);
 
         // Check if the framebuffer is ok
         const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
@@ -443,7 +552,8 @@ export class Renderer {
 
         return {
             fbo: fbo,
-            tex: tex,
+            texColor: new Texture(width, height, texColor),
+            texDepth: new Texture(width, height, texDepth)
         };
     }
 
@@ -456,8 +566,8 @@ export class Renderer {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -476,7 +586,7 @@ export class Renderer {
 
         return {
             fbo: fbo,
-            tex: tex
+            tex: new Texture(width, height, tex),
         };
     }
 
