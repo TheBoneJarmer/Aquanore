@@ -241,15 +241,11 @@ export class Renderer {
         }
 
         // Set the shadow map
-        if (this.#fboShadow != null) {
-            gl.activeTexture(gl.TEXTURE31);
-            gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
+        gl.activeTexture(gl.TEXTURE31);
+        gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
 
-            shader.u1i("u_shadow_map", 31);
-            shader.u1b("u_shadow_map_active", true);
-        } else {
-            shader.u1b("u_shadow_map_active", false);
-        }
+        shader.u1i("u_shadow_map", 31);
+        shader.u1b("u_shadow_map_active", Aquanore.options.graphics.shadow.enabled);
 
         for (let mesh of model.meshes) {
             this.#drawMesh_Animation(model, mesh, animation, animationTime);
@@ -332,12 +328,13 @@ export class Renderer {
                 shader.ucolor("u_material.ambient", material.ambient);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
+                shader.u1i("u_material.color_map", 0);
+                shader.u1i("u_material.normal_map", 1);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, material.colorMap.id);
 
-                    shader.u1i("u_material.color_map", 0);
                     shader.u1b("u_material.color_map_active", true);
                 }
 
@@ -345,7 +342,6 @@ export class Renderer {
                     gl.activeTexture(gl.TEXTURE1);
                     gl.bindTexture(gl.TEXTURE_2D, material.normalMap.id);
 
-                    shader.u1i("u_material.normal_map", 1);
                     shader.u1b("u_material.normal_map_active", true);
                 }
             }
@@ -402,12 +398,6 @@ export class Renderer {
     }
 
     static #__initShadowMap() {
-        const options = Aquanore.options.graphics.shadow;
-
-        if (!options.enabled) {
-            return;
-        }
-
         const result = this.#generateShadowFramebuffer();
 
         this.#fboShadow = result.fbo;
@@ -437,7 +427,7 @@ export class Renderer {
         //gl.cullFace(gl.FRONT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
         gl.viewport(0, 0, options.map.width, options.map.height);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // Temp set the model shader to the shadow shader so every draw model call will use this shader instead
         this.#shaderModel = Shaders.shadow;
@@ -547,6 +537,7 @@ export class Renderer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.NONE);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -579,10 +570,11 @@ export class Renderer {
         let tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, options.map.width, options.map.height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, options.map.minFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, options.map.magFilter);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, options.map.wrapS);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, options.map.wrapT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -741,8 +733,10 @@ export class Renderer {
 
     /* MATRIX FUNCTIONS */
     static #generateDepthProjectionMatrix() {
-        return Matrix4.ortho(-10, 10, -10, 10, -10, 10);
-        //return Matrix4.perspective(60.0, 1, 0.5, 10);
+        const options = Aquanore.options.graphics.shadow;
+        const frustrum = options.frustrum;
+
+        return Matrix4.ortho(frustrum.left, frustrum.right, frustrum.top, frustrum.bottom, frustrum.near, frustrum.far);
     }
 
     static #generateDepthViewMatrix(light) {

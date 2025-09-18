@@ -43,7 +43,7 @@ export class StandardMaterial extends Material {
         super();
         
         this.#color = new Color(255, 255, 255);
-        this.#ambient = new Color(55, 55, 55);
+        this.#ambient = new Color(155, 155, 155);
         this.#colorMap = null;
         this.#normalMap = null;
     }

@@ -70,6 +70,7 @@ void main() {
     v_tbn = mat_tbn;
     v_frag = vec3(mat_model * v);
     v_frag_shadow = mat_shadow * mat_model * v;
+    v_frag_shadow = (v_frag_shadow + 1.0f) / 2.0f;
 
     gl_Position = u_projection * u_view * mat_model * mat_skin * v;
 }

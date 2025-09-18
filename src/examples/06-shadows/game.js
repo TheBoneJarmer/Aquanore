@@ -15,7 +15,18 @@ let rotation = null;
 let scale = null;
 
 const options = new AquanoreOptions();
-options.graphics.shadow.enabled = true;
+const shadow = options.graphics.shadow;
+// const map = shadow.map;
+// map.width = 4096;
+// map.height = 4096;
+
+// const frustrum = shadow.frustrum;
+// frustrum.left = -128;
+// frustrum.right = 128;
+// frustrum.top = -128;
+// frustrum.bottom = 128;
+// frustrum.near = -128;
+// frustrum.far = 128;
 
 Aquanore.init(options);
 Aquanore.onLoad = onLoad;
@@ -107,12 +118,7 @@ async function updateControls(dt) {
 
 /* RENDER */
 async function render2D() {
-    const pos = new Vector2(innerWidth - innerWidth / 3, 0);
-    const scale = new Vector2(1, 1);
-    const origin = new Vector2(0, 0);
-    const color = new Color(255, 255, 255);
-
-    Renderer.drawPolygon(poly, pos, scale, origin, 0, color, Renderer.shadowmap, null, false, false);
+    
 }
 
 async function render3D() {

@@ -40,13 +40,114 @@ export class CanvasOptions {
     }
 }
 
+export class ShadowFrustrumOptions {
+    #left = -16;
+    #right = 16;
+    #top = -16;
+    #bottom = 16;
+    #near = -16;
+    #far = 16;
+
+    /**
+     * Returns the left value of the shadow frustum
+     * @returns {number}
+     */
+    get left() {
+        return this.#left;
+    }
+
+    /**
+     * Sets the left value of the shadow frustum
+     * @param {number} value
+     */
+    set left(value) {
+        this.#left = value;
+    }
+
+    /**
+     * Returns the right value of the shadow frustum
+     * @returns {number}
+     */
+    get right() {
+        return this.#right;
+    }
+
+    /**
+     * Sets the right value of the shadow frustum
+     * @param {number} value
+     */
+    set right(value) {
+        this.#right = value;
+    }
+
+    /**
+     * Returns the top value of the shadow frustum
+     * @returns {number}
+     */
+    get top() {
+        return this.#top;
+    }
+
+    /**
+     * Sets the top value of the shadow frustum
+     * @param {number} value
+     */
+    set top(value) {
+        this.#top = value;
+    }
+
+    /**
+     * Returns the bottom value of the shadow frustum
+     * @returns {number}
+     */
+    get bottom() {
+        return this.#bottom;
+    }
+
+    /**
+     * Sets the bottom value of the shadow frustum
+     * @param {number} value
+     */
+    set bottom(value) {
+        this.#bottom = value;
+    }
+
+    /**
+     * Returns the near value of the shadow frustum
+     * @returns {number}
+     */
+    get near() {
+        return this.#near;
+    }
+
+    /**
+     * Sets the near value of the shadow frustum
+     * @param {number} value
+     */
+    set near(value) {
+        this.#near = value;
+    }
+
+    /**
+     * Returns the far value of the shadow frustum
+     * @returns {number}
+     */
+    get far() {
+        return this.#far;
+    }
+
+    /**
+     * Sets the far value of the shadow frustum
+     * @param {number} value
+     */
+    set far(value) {
+        this.#far = value;
+    }
+}
+
 export class ShadowMapOptions {
     #width = 1024;
     #height = 1024;
-    #minFilter = 9728;
-    #magFilter = 9728;
-    #wrapS = 33071;
-    #wrapT = 33071;
 
     /**
      * Returns the shadowmap's width in pixels
@@ -79,73 +180,12 @@ export class ShadowMapOptions {
     set height(value) {
         this.#height = value;
     }
-
-    /**
-     * Returns the shadowmap's min filter
-     * @returns {number}
-     */
-    get minFilter() {
-        return this.#minFilter;
-    }
-
-    /**
-     * Sets the shadowmap's min filter
-     * @param {number} value
-     */
-    set minFilter(value) {
-        this.#minFilter = value;
-    }
-
-    /**
-     * Returns the shadowmap's mag filter
-     * @returns {number}
-     */
-    get magFilter() {
-        return this.#magFilter;
-    }
-
-    /**
-     * Sets the shadowmap's mag filter
-     * @param {number} value
-     */
-    set magFilter(value) {
-        this.#magFilter = value;
-    }
-
-    /**
-     * Returns the shadowmap's S axis wrap value
-     */
-    get wrapS() {
-        return this.#wrapS;
-    }
-
-    /**
-     * Sets the shadowmap's S axis wrap value
-     * @param {number} value
-     */
-    set wrapS(value) {
-        this.#wrapS = value;
-    }
-
-    /**
-     * Returns the shadowmap's T axis wrap value
-     */
-    get wrapT() {
-        return this.#wrapT;
-    }
-
-    /**
-     * Sets the shadowmap's T axis wrap value
-     * @param {number} value
-     */
-    set wrapT(value) {
-        this.#wrapT = value;
-    }
 }
 
 export class ShadowOptions {
     #enabled = true;
     #map = new ShadowMapOptions();
+    #frustrum = new ShadowFrustrumOptions();
 
     /**
      * Returns true if the shadowmap is enabled or false if it is not.
@@ -169,6 +209,14 @@ export class ShadowOptions {
      */
     get map() {
         return this.#map;
+    }
+
+    /**
+     * Returns the shadow frustum options
+     * @returns {ShadowFrustrumOptions}
+     */
+    get frustrum() {
+        return this.#frustrum;
     }
 }
 
