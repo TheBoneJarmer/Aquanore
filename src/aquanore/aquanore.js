@@ -79,7 +79,7 @@ export class Aquanore {
     }
 
     static #initListeners() {
-        window.addEventListener("resize", (e) => {
+        window.addEventListener("resize", async (e) => {
             if (this.#options.canvas.autoResize) {
                 this.#canvas.width = window.innerWidth;
                 this.#canvas.height = window.innerHeight;
@@ -88,6 +88,8 @@ export class Aquanore {
             if (this.onResize != null) {
                 this.onResize(window.innerWidth, window.innerHeight);
             }
+
+            await Renderer.__resize();
         });
     }
 

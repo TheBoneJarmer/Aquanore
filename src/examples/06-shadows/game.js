@@ -1,7 +1,7 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { AquanoreOptions } from "../../aquanore/aquanore-options";
-import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Polygon, Renderer, Scene } from "../../aquanore/graphics";
+import { Keys } from "../../aquanore/enums";
+import { Color, Model, Polygon, Renderer, Scene } from "../../aquanore/graphics";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
 
@@ -56,7 +56,7 @@ async function initScene() {
     Scene.camera.position.y = -15;
     Scene.camera.rotation.x = MathHelper.radians(45);
 
-    Scene.lights[0].source = new Vector3(0.5, 1, 0.5);
+    Scene.lights[0].source = new Vector3(1, 4, 1);
 
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);

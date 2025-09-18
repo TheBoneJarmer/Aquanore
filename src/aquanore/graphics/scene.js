@@ -1,3 +1,4 @@
+import { Aquanore } from "../aquanore";
 import { LightType } from "../enums";
 import { Camera } from "./camera";
 import { Light } from "./light";
@@ -43,7 +44,8 @@ export class Scene {
     }
 
     static __update() {
-        this.#camera.aspect = innerWidth / innerHeight;
+        const cnv = Aquanore.canvas;
+        this.#camera.aspect = cnv.width / cnv.height;
     }
 
     /* HELPER FUNCTIONS */

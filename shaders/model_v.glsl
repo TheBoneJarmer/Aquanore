@@ -18,6 +18,7 @@ uniform mat3 u_normal;
 uniform mat4 u_mesh;
 uniform mat4 u_joint[99];
 uniform bool u_skinned;
+uniform bool u_shadow_map_active;
 
 out vec2 v_texcoord;
 out vec3 v_normal;

@@ -209,6 +209,7 @@ export class Renderer {
 
         this.switchShader(this.#shaderModel);
 
+        const gl = Aquanore.ctx;
         const shader = this.#shader;
         const light = Scene.lights.find(x => x.type == LightType.Directional);
         const matProjection = this.#generateProjectionMatrix(Scene.camera);
@@ -227,6 +228,7 @@ export class Renderer {
         shader.uvec3("u_camera", Scene.camera.position);
         shader.u1i("u_light_count", Scene.lights.length);
 
+        // Set all lights
         for (let i = 0; i < Scene.lights.length; i++) {
             const light = Scene.lights[i];
 
@@ -236,6 +238,17 @@ export class Renderer {
             shader.ucolor(`u_light[${i}].color`, light.color);
             shader.u1f(`u_light[${i}].strength`, light.strength);
             shader.u1f(`u_light[${i}].range`, light.range);
+        }
+
+        // Set the shadow map
+        if (this.#fboShadow != null) {
+            gl.activeTexture(gl.TEXTURE31);
+            gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
+
+            shader.u1i("u_shadow_map", 31);
+            shader.u1b("u_shadow_map_active", true);
+        } else {
+            shader.u1b("u_shadow_map_active", false);
         }
 
         for (let mesh of model.meshes) {
@@ -275,6 +288,8 @@ export class Renderer {
 
             shader.umat4("u_mesh", mat);
         }
+
+        shader.u1b("u_skinned", false);
     }
 
     static #drawMesh_Animation_Skinned(model, mesh, animation, time) {
@@ -317,7 +332,6 @@ export class Renderer {
                 shader.ucolor("u_material.ambient", material.ambient);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
-                shader.u1b("u_material.shadow_map_active", false);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
@@ -333,14 +347,6 @@ export class Renderer {
 
                     shader.u1i("u_material.normal_map", 1);
                     shader.u1b("u_material.normal_map_active", true);
-                }
-
-                if (this.#fboShadow != null) {
-                    gl.activeTexture(gl.TEXTURE31);
-                    gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
-
-                    shader.u1i("u_material.shadow_map", 31);
-                    shader.u1b("u_material.shadow_map_active", true);
                 }
             }
 
@@ -396,12 +402,13 @@ export class Renderer {
     }
 
     static #__initShadowMap() {
-        if (!Aquanore.options.graphics.shadow.enabled) {
+        const options = Aquanore.options.graphics.shadow;
+
+        if (!options.enabled) {
             return;
         }
 
-        const cnv = Aquanore.canvas;
-        const result = this.#generateDepthFramebuffer(cnv.width, cnv.height);
+        const result = this.#generateShadowFramebuffer();
 
         this.#fboShadow = result.fbo;
         this.#shadowmap = result.tex;
@@ -416,21 +423,21 @@ export class Renderer {
     }
 
     static async #__renderPhase1() {
-        if (!Aquanore.options.graphics.shadow.enabled) {
+        const options = Aquanore.options.graphics.shadow;
+        if (!options.enabled) {
             return;
         }
 
         const gl = Aquanore.ctx;
-        const cnv = Aquanore.canvas;
         const shader = this.#shaderModel;
 
         // Render to the shadow fbo
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT);
+        //gl.cullFace(gl.FRONT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
-        gl.viewport(0, 0, cnv.width, cnv.height);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.viewport(0, 0, options.map.width, options.map.height);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // Temp set the model shader to the shadow shader so every draw model call will use this shader instead
         this.#shaderModel = Shaders.shadow;
@@ -503,6 +510,13 @@ export class Renderer {
         }
     }
 
+    static async __resize() {
+        // Since we initialize our vao and maps with static data calculated from the resolution we must initialize all of them again
+        // This is unfortunately rather costly
+        this.#__initVao();
+        this.#__initColorAndDepthMap();
+    }
+
     /* HELPER FUNCTIONS */
     static #hasAnimationChannels(animation, obj) {
         if (animation == null) {
@@ -557,17 +571,18 @@ export class Renderer {
         };
     }
 
-    static #generateDepthFramebuffer(width, height) {
+    static #generateShadowFramebuffer() {
+        const options = Aquanore.options.graphics.shadow;
         const gl = Aquanore.ctx;
 
         // Generate the attachment
         let tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, options.map.width, options.map.height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, options.map.minFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, options.map.magFilter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, options.map.wrapS);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, options.map.wrapT);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -586,7 +601,7 @@ export class Renderer {
 
         return {
             fbo: fbo,
-            tex: new Texture(width, height, tex),
+            tex: new Texture(options.map.width, options.map.height, tex),
         };
     }
 
@@ -726,7 +741,8 @@ export class Renderer {
 
     /* MATRIX FUNCTIONS */
     static #generateDepthProjectionMatrix() {
-        return Matrix4.ortho(-10, 10, 10, -10, -10, 10);
+        return Matrix4.ortho(-10, 10, -10, 10, -10, 10);
+        //return Matrix4.perspective(60.0, 1, 0.5, 10);
     }
 
     static #generateDepthViewMatrix(light) {

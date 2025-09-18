@@ -1,15 +1,12 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Renderer } from "../../aquanore/graphics";
+import { Keys } from "../../aquanore/enums";
+import { Color, Renderer, Scene } from "../../aquanore/graphics";
 import { Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Cursor, Keyboard } from "../../aquanore/input";
-import { BasicMaterial } from "../../aquanore/graphics/materials";
+import { AquanoreOptions } from "../../aquanore/aquanore-options";
 
 let model = null;
-
-let cam = null;
-let lights = [];
 
 let pos = new Vector3();
 let rot = new Vector3();
@@ -20,7 +17,10 @@ let index = 0;
 let time = 0;
 let paused = false;
 
-Aquanore.init();
+const options = new AquanoreOptions();
+options.graphics.shadow.enabled = true;
+
+Aquanore.init(options);
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
 Aquanore.onRender3D = onRender3D;
@@ -44,12 +44,10 @@ async function onRender3D() {
 
 /* INIT */
 async function initScene() {
-    cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -4;
+    Scene.camera.position.z = -4;
+    Scene.lights[0].source = new Vector3(0, 4, 0);
 
-    lights[0] = new Light(LightType.Directional);
-
-    Aquanore.clearColor = new Color(55, 55, 55);
+    Renderer.clearColor = new Color(55, 55, 55);
 }
 
 async function initModels() {
@@ -60,16 +58,19 @@ async function initModels() {
         animation = model.animations[index];
         console.log(animation.name || "Animation");
     }
+
+    // DEBUG
+    animation = model.animations.find(x => x.name == "T-Pose");
 }
 
 /* UPDATE */
 async function updateInput(dt) {
-    if (Keyboard.keyDown(Keys.W)) cam.position.z += dt;
-    if (Keyboard.keyDown(Keys.S)) cam.position.z -= dt;
-    if (Keyboard.keyDown(Keys.A)) cam.position.x += dt;
-    if (Keyboard.keyDown(Keys.D)) cam.position.x -= dt;
-    if (Keyboard.keyDown(Keys.Q)) cam.position.y -= dt;
-    if (Keyboard.keyDown(Keys.E)) cam.position.y += dt;
+    if (Keyboard.keyDown(Keys.W)) Scene.camera.position.z += dt;
+    if (Keyboard.keyDown(Keys.S)) Scene.camera.position.z -= dt;
+    if (Keyboard.keyDown(Keys.A)) Scene.camera.position.x += dt;
+    if (Keyboard.keyDown(Keys.D)) Scene.camera.position.x -= dt;
+    if (Keyboard.keyDown(Keys.Q)) Scene.camera.position.y -= dt;
+    if (Keyboard.keyDown(Keys.E)) Scene.camera.position.y += dt;
 
     if (Keyboard.keyPressed(Keys.PageUp) && index < model.animations.length - 1) {
         index++;
@@ -95,16 +96,16 @@ async function updateInput(dt) {
     }
 
     if (Cursor.wheelY > 0) {
-        cam.position.z -= dt * 2;
+        Scene.camera.position.z -= dt * 2;
     }
 
     if (Cursor.wheelY < 0) {
-        cam.position.z += dt * 2;
+        Scene.camera.position.z += dt * 2;
     }
 }
 
 async function updateScene(dt) {
-    cam.aspect = innerWidth / innerHeight;
+    
 }
 
 async function updateAnimation(dt) {
@@ -123,5 +124,5 @@ async function updateAnimation(dt) {
 
 /* RENDER */
 async function renderGltf() {
-    Renderer.drawModel(model, cam, lights, pos, rot, scale, animation, time);
+    Renderer.drawModel(model, pos, rot, scale, animation, time);
 }
