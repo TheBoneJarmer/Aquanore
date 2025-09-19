@@ -46,14 +46,7 @@ float calc_shadow(Light light) {
     if(u_shadow_map_active) {
         vec3 shadow_coords = v_frag_shadow.xyz / v_frag_shadow.w;
         shadow_coords = shadow_coords * 0.5f + 0.5f;
-
-        if (shadow_coords.z > 1.0f) {
-            return 1.0f;
-        }
-
-        if (shadow_coords.z < 0.0f) {
-            return 0.0f;
-        }
+        //shadow_coords.z -= 0.01f;
 
         return texture(u_shadow_map, shadow_coords);
 
@@ -164,6 +157,6 @@ void main() {
         }
     }
 
-    result = vec4(1.0);
-    result *= calc_shadow(u_light[0]);
+    // result = vec4(1.0);
+    // result *= calc_shadow(u_light[0]);
 }

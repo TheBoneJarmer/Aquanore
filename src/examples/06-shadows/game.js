@@ -16,17 +16,17 @@ let scale = null;
 
 const options = new AquanoreOptions();
 const shadow = options.graphics.shadow;
-// const map = shadow.map;
-// map.width = 4096;
-// map.height = 4096;
+const map = shadow.map;
+map.width = 4096;
+map.height = 4096;
 
-// const frustrum = shadow.frustrum;
-// frustrum.left = -128;
-// frustrum.right = 128;
-// frustrum.top = -128;
-// frustrum.bottom = 128;
-// frustrum.near = -128;
-// frustrum.far = 128;
+const frustrum = shadow.frustrum;
+frustrum.left = -16;
+frustrum.right = 16;
+frustrum.top = -16;
+frustrum.bottom = 16;
+frustrum.near = -16;
+frustrum.far = 16;
 
 Aquanore.init(options);
 Aquanore.onLoad = onLoad;
@@ -175,7 +175,7 @@ async function render2D() {
 }
 
 async function render3D() {
-    const posFloor = new Vector3(0, -3, 0);
+    const posFloor = new Vector3(0, -1, 0);
     const rotFloor = new Vector3(0, 0, 0);
     const posCube = new Vector3(-3, 0, 0);
     const posCylinder = new Vector3(0, 0, 0);

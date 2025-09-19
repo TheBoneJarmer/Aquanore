@@ -433,7 +433,7 @@ export class Renderer {
         // Render to the shadow fbo
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        //gl.cullFace(gl.FRONT);
+        gl.cullFace(gl.FRONT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
         gl.viewport(0, 0, options.map.width, options.map.height);
         gl.clear(gl.DEPTH_BUFFER_BIT);
