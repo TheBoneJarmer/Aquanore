@@ -44,13 +44,37 @@ out vec4 result;
 
 float calc_shadow(Light light) {
     if(u_shadow_map_active) {
-        vec3 proj_coords = v_frag_shadow.xyz / v_frag_shadow.w;
-        float depth = texture(u_shadow_map, proj_coords, 1.0f);
+        vec3 shadow_coords = v_frag_shadow.xyz / v_frag_shadow.w;
+        shadow_coords = shadow_coords * 0.5f + 0.5f;
 
-        return depth;
-    } else {
-        return 1.0f;
+        if (shadow_coords.z > 1.0f) {
+            return 1.0f;
+        }
+
+        if (shadow_coords.z < 0.0f) {
+            return 0.0f;
+        }
+
+        return texture(u_shadow_map, shadow_coords);
+
+        // vec3 light_dir = normalize(light.source);
+        // vec3 shadow_coords = v_frag_shadow.xyz / v_frag_shadow.w;
+        // shadow_coords = shadow_coords * 0.5f + 0.5f;
+
+        // float depth_closest = texture(u_shadow_map, shadow_coords.xy).r;
+        // float depth_current = shadow_coords.z;
+        // float bias = max(0.05f * (1.0f - dot(v_normal, light_dir)), 0.005f);
+
+        // if (depth_current > depth_closest) {
+        //     shadow = 1.0f;
+        // }
+
+        // if (shadow_coords.z > 1.0f) {
+        //     shadow = 0.0f;
+        // }
     }
+
+    return 1.0f;
 }
 
 vec3 calc_dir_light(Light light) {
@@ -140,6 +164,6 @@ void main() {
         }
     }
 
-    // result = vec4(1.0);
-    // result *= calc_shadow(u_light[0]);
+    result = vec4(1.0);
+    result *= calc_shadow(u_light[0]);
 }

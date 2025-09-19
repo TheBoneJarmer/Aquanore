@@ -2,6 +2,7 @@ import { Aquanore } from "../../aquanore/aquanore";
 import { AquanoreOptions } from "../../aquanore/aquanore-options";
 import { Keys } from "../../aquanore/enums";
 import { Color, Model, Polygon, Renderer, Scene } from "../../aquanore/graphics";
+import { Shader, Shaders, ShaderSources } from "../../aquanore/graphics/shaders";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
 
@@ -9,7 +10,6 @@ let modelCube = null;
 let modelSphere = null;
 let modelCylinder = null;
 let modelFloor = null;
-let poly = null;
 
 let rotation = null;
 let scale = null;
@@ -47,6 +47,7 @@ async function onLoad() {
 async function onUpdate(dt) {
     await updateScene(dt);
     await updateControls(dt);
+    await updateUI(dt);
 }
 
 async function onRender2D() {
@@ -63,16 +64,13 @@ async function onResize() {
 
 /* INIT */
 async function initScene() {
-    Scene.camera.position.z = -15;
-    Scene.camera.position.y = -15;
-    Scene.camera.rotation.x = MathHelper.radians(45);
+    Scene.camera.position.z = 10;
+    Scene.camera.rotation.y = MathHelper.radians(180);
 
-    Scene.lights[0].source = new Vector3(1, 4, 1);
+    Scene.lights[0].source = new Vector3(1, 1, 1);
 
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);
-
-    poly = Polygon.rectangle(innerWidth / 3, innerHeight / 3);
 }
 
 async function initModels() {
@@ -91,29 +89,84 @@ async function initModels() {
 async function updateScene(dt) {
     const speed = dt;
 
-    rotation.x += speed;
-    rotation.y += speed;
-    rotation.z += speed;
+    // rotation.x += speed;
+    // rotation.y += speed;
+    // rotation.z += speed;
+}
+
+async function updateUI(dt) {
+    const cam = Scene.camera;
+    const el = document.querySelector("#info");
+
+    const elPos = document.createElement("span");
+    elPos.innerHTML += `<b>CAM POS: </b>`;
+    elPos.innerHTML += `X: ${Math.round(cam.position.x).toString().padStart(3, "0")} `;
+    elPos.innerHTML += `Y: ${Math.round(cam.position.y).toString().padStart(3, "0")} `;
+    elPos.innerHTML += `Z: ${Math.round(cam.position.z).toString().padStart(3, "0")}`;
+
+    const elRot = document.createElement("span");
+    elRot.innerHTML += `<b>CAM ROT: </b>`;
+    elRot.innerHTML += `X: ${Math.round(MathHelper.degrees(cam.rotation.x)).toString().padStart(3, "0")} `;
+    elRot.innerHTML += `Y: ${Math.round(MathHelper.degrees(cam.rotation.y)).toString().padStart(3, "0")} `;
+    elRot.innerHTML += `Z: ${Math.round(MathHelper.degrees(cam.rotation.z)).toString().padStart(3, "0")}`;
+
+    const elFps = document.createElement("span");
+    elFps.innerHTML += `<b>FPS: </b>`;
+    elFps.innerHTML += `${Math.round(dt * 1000) / 1000}`;
+
+    el.innerHTML = "";
+    el.appendChild(elPos);
+    el.appendChild(elRot);
+    el.appendChild(elFps);
 }
 
 async function updateControls(dt) {
-    const speed = dt * 10;
+    const moveSpeed = dt * 10;
+    const rotSpeed = dt * 5;
+    const cam = Scene.camera;
 
-    if (Keyboard.keyDown(Keys.Left)) {
-        Scene.camera.position.x += speed;
+    if (Keyboard.keyDown(Keys.A)) {
+        const deg = MathHelper.degrees(cam.rotation.y);
+        const x = Math.cos(MathHelper.radians(deg));
+        const y = Math.sin(MathHelper.radians(deg));
+
+        cam.position.x += x * moveSpeed;
+        cam.position.z += y * moveSpeed;
     }
 
-    if (Keyboard.keyDown(Keys.Right)) {
-        Scene.camera.position.x -= speed;
+    if (Keyboard.keyDown(Keys.D)) {
+        const deg = MathHelper.degrees(cam.rotation.y) + 180;
+        const x = Math.cos(MathHelper.radians(deg));
+        const y = Math.sin(MathHelper.radians(deg));
+
+        cam.position.x += x * moveSpeed;
+        cam.position.z += y * moveSpeed;
     }
 
-    if (Keyboard.keyDown(Keys.Up)) {
-        Scene.camera.position.z += speed;
+    if (Keyboard.keyDown(Keys.W)) {
+        const deg = MathHelper.degrees(cam.rotation.y) + 90;
+        const x = Math.cos(MathHelper.radians(deg));
+        const y = Math.sin(MathHelper.radians(deg));
+
+        cam.position.x += x * moveSpeed;
+        cam.position.z += y * moveSpeed;
     }
 
-    if (Keyboard.keyDown(Keys.Down)) {
-        Scene.camera.position.z -= speed;
+    if (Keyboard.keyDown(Keys.S)) {
+        const deg = MathHelper.degrees(cam.rotation.y) + 90;
+        const x = Math.cos(MathHelper.radians(deg));
+        const y = Math.sin(MathHelper.radians(deg));
+
+        cam.position.x -= x * moveSpeed;
+        cam.position.z -= y * moveSpeed;
     }
+
+    if (Keyboard.keyDown(Keys.Q)) cam.position.y -= moveSpeed * 4;
+    if (Keyboard.keyDown(Keys.E)) cam.position.y += moveSpeed * 4;
+    if (Keyboard.keyDown(Keys.Left)) cam.rotation.y -= rotSpeed;
+    if (Keyboard.keyDown(Keys.Right)) cam.rotation.y += rotSpeed;
+    if (Keyboard.keyDown(Keys.Up)) cam.rotation.x -= rotSpeed;
+    if (Keyboard.keyDown(Keys.Down)) cam.rotation.x += rotSpeed;
 }
 
 /* RENDER */

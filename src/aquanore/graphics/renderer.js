@@ -42,6 +42,14 @@ export class Renderer {
     }
 
     /**
+     * Sets the screen shader
+     * @param {Shader} value
+     */
+    static set shaderScreen(value) {
+        this.#shaderScreen = value;
+    }
+
+    /**
      * Returns the current clear color
      * @returns {Color}
      */
@@ -58,7 +66,8 @@ export class Renderer {
     }
 
     /**
-     * Returns the texture used for calculating shadows
+     * Returns the shadow map of the 3D scene. Be aware the shadow map is not an ordinary texture.
+     * If you are planning to use this in a shader you need to use the data type `sampler2DShadow` instead of `sampler2D`.
      * @return {Texture}
      */
     static get shadowmap() {
@@ -66,7 +75,7 @@ export class Renderer {
     }
 
     /**
-     * Returns the color map of the scene
+     * Returns the color map of the 3D scene.
      * @return {Texture}
      */
     static get colormap() {
@@ -74,7 +83,7 @@ export class Renderer {
     }
 
     /**
-     * Returns the depth map of the scene
+     * Returns the depth map of the 3D scene.
      * @return {Texture}
      */
     static get depthmap() {
@@ -483,14 +492,24 @@ export class Renderer {
 
         gl.useProgram(this.#shaderScreen.id);
         gl.uniform2f(gl.getUniformLocation(this.#shaderScreen.id, "u_resolution"), innerWidth, innerHeight);
-        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_texture"), 0);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_colormap"), 0);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_depthmap"), 1);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_shadowmap"), 2);
 
         gl.bindVertexArray(this.#vao);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.#colormap.id);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.#depthmap.id);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindVertexArray(null);
 
