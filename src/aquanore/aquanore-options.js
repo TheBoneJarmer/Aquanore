@@ -43,8 +43,8 @@ export class CanvasOptions {
 export class ShadowFrustrumOptions {
     #left = -16;
     #right = 16;
-    #top = -16;
-    #bottom = 16;
+    #top = 16;
+    #bottom = -16;
     #near = -16;
     #far = 16;
 
@@ -146,8 +146,8 @@ export class ShadowFrustrumOptions {
 }
 
 export class ShadowMapOptions {
-    #width = 1024;
-    #height = 1024;
+    #width = 2048;
+    #height = 2048;
 
     /**
      * Returns the shadowmap's width in pixels

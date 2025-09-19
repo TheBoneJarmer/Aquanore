@@ -10,8 +10,8 @@ uniform vec2 u_translation;
 uniform vec2 u_scale;
 uniform vec2 u_origin;
 uniform vec2 u_offset;
-uniform int u_flip_hor;
-uniform int u_flip_vert;
+uniform bool u_flip_hor;
+uniform bool u_flip_vert;
 
 out vec2 v_uv;
 
@@ -29,11 +29,11 @@ vec2 generate_vertex() {
 vec2 generate_uv() {
     vec2 v = a_uv + u_offset;
 
-    if(u_flip_hor == 1) {
+    if(u_flip_hor) {
         v.x *= -1.0f;
     }
 
-    if(u_flip_vert == 1) {
+    if(u_flip_vert) {
         v.y *= -1.0f;
     }
 
@@ -46,5 +46,5 @@ void main() {
 
     v_uv = uv;
 
-    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);
+    gl_Position = vec4(vertex.x, vertex.y, 0, 1);
 }

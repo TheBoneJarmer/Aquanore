@@ -423,17 +423,13 @@ export class Renderer {
 
     static async #__renderPhase1() {
         const options = Aquanore.options.graphics.shadow;
-        if (!options.enabled) {
-            return;
-        }
-
         const gl = Aquanore.ctx;
         const shader = this.#shaderModel;
 
         // Render to the shadow fbo
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT);
+        // gl.cullFace(gl.FRONT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.#fboShadow);
         gl.viewport(0, 0, options.map.width, options.map.height);
         gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -492,24 +488,15 @@ export class Renderer {
 
         gl.useProgram(this.#shaderScreen.id);
         gl.uniform2f(gl.getUniformLocation(this.#shaderScreen.id, "u_resolution"), innerWidth, innerHeight);
-        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_colormap"), 0);
-        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_depthmap"), 1);
-        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_shadowmap"), 2);
+        gl.uniform1i(gl.getUniformLocation(this.#shaderScreen.id, "u_texture"), 0);
 
         gl.bindVertexArray(this.#vao);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.#colormap.id);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.#depthmap.id);
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, this.#shadowmap.id);
+
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindVertexArray(null);
 
@@ -589,11 +576,10 @@ export class Renderer {
         let tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, options.map.width, options.map.height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -764,7 +750,15 @@ export class Renderer {
         }
 
         if (light.type == LightType.Directional) {
-            return Matrix4.lookAt(light.source, Vector3.ZERO, Vector3.UP);
+            const source = new Vector3();
+            source.x = light.source.x;
+            source.y = light.source.y;
+            source.z = light.source.z;
+
+            const target = new Vector3(0, 0, 0);
+            const up = new Vector3(0, 1, 0);
+
+            return Matrix4.lookAt(source, target, up);
         }
 
         if (light.type == LightType.Point) {
@@ -787,7 +781,7 @@ export class Renderer {
 
         let m = Matrix4.identity();
         m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
-        m = Matrix4.translate(m, pos.x, pos.y, pos.z);
+        m = Matrix4.translate(m, pos.x, -pos.y, pos.z);
 
         return m;
     }

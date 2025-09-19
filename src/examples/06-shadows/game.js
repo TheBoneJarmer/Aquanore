@@ -10,25 +10,13 @@ let modelCube = null;
 let modelSphere = null;
 let modelCylinder = null;
 let modelFloor = null;
+let poly = null;
 
 let rotation = null;
 let scale = null;
+let toggle = false;
 
-const options = new AquanoreOptions();
-const shadow = options.graphics.shadow;
-const map = shadow.map;
-map.width = 4096;
-map.height = 4096;
-
-const frustrum = shadow.frustrum;
-frustrum.left = -16;
-frustrum.right = 16;
-frustrum.top = -16;
-frustrum.bottom = 16;
-frustrum.near = -16;
-frustrum.far = 16;
-
-Aquanore.init(options);
+Aquanore.init();
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
 Aquanore.onRender2D = onRender2D;
@@ -64,17 +52,20 @@ async function onResize() {
 
 /* INIT */
 async function initScene() {
-    Scene.camera.position.z = 10;
-    Scene.camera.rotation.y = MathHelper.radians(180);
+    Scene.camera.position.z = -10;
+    Scene.camera.position.y = 5;
+    Scene.camera.rotation.x = MathHelper.radians(25);
 
-    Scene.lights[0].source = new Vector3(1, 1, 1);
+    Scene.lights[0].source = new Vector3(5, 5, 5);
 
     rotation = new Vector3(0, 0, 0);
     scale = new Vector3(1, 1, 1);
+
+    poly = Polygon.rectangle(innerWidth, innerHeight);
 }
 
 async function initModels() {
-    modelFloor = Model.box(50, 1, 50);
+    modelFloor = Model.box(30, 0.1, 30);
     modelCube = Model.cube();
     modelCylinder = Model.cylinder();
     modelSphere = Model.sphere();
@@ -89,9 +80,13 @@ async function initModels() {
 async function updateScene(dt) {
     const speed = dt;
 
-    // rotation.x += speed;
-    // rotation.y += speed;
-    // rotation.z += speed;
+    rotation.x += speed;
+    rotation.y += speed;
+    rotation.z += speed;
+
+    if (Keyboard.keyPressed(Keys.T)) {
+        toggle = !toggle;
+    }
 }
 
 async function updateUI(dt) {
@@ -171,11 +166,18 @@ async function updateControls(dt) {
 
 /* RENDER */
 async function render2D() {
-    
+    const pos = new Vector2(0,0);
+    const scale = new Vector2(1,1);
+    const origin = new Vector2(0,0);
+    const color = new Color(255, 255, 255);
+
+    if (toggle) {
+        Renderer.drawPolygon(poly, pos, scale, origin, 0, color, Renderer.shadowmap);
+    }
 }
 
 async function render3D() {
-    const posFloor = new Vector3(0, -1, 0);
+    const posFloor = new Vector3(0, -3, 0);
     const rotFloor = new Vector3(0, 0, 0);
     const posCube = new Vector3(-3, 0, 0);
     const posCylinder = new Vector3(0, 0, 0);
