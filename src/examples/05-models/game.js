@@ -3,11 +3,10 @@ import { Keys } from "../../aquanore/enums";
 import { Color, Model, Renderer, Scene } from "../../aquanore/graphics";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
-import { Cursor, Keyboard } from "../../aquanore/input";
+import { Keyboard } from "../../aquanore/input";
 import { AquanoreOptions } from "../../aquanore/aquanore-options";
 
-let modelSkelly = null;
-let modelFloor = null;
+let model = null;
 
 let animation = null;
 let index = 0;
@@ -15,7 +14,6 @@ let time = 0;
 let paused = false;
 
 const options = new AquanoreOptions();
-// options.graphics.shadow.enabled = false;
 
 Aquanore.init(options);
 Aquanore.onLoad = onLoad;
@@ -43,8 +41,7 @@ async function onRender3D() {
 /* INIT */
 async function initScene() {
     Scene.camera.position.z = -4;
-    Scene.camera.position.y = 4;
-    Scene.camera.rotation.x = MathHelper.radians(45);
+    Scene.camera.position.y = 1;
 
     Scene.lights[0].source = new Vector3(1, 1, 1);
 
@@ -53,16 +50,12 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    modelSkelly = await loader.load("models/Skeleton_Mage.glb");
-    modelFloor = Model.box(20, 0.1, 20);
+    model = await loader.load("models/Skeleton_Mage.glb");
 
-    if (modelSkelly.animations.length > 0) {
-        animation = modelSkelly.animations[index];
+    if (model.animations.length > 0) {
+        animation = model.animations[index];
         console.log(animation.name || "Animation");
     }
-
-    // DEBUG
-    // animation = modelSkelly.animations.find(x => x.name == "T-Pose");
 }
 
 /* UPDATE */
@@ -116,15 +109,15 @@ async function updateControls(dt) {
 }
 
 async function updateInput(dt) {
-    if (Keyboard.keyPressed(Keys.PageUp) && index < modelSkelly.animations.length - 1) {
+    if (Keyboard.keyPressed(Keys.PageUp) && index < model.animations.length - 1) {
         index++;
-        animation = modelSkelly.animations[index];
+        animation = model.animations[index];
         console.log(animation.name);
     }
 
     if (Keyboard.keyPressed(Keys.PageDown) && index > 0) {
         index--;
-        animation = modelSkelly.animations[index];
+        animation = model.animations[index];
         console.log(animation.name);
     }
 
@@ -153,14 +146,9 @@ async function updateAnimation(dt) {
 
 /* RENDER */
 async function renderScene() {
-    const posSkelly = new Vector3(0, 0, 0);
-    const rotSkelly = new Vector3(0,0,0);
-    const scaleSkelly = new Vector3(1, 1, 1);
+    const pos = new Vector3(0, 0, 0);
+    const rot = new Vector3(0,0,0);
+    const scale = new Vector3(1, 1, 1);
 
-    const posFloor = new Vector3(0, 0, 0);
-    const rotFloor = new Vector3(0, 0, 0);
-    const scaleFloor = new Vector3(1, 1, 1);
-
-    Renderer.drawModel(modelFloor, posFloor, rotFloor, scaleFloor);
-    Renderer.drawModel(modelSkelly, posSkelly, rotSkelly, scaleSkelly, animation, time);
+    Renderer.drawModel(model, pos, rot, scale, animation, time);
 }
