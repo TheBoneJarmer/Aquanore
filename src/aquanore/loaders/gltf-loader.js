@@ -13,6 +13,11 @@ export class GltfLoader {
     #buffers = [];
     #textures = [];
 
+    /**
+     * Loads a GLTF model
+     * @param {string} path 
+     * @returns {Model}
+     */
     async load(path) {
         this.#result = new Model();
         this.#buffers = [];
@@ -529,9 +534,9 @@ export class GltfLoader {
 
     /**
      * Returns the byte offset from the bufferview the accessor points at.
-     * @param {any} gltf - The GLTF object
-     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
-     * @returns 
+     * @param {any} gltf The GLTF object
+     * @param {number} accessorIndex The index of the accessor array of the GLTF object
+     * @returns {number}
      */
     #getAccessorByteOffset(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];
@@ -542,8 +547,8 @@ export class GltfLoader {
 
     /**
      * Returns the byte stride from the bufferview the accessor points at.
-     * @param {any} gltf - The GLTF object
-     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
+     * @param {any} gltf The GLTF object
+     * @param {number} accessorIndex The index of the accessor array of the GLTF object
      * @returns The accessor's buffer byte stride
      */
     #getAccessorByteStride(gltf, accessorIndex) {
@@ -555,9 +560,9 @@ export class GltfLoader {
 
     /**
      * Calculates the total number of bytes required for the accessor's `ArrayBuffer` instance.
-     * @param {any} gltf  - The GLTF object
-     * @param {number} accessorIndex - The index of the accessor array of the GLTF object
-     * @returns The size in bytes as number
+     * @param {any} gltf The GLTF object
+     * @param {number} accessorIndex The index of the accessor array of the GLTF object
+     * @returns {number} The size in bytes as number
      */
     #getAccessorTotalBytes(gltf, accessorIndex) {
         const accessor = gltf.accessors[accessorIndex];

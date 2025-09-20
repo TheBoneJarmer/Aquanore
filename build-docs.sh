@@ -1,1 +1,0 @@
-npx jsdoc -r -d jsdocs ./src/aquanore

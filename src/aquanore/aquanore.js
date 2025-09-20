@@ -1,5 +1,5 @@
 import { Renderer } from "./graphics/renderer";
-import { Color, Scene } from "./graphics";
+import { Scene } from "./graphics";
 import { Shaders } from "./graphics/shaders";
 import { Joystick, Keyboard, Cursor } from "./input";
 import { AquanoreOptions } from "./aquanore-options";
