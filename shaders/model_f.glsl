@@ -31,8 +31,6 @@ uniform Light u_light[100];
 uniform int u_light_count;
 uniform Material u_material;
 uniform int u_material_type;
-uniform sampler2D u_shadow_map;
-uniform bool u_shadow_map_active;
 
 in vec3 v_normal;
 in vec2 v_texcoord;
@@ -41,29 +39,6 @@ in vec3 v_frag;
 in vec4 v_frag_shadow;
 
 out vec4 result;
-
-float calc_shadow() {
-    if(!u_shadow_map_active) {
-        return 1.0f;
-    }
-
-    float bias = 0.005f;
-
-    vec3 shadow_xyz = v_frag_shadow.xyz;
-    float shadow_w = v_frag_shadow.w;
-
-    vec3 shadow_coords = shadow_xyz / shadow_w;
-    shadow_coords = shadow_coords * 0.5f + 0.5f;
-
-    float depth = texture(u_shadow_map, shadow_coords.xy).r;
-    float depth_current = shadow_coords.z;
-
-    if (depth_current - bias > depth) {
-        return 0.5f;
-    }
-
-    return 1.0f;
-}
 
 vec3 calc_dir_light(Light light) {
     vec3 normal = normalize(v_normal);
@@ -86,9 +61,6 @@ vec3 calc_dir_light(Light light) {
         ambient *= color;
         diffuse *= color;
     }
-
-    float shadow = calc_shadow();
-    ambient *= shadow;
 
     return (ambient.xyz + diffuse.xyz) * light.color.xyz;
 }
@@ -151,7 +123,4 @@ void main() {
             }
         }
     }
-
-    // result = vec4(1.0f);
-    // result *= calc_shadow();
 }

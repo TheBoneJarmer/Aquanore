@@ -1,14 +1,12 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Mesh, Primitive, Model, Renderer } from "../../aquanore/graphics";
+import { Camera, Color, Light, Mesh, Primitive, Model, Renderer, Scene } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { BoxGeometry, CapsuleGeometry, ConeGeometry, CubeGeometry, CylinderGeometry, RingGeometry, SphereGeometry, TorusGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
 
 let model = null;
-let cam = null;
-let lights = [];
 let pos = new Vector3(0, 0, 0);
 let rot = new Vector3(0, 0, 0);
 let scale = new Vector3(1, 1, 1);
@@ -19,19 +17,15 @@ let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus
 Aquanore.init();
 
 Aquanore.onLoad = () => {
-    cam = new Camera(60, innerWidth / innerHeight, 0.01, 1000);
-    cam.position.z = -3;
-    cam.position.y = -2;
-    cam.rotation.x = MathHelper.radians(35);
-
-    lights[0] = new Light(LightType.Directional);
+    Scene.camera.position.z = -3;
+    Scene.camera.position.y = 2;
+    Scene.camera.rotation.x = MathHelper.radians(35);
 
     updateInfo();
     updateModel();
 };
 
 Aquanore.onUpdate = (dt) => {
-    cam.aspect = innerWidth / innerHeight;
     rot.y += dt;
     // rot.x += dt;
     // rot.z += dt;
@@ -56,7 +50,7 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, cam, lights, pos, rot, scale);
+    Renderer.drawModel(model, pos, rot, scale);
 };
 
 Aquanore.run();
