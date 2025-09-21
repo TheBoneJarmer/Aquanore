@@ -7,7 +7,7 @@ export * from "./joint";
 export * from "./model";
 export * from "./texture";
 export * from "./color";
-export * from "./camera";
+export * from "./perspective-camera";
 export * from "./renderer";
 export * from "./scene";
 export * from "./mesh-skin";

@@ -1,6 +1,6 @@
 import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
-import { Camera } from "./camera";
+import { PerspectiveCamera } from "./perspective-camera";
 import { Color } from "./color";
 import { Joint } from "./joint";
 import { BasicMaterial, StandardMaterial } from "./materials";
@@ -12,6 +12,8 @@ import { Scene } from "./scene";
 import { Shader, Shaders } from "./shaders";
 import { Sprite } from "./sprite";
 import { Texture } from "./texture";
+import { ICamera } from "../interfaces";
+import { OrthoCamera } from "./ortho-camera";
 
 export class Renderer {
     private static _shader: Shader;
@@ -196,7 +198,7 @@ export class Renderer {
         shader.umat4("u_view", matView);
         shader.umat4("u_model", matModel);
         shader.umat3("u_normal", matNormal);
-        shader.uvec3("u_camera", Scene.camera.position);
+        shader.uvec3("u_camera", Scene.camera.translation);
         shader.u1i("u_light_count", Scene.lights.length);
 
         // Set all lights
@@ -511,8 +513,8 @@ export class Renderer {
         return m;
     }
 
-    private static generateViewMatrix(camera: Camera): Matrix4 {
-        const pos = camera.position;
+    private static generateViewMatrix(camera: ICamera): Matrix4 {
+        const pos = camera.translation;
         const rot = camera.rotation;
 
         let m = Matrix4.identity();
@@ -522,13 +524,26 @@ export class Renderer {
         return m;
     }
 
-    private static generateProjectionMatrix(camera: Camera): Matrix4 {
-        const fov = camera.fov;
-        const near = camera.near;
-        const far = camera.far;
-        const aspect = camera.aspect;
+    private static generateProjectionMatrix(camera: ICamera): Matrix4 {
+        if (camera instanceof PerspectiveCamera) {
+            const fov = camera.fov;
+            const near = camera.near;
+            const far = camera.far;
+            const aspect = camera.aspect;
 
-        return Matrix4.perspective(fov, aspect, near, far);
+            return Matrix4.perspective(fov, aspect, near, far);
+        }
+
+        if (camera instanceof OrthoCamera) {
+            const left = camera.left;
+            const right = camera.right;
+            const top = camera.top;
+            const bottom = camera.bottom;
+            const near = camera.near;
+            const far = camera.far;
+
+            return Matrix4.ortho(left, right, top, bottom, near, far);
+        }
     }
 
     private static generateNormalMatrix(mat: Matrix4): Matrix3 {

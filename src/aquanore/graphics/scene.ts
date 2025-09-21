@@ -1,17 +1,18 @@
 import { Aquanore } from "../aquanore";
 import { LightType } from "../enums";
-import { Camera } from "./camera";
+import { PerspectiveCamera } from "./perspective-camera";
 import { Light } from "./light";
+import { ICamera } from "../interfaces";
 
 export class Scene {
-    private static _camera: Camera;
+    private static _camera: ICamera;
     private static _lights: Light[];
 
-    static get camera(): Camera {
+    static get camera(): ICamera {
         return this._camera;
     }
 
-    static set camera(value: Camera) {
+    static set camera(value: ICamera) {
         if (value == null) {
             throw new Error("Value cannot be null");
         }
@@ -32,7 +33,7 @@ export class Scene {
     }
 
     static reset() {
-        this._camera = new Camera(60, innerWidth / innerHeight, 0.001, 1000);
+        this._camera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.001, 1000);
 
         this._lights = [];
         this._lights[0] = new Light(LightType.Directional);
@@ -45,6 +46,9 @@ export class Scene {
 
     static __update() {
         const cnv = Aquanore.canvas;
-        this._camera.aspect = cnv.width / cnv.height;
+        
+        if (this._camera instanceof PerspectiveCamera) {
+            this._camera.aspect = cnv.width / cnv.height;
+        }
     }
 }

@@ -10,6 +10,11 @@ export class Aquanore {
     private static _canvas: HTMLCanvasElement;
     private static _options: AquanoreOptions;
     private static _lastTime: number;
+    private static _onUpdate: Function = null;
+    private static _onRender2D: Function = null;
+    private static _onRender3D: Function = null;
+    private static _onLoad: Function = null;
+    private static _onResize: Function = null;
 
     /**
      * Returns the WebGL context from the canvas
@@ -39,17 +44,91 @@ export class Aquanore {
         return this._options;
     }
 
-    static onUpdate: Function = null;
-    static onRender2D: Function = null;
-    static onRender3D: Function = null;
-    static onLoad: Function = null;
-    static onResize: Function = null;
+    /**
+     * Gets the function to be called on each update.
+     * @returns {Function}
+     */
+    static get onUpdate(): Function {
+        return this._onUpdate;
+    }
+
+    /**
+     * Sets the function to be called on each update.
+     * @param {Function} callback
+     */
+    static set onUpdate(callback: Function) {
+        this._onUpdate = callback;
+    }
+
+    /**
+     * Gets the function to be called for 2D rendering.
+     * @returns {Function}
+     */
+    static get onRender2D(): Function {
+        return this._onRender2D;
+    }
+
+    /**
+     * Sets the function to be called for 2D rendering.
+     * @param {Function} callback
+     */
+    static set onRender2D(callback: Function) {
+        this._onRender2D = callback;
+    }
+
+    /**
+     * Gets the function to be called for 3D rendering.
+     * @returns {Function}
+     */
+    static get onRender3D(): Function {
+        return this._onRender3D;
+    }
+
+    /**
+     * Sets the function to be called for 3D rendering.
+     * @param {Function} callback
+     */
+    static set onRender3D(callback: Function) {
+        this._onRender3D = callback;
+    }
+
+    /**
+     * Gets the function to be called on load.
+     * @returns {Function}
+     */
+    static get onLoad(): Function {
+        return this._onLoad;
+    }
+
+    /**
+     * Sets the function to be called on load.
+     * @param {Function} callback
+     */
+    static set onLoad(callback: Function) {
+        this._onLoad = callback;
+    }
+
+    /**
+     * Gets the function to be called on resize.
+     * @returns {Function}
+     */
+    static get onResize(): Function {
+        return this._onResize;
+    }
+
+    /**
+     * Sets the function to be called on resize.
+     * @param {Function} callback
+     */
+    static set onResize(callback: Function) {
+        this._onResize = callback;
+    }
 
     /**
      * Initializes Aquanore. This **must** be ran before doing anything else.
      * @param {AquanoreOptions} options (Optional) Initializes aquanore with a configuration
      */
-    static init(options = new AquanoreOptions()) {
+    static init(options: AquanoreOptions = new AquanoreOptions()) {
         this._options = options;
         this._lastTime = 0;
 
@@ -87,8 +166,8 @@ export class Aquanore {
                 this._canvas.height = window.innerHeight;
             }
 
-            if (this.onResize != null) {
-                this.onResize(window.innerWidth, window.innerHeight);
+            if (this._onResize != null) {
+                this._onResize(window.innerWidth, window.innerHeight);
             }
 
             await Renderer.__resize();
@@ -101,8 +180,8 @@ export class Aquanore {
     static async run() {
         this._lastTime = 0;
 
-        if (this.onLoad != null) {
-            await this.onLoad();
+        if (this._onLoad != null) {
+            await this._onLoad();
         }
 
         this.callback(0);
@@ -132,8 +211,8 @@ export class Aquanore {
         const deltaTime = time - this._lastTime;
         this._lastTime = time;
 
-        if (this.onUpdate != null) {
-            await this.onUpdate(deltaTime / 1000.0);
+        if (this._onUpdate != null) {
+            await this._onUpdate(deltaTime / 1000.0);
         }
 
         Scene.__update();

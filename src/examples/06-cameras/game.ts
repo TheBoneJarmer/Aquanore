@@ -1,0 +1,100 @@
+import { Aquanore } from "../../aquanore/aquanore";
+import { Keys } from "../../aquanore/enums";
+import { Color, Model, PerspectiveCamera, Renderer, Scene } from "../../aquanore/graphics";
+import { StandardMaterial } from "../../aquanore/graphics/materials";
+import { OrthoCamera } from "../../aquanore/graphics/ortho-camera";
+import { Keyboard } from "../../aquanore/input";
+import { ICamera } from "../../aquanore/interfaces";
+import { MathHelper, Vector3 } from "../../aquanore/math";
+
+let modelCube: Model;
+let modelFloor: Model;
+let cam: ICamera;
+let angle: number;
+
+Aquanore.init();
+Aquanore.onLoad = onLoad;
+Aquanore.onUpdate = onUpdate;
+Aquanore.onRender2D = onRender2D;
+Aquanore.onRender3D = onRender3D;
+Aquanore.onResize = onResize;
+Aquanore.run();
+
+/* CALLBACKS */
+async function onLoad() {
+    initModels();
+    initScene();
+}
+
+async function onUpdate(dt: number) {
+    updateScene(dt);
+    updateControls();
+}
+
+async function onRender2D() {
+
+}
+
+async function onRender3D() {
+    renderScene();
+}
+
+async function onResize() {
+
+}
+
+/* INIT */
+function initModels() {
+    modelCube = Model.cube();
+    modelFloor = Model.box(10, 0.1, 10);
+
+    modelFloor.meshes.forEach((mesh) => {
+        const mat = mesh.primitives[0].material as StandardMaterial;
+        mat.color = new Color(35, 185, 35);
+    })
+}
+
+function initScene() {
+    angle = 0;
+
+    generateCamera();
+}
+
+/* UPDATE */
+function updateScene(dt: number) {
+    angle += dt;
+}
+
+function updateControls() {
+    if (Keyboard.keyPressed(Keys.Space)) {
+        generateCamera();
+    }
+}
+
+function generateCamera() {
+    if (cam instanceof PerspectiveCamera) {
+        cam = new OrthoCamera(-10, 10, 10, -10, -10, 10);
+    } else {
+        cam = new PerspectiveCamera(60, innerWidth / innerHeight, 0.01, 1000.0);
+    }
+
+    cam.translation.z = -5;
+    cam.translation.y = 3;
+    cam.rotation.x = MathHelper.radians(35);
+
+    Scene.camera = cam;
+}
+
+/* RENDER */
+function renderScene() {
+    const posCube = new Vector3(0, 0, 0);
+    const rotCube = new Vector3(angle, angle, angle);
+    const scaleCube = new Vector3(1, 1, 1);
+
+    const posFloor = new Vector3(0, -2, 0);
+    const rotFloor = new Vector3(0, 0, 0);
+    const scaleFloor = new Vector3(1, 1, 1);
+
+    Renderer.drawModel(modelCube, posCube, rotCube, scaleCube);
+    Renderer.drawModel(modelFloor, posFloor, rotFloor, scaleFloor);
+}
