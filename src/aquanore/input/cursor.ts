@@ -57,6 +57,8 @@ export class Cursor {
 
     /* INTERNAL FUNCTIONS */
     static __init() {
+        this._states = [];
+        
         this.__initStates();
     }
 

@@ -27,7 +27,9 @@ vec2 generate_vertex() {
 }
 
 vec2 generate_uv() {
-    vec2 v = a_uv + u_offset;
+    vec2 v = a_uv;
+    v = 1.0 - v;
+    v += u_offset;
 
     if(u_flip_hor) {
         v.x *= -1.0f;

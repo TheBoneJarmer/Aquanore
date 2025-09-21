@@ -5,11 +5,12 @@ import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { BoxGeometry, CapsuleGeometry, ConeGeometry, CubeGeometry, CylinderGeometry, RingGeometry, SphereGeometry, TorusGeometry, TorusKnotGeometry } from "../../aquanore/graphics/geometries";
+import { IGeometry } from "../../aquanore/interfaces";
 
-let model = null;
-let pos = new Vector3(0, 0, 0);
-let rot = new Vector3(0, 0, 0);
-let scale = new Vector3(1, 1, 1);
+let model: Model;
+let pos: Vector3 = new Vector3(0, 0, 0);
+let rot: Vector3 = new Vector3(0, 0, 0);
+let scale: Vector3 = new Vector3(1, 1, 1);
 
 let index = 0;
 let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
@@ -25,7 +26,7 @@ Aquanore.onLoad = () => {
     updateModel();
 };
 
-Aquanore.onUpdate = (dt) => {
+Aquanore.onUpdate = (dt: number) => {
     rot.y += dt;
     // rot.x += dt;
     // rot.z += dt;
@@ -59,7 +60,7 @@ window.addEventListener("load", () => {
     const left = document.getElementById("arrow-left");
     const right = document.getElementById("arrow-right");
 
-    left.onclick = () => {
+    left!.onclick = () => {
         if (index == 0) {
             return;
         }
@@ -69,7 +70,7 @@ window.addEventListener("load", () => {
         updateModel();
     }
 
-    right.onclick = () => {
+    right!.onclick = () => {
         if (index == geometries.length - 1) {
             return;
         }
@@ -98,7 +99,7 @@ function updateModel() {
     let mat = new StandardMaterial();
     mat.color = new Color(35, 200, 35);
 
-    let geom = null;
+    let geom: IGeometry | null = null;
 
     if (index == 0) geom = new CubeGeometry();
     if (index == 1) geom = new BoxGeometry(2, 1, 1);
@@ -110,10 +111,12 @@ function updateModel() {
     if (index == 7) geom = new TorusKnotGeometry();
     if (index == 8) geom = new RingGeometry();
 
-    const pri = new Primitive(geom, mat);
-    const mesh = new Mesh();
-    mesh.primitives.push(pri);
+    if (geom != null) {
+        const pri = new Primitive(geom, mat);
+        const mesh = new Mesh();
+        mesh.primitives.push(pri);
 
-    model = new Model();
-    model.meshes.push(mesh);
+        model = new Model();
+        model.meshes.push(mesh);
+    }
 }

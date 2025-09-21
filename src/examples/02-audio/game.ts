@@ -1,28 +1,28 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { Audio, Sound } from "../../aquanore/audio";
+import { Audio, Sound, SoundInstance } from "../../aquanore/audio";
 import { Keys } from "../../aquanore/enums";
 import { Color, Sprite,Renderer } from "../../aquanore/graphics";
 import { Cursor, Keyboard } from "../../aquanore/input";
 import { Vector2 } from "../../aquanore/math";
-import { TextureLoader } from "../../aquanore/loaders";
+import { AudioLoader, SpriteLoader } from "../../aquanore/loaders";
 
-let voice = null;
-let ambient = null;
-let handle = null;
-let sprite = null;
+let voice: Sound;
+let ambient: Sound;
+let handle: SoundInstance;
+let sprite: Sprite;
 
-await Aquanore.init();
+Aquanore.init();
 
 Aquanore.onLoad = async () => {
-    const loader = new TextureLoader();
-    const tex = await loader.load("pahrak.png");
+    const sprLoader = new SpriteLoader();
+    const audioLoader = new AudioLoader();
 
-    sprite = new Sprite(tex, 1280, 1024);
-    voice = new Sound("voice.mp3");
-    ambient = new Sound("ambient.mp3");
+    sprite = await sprLoader.load("pahrak.png", 1280, 1024);
+    voice = await audioLoader.load("voice.mp3");
+    ambient = await audioLoader.load("ambient.mp3");
 };
 
-Aquanore.onUpdate = async (dt) => {
+Aquanore.onUpdate = async (dt: number) => {
     if (Cursor.isButtonPressed(0) && handle == null) {
         const x = innerWidth / 2 - sprite.width / 2;
         const y = innerHeight / 2 - sprite.height / 2;

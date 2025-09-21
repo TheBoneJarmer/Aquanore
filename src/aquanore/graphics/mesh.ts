@@ -8,8 +8,8 @@ export class Mesh {
     private _primitives: Primitive[];
     private _name: string;
     private _index: number;
-    private _parent: number;
-    private _skin: number;
+    private _parent: number | null;
+    private _skin: number | null;
 
     get translation(): Vector3 {
         return this._translation;
@@ -55,19 +55,19 @@ export class Mesh {
         this._index = value;
     }
 
-    get parent(): number {
+    get parent(): number | null {
         return this._parent;
     }
 
-    set parent(value: number) {
+    set parent(value: number | null) {
         this._parent = value;
     }
 
-    get skin(): number {
+    get skin(): number | null {
         return this._skin;
     }
 
-    set skin(value: number) {
+    set skin(value: number | null) {
         this._skin = value;
     }
 
@@ -77,8 +77,8 @@ export class Mesh {
         this._scale = new Vector3(1, 1, 1);
         this._primitives = [];
         this._name = "Mesh";
-        this._index = -1;
-        this._parent = -1;
-        this._skin = -1;
+        this._index = 0;
+        this._parent = null;
+        this._skin = null;
     }
 }

@@ -13,7 +13,7 @@ async function onLoad() {
 
 }
 
-async function onUpdate(dt) {
+async function onUpdate(dt: number) {
 
 }
 

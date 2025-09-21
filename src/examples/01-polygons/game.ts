@@ -2,16 +2,17 @@ import { Aquanore } from "../../aquanore/aquanore";
 import { Color, Polygon, Renderer } from "../../aquanore/graphics";
 import { Vector2 } from "../../aquanore/math";
 
-let poly = null;
-let angle = 0;
+let poly: Polygon;
+let angle: number;
 
 Aquanore.init();
 
 Aquanore.onLoad = () => {
     poly = Polygon.rectangle(64, 64);
+    angle = 0;
 };
 
-Aquanore.onUpdate = (dt) => {
+Aquanore.onUpdate = (dt: number) => {
     angle += dt * 100;
 };
 

@@ -1,20 +1,16 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Model, Renderer, Mesh, Primitive, Scene } from "../../aquanore/graphics";
+import { Color, Light, Model, Renderer, Mesh, Primitive, Scene } from "../../aquanore/graphics";
 import { SphereGeometry, TorusGeometry } from "../../aquanore/graphics/geometries";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { TextureLoader } from "../../aquanore/loaders";
-import { AquanoreOptions } from "../../aquanore/aquanore-options";
 
-let modelRock = null;
-let modelLight = null;
-let angle = 0;
+let modelRock: Model;
+let modelLight: Model;
+let angle: number;
 
-const options = new AquanoreOptions();
-options.graphics.shadow.enabled = false;
-
-Aquanore.init(options);
+Aquanore.init();
 
 Aquanore.onLoad = async () => {
     const texLoader = new TextureLoader();
@@ -41,9 +37,11 @@ Aquanore.onLoad = async () => {
     Scene.camera.position.z = -5;
     Scene.lights[0] = new Light(LightType.Point);
     Scene.lights[0].source = new Vector3(-1, 0, -1);
+
+    angle = 0;
 };
 
-Aquanore.onUpdate = (dt) => {
+Aquanore.onUpdate = (dt: number) => {
     angle++;
 
     Scene.lights[0].source.x += Math.cos(MathHelper.radians(angle)) * dt * 2;

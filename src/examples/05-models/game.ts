@@ -1,21 +1,17 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { Keys } from "../../aquanore/enums";
-import { Color, Model, Renderer, Scene } from "../../aquanore/graphics";
+import { Color, Model, ModelAnimation, Renderer, Scene } from "../../aquanore/graphics";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Keyboard } from "../../aquanore/input";
-import { AquanoreOptions } from "../../aquanore/aquanore-options";
 
-let model = null;
-
-let animation = null;
+let model: Model;
+let animation: ModelAnimation;
 let index = 0;
 let time = 0;
 let paused = false;
 
-const options = new AquanoreOptions();
-
-Aquanore.init(options);
+Aquanore.init();
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
 Aquanore.onRender3D = onRender3D;
@@ -27,7 +23,7 @@ async function onLoad() {
     await initModels();
 }
 
-async function onUpdate(dt) {
+async function onUpdate(dt: number) {
     await updateScene(dt);
     await updateAnimation(dt);
     await updateInput(dt);
@@ -59,7 +55,7 @@ async function initModels() {
 }
 
 /* UPDATE */
-async function updateControls(dt) {
+async function updateControls(dt: number) {
     const moveSpeed = dt * 10;
     const rotSpeed = dt * 5;
     const cam = Scene.camera;
@@ -108,7 +104,7 @@ async function updateControls(dt) {
     if (Keyboard.keyDown(Keys.Down)) cam.rotation.x += rotSpeed;
 }
 
-async function updateInput(dt) {
+async function updateInput(dt: number) {
     if (Keyboard.keyPressed(Keys.PageUp) && index < model.animations.length - 1) {
         index++;
         animation = model.animations[index];
@@ -126,11 +122,11 @@ async function updateInput(dt) {
     }
 }
 
-async function updateScene(dt) {
+async function updateScene(dt: number) {
 
 }
 
-async function updateAnimation(dt) {
+async function updateAnimation(dt: number) {
     if (animation == null) {
         return;
     }
