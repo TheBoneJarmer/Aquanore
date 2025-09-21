@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 
 const files = await ls("./shaders");
-const srcFile = "./src/aquanore/graphics/shaders/shader-sources.js";
+const srcFile = "./src/aquanore/graphics/shaders/shader-sources.ts";
 
 // Generate the source code
 await rm(srcFile);
@@ -12,13 +12,7 @@ for (let i=0; i<files.length; i++) {
     const content = await read(`./shaders/${file}`);
     const name = shaderName(file);
 
-    await write(srcFile, `\tstatic get ${name}() {`);
-    await write(srcFile, `\t\treturn \"${content}\";`);
-    await write(srcFile, `\t}`);
-    
-    if (i < files.length - 1) {
-        await write(srcFile, ``);
-    }
+    await write(srcFile, `\tstatic readonly ${name} = "${content}"`);
 }
 
 await write(srcFile, `}`);
