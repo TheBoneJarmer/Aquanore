@@ -36,8 +36,8 @@ async function onRender3D() {
 
 /* INIT */
 async function initScene() {
-    Scene.camera.position.z = -4;
-    Scene.camera.position.y = 1;
+    Scene.camera.translation.z = -4;
+    Scene.camera.translation.y = 1;
 
     Scene.lights[0].source = new Vector3(1, 1, 1);
 
@@ -65,8 +65,8 @@ async function updateControls(dt: number) {
         const x = Math.cos(MathHelper.radians(deg));
         const y = Math.sin(MathHelper.radians(deg));
 
-        cam.position.x += x * moveSpeed;
-        cam.position.z += y * moveSpeed;
+        cam.translation.x += x * moveSpeed;
+        cam.translation.z += y * moveSpeed;
     }
 
     if (Keyboard.keyDown(Keys.D)) {
@@ -74,8 +74,8 @@ async function updateControls(dt: number) {
         const x = Math.cos(MathHelper.radians(deg));
         const y = Math.sin(MathHelper.radians(deg));
 
-        cam.position.x += x * moveSpeed;
-        cam.position.z += y * moveSpeed;
+        cam.translation.x += x * moveSpeed;
+        cam.translation.z += y * moveSpeed;
     }
 
     if (Keyboard.keyDown(Keys.W)) {
@@ -83,8 +83,8 @@ async function updateControls(dt: number) {
         const x = Math.cos(MathHelper.radians(deg));
         const y = Math.sin(MathHelper.radians(deg));
 
-        cam.position.x += x * moveSpeed;
-        cam.position.z += y * moveSpeed;
+        cam.translation.x += x * moveSpeed;
+        cam.translation.z += y * moveSpeed;
     }
 
     if (Keyboard.keyDown(Keys.S)) {
@@ -92,12 +92,12 @@ async function updateControls(dt: number) {
         const x = Math.cos(MathHelper.radians(deg));
         const y = Math.sin(MathHelper.radians(deg));
 
-        cam.position.x -= x * moveSpeed;
-        cam.position.z -= y * moveSpeed;
+        cam.translation.x -= x * moveSpeed;
+        cam.translation.z -= y * moveSpeed;
     }
 
-    if (Keyboard.keyDown(Keys.Q)) cam.position.y -= moveSpeed;
-    if (Keyboard.keyDown(Keys.E)) cam.position.y += moveSpeed;
+    if (Keyboard.keyDown(Keys.Q)) cam.translation.y -= moveSpeed;
+    if (Keyboard.keyDown(Keys.E)) cam.translation.y += moveSpeed;
     if (Keyboard.keyDown(Keys.Left)) cam.rotation.y -= rotSpeed;
     if (Keyboard.keyDown(Keys.Right)) cam.rotation.y += rotSpeed;
     if (Keyboard.keyDown(Keys.Up)) cam.rotation.x -= rotSpeed;

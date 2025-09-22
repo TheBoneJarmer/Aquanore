@@ -1,5 +1,5 @@
 import { ICamera } from "../interfaces";
-import { Vector3 } from "../math";
+import { Matrix4, Vector3 } from "../math";
 
 export class PerspectiveCamera implements ICamera {
     private _translation: Vector3;
@@ -8,6 +8,7 @@ export class PerspectiveCamera implements ICamera {
     private _near: number;
     private _far: number;
     private _aspect: number;
+    private _target: Vector3;
 
     /**
      * Returns the camera's translation
@@ -105,6 +106,30 @@ export class PerspectiveCamera implements ICamera {
         this._aspect = value;
     }
 
+    get projectionMatrix(): Matrix4 {
+        const fov = this._fov;
+        const near = this._near;
+        const far = this._far;
+        const aspect = this._aspect;
+
+        return Matrix4.perspective(fov, aspect, near, far);
+    }
+
+    get viewMatrix(): Matrix4 {
+        if (this._target == null) {
+            const pos = this._translation;
+            const rot = this._rotation;
+
+            let m = Matrix4.identity();
+            m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
+            m = Matrix4.translate(m, pos.x, -pos.y, pos.z);
+
+            return m;
+        } else {
+            return Matrix4.lookAt(this._translation, this._target, Vector3.UP);
+        }
+    }
+
     /**
      * Constructs a perspective camera
      * @param fov Field Of View
@@ -119,5 +144,10 @@ export class PerspectiveCamera implements ICamera {
         this._near = near;
         this._far = far;
         this._aspect = aspect;
+        this._target = null;
+    }
+
+    lookAt(target: Vector3 | null): void {
+        this._target = target;
     }
 }

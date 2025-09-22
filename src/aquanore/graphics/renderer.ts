@@ -189,8 +189,8 @@ export class Renderer {
         this.switchShader(this._shaderModel);
 
         const shader = this._shader;
-        const matProjection = this.generateProjectionMatrix(Scene.camera);
-        const matView = this.generateViewMatrix(Scene.camera);
+        const matProjection = Scene.camera.projectionMatrix;
+        const matView = Scene.camera.viewMatrix;
         const matModel = this.generateModelMatrix(pos, rot, scale);
         const matNormal = this.generateNormalMatrix(matModel);
 
@@ -511,39 +511,6 @@ export class Renderer {
         m = Matrix4.scale(m, scale.x, scale.y, scale.z);
 
         return m;
-    }
-
-    private static generateViewMatrix(camera: ICamera): Matrix4 {
-        const pos = camera.translation;
-        const rot = camera.rotation;
-
-        let m = Matrix4.identity();
-        m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
-        m = Matrix4.translate(m, pos.x, -pos.y, pos.z);
-
-        return m;
-    }
-
-    private static generateProjectionMatrix(camera: ICamera): Matrix4 {
-        if (camera instanceof PerspectiveCamera) {
-            const fov = camera.fov;
-            const near = camera.near;
-            const far = camera.far;
-            const aspect = camera.aspect;
-
-            return Matrix4.perspective(fov, aspect, near, far);
-        }
-
-        if (camera instanceof OrthoCamera) {
-            const left = camera.left;
-            const right = camera.right;
-            const top = camera.top;
-            const bottom = camera.bottom;
-            const near = camera.near;
-            const far = camera.far;
-
-            return Matrix4.ortho(left, right, top, bottom, near, far);
-        }
     }
 
     private static generateNormalMatrix(mat: Matrix4): Matrix3 {

@@ -1,5 +1,5 @@
 import { ICamera } from "../interfaces";
-import { Vector3 } from "../math";
+import { Matrix4, Vector3 } from "../math";
 
 export class OrthoCamera implements ICamera {
     private _translation: Vector3;
@@ -10,6 +10,7 @@ export class OrthoCamera implements ICamera {
     private _bottom: number;
     private _near: number;
     private _far: number;
+    private _target: Vector3;
 
     /**
      * Gets the left plane of the orthographic camera.
@@ -139,6 +140,32 @@ export class OrthoCamera implements ICamera {
         this._rotation = value;
     }
 
+    get projectionMatrix(): Matrix4 {
+        const left = this._left;
+        const right = this._right;
+        const top = this._top;
+        const bottom = this._bottom;
+        const near = this._near;
+        const far = this._far;
+
+        return Matrix4.ortho(left, right, top, bottom, near, far);
+    }
+
+    get viewMatrix(): Matrix4 {
+        if (this._target == null) {
+            const pos = this._translation;
+            const rot = this._rotation;
+
+            let m = Matrix4.identity();
+            m = Matrix4.rotate(m, rot.x, rot.y, rot.z);
+            m = Matrix4.translate(m, pos.x, -pos.y, pos.z);
+
+            return m;
+        } else {
+            return Matrix4.lookAt(this._translation, this._target, Vector3.UP);
+        }
+    }
+
     /**
      * Constructs the orthographic camera
      * @param {number} left Left plane
@@ -157,5 +184,10 @@ export class OrthoCamera implements ICamera {
         this._bottom = bottom;
         this._near = near;
         this._far = far;
+        this._target = null;
+    }
+
+    lookAt(target: Vector3 | null): void {
+        this._target = target;
     }
 }

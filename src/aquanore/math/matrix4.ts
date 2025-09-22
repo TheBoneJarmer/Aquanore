@@ -352,16 +352,27 @@ export class Matrix4 {
     }
 
     static lookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix4 {
-        const m = Matrix4.identity();
         const zaxis = Vector3.normalized(Vector3.sub(eye, target));
         const xaxis = Vector3.normalized(Vector3.cross(up, zaxis));
         const yaxis = Vector3.cross(zaxis, xaxis);
 
-        m.x1 = xaxis.x; m.y1 = yaxis.x; m.z1 = zaxis.x; m.w1 = 0;
-        m.x2 = xaxis.y; m.y2 = yaxis.y; m.z2 = zaxis.y; m.w2 = 0;
-        m.x3 = xaxis.z; m.y3 = yaxis.z; m.z3 = zaxis.z; m.w3 = 0;
+        // Orientation matrix
+        let mo = new Matrix4([
+            xaxis.x, yaxis.x, zaxis.x, 0,
+            xaxis.y, yaxis.y, zaxis.y, 0,
+            xaxis.z, yaxis.z, zaxis.z, 0,
+            0, 0, 0, 1
+        ]);
 
-        return m;
+        // Translation matrix
+        let mt = new Matrix4([
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            -eye.x, -eye.y, -eye.z, 1
+        ]);
+
+        return Matrix4.multiply(mo, mt);
     }
 
     static transpose(m: Matrix4): Matrix4 {
