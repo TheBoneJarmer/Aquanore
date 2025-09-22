@@ -1,6 +1,6 @@
 import { Aquanore } from "../aquanore";
 
-export type TextureData = HTMLImageElement | ImageData | ImageBitmap | Uint8Array | Uint16Array | Uint32Array;
+export type TextureData = WebGLTexture | HTMLImageElement | ImageData | ImageBitmap | Uint8Array | Uint16Array | Uint32Array;
 
 export class Texture {
     private _id: WebGLTexture;

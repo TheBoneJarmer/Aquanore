@@ -4,8 +4,10 @@ import { Color, Model, ModelAnimation, Renderer, Scene } from "../../aquanore/gr
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Keyboard } from "../../aquanore/input";
+import { StandardMaterial } from "../../aquanore/graphics/materials";
 
-let model: Model;
+let modelSkelly: Model;
+let modelFloor: Model;
 let animation: ModelAnimation;
 let index = 0;
 let time = 0;
@@ -46,12 +48,18 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    model = await loader.load("models/Skeleton_Mage.glb");
+    modelSkelly = await loader.load("models/Skeleton_Mage.glb");
 
-    if (model.animations.length > 0) {
-        animation = model.animations[index];
+    if (modelSkelly.animations.length > 0) {
+        animation = modelSkelly.animations[index];
         console.log(animation.name || "Animation");
     }
+
+    modelFloor = Model.box(10, 0.1, 10);
+    modelFloor.meshes.forEach((mesh) => {
+        const mat = mesh.primitives[0].material as StandardMaterial;
+        mat.color = new Color(35, 185, 35);
+    });
 }
 
 /* UPDATE */
@@ -105,15 +113,15 @@ async function updateControls(dt: number) {
 }
 
 async function updateInput(dt: number) {
-    if (Keyboard.keyPressed(Keys.PageUp) && index < model.animations.length - 1) {
+    if (Keyboard.keyPressed(Keys.PageUp) && index < modelSkelly.animations.length - 1) {
         index++;
-        animation = model.animations[index];
+        animation = modelSkelly.animations[index];
         console.log(animation.name);
     }
 
     if (Keyboard.keyPressed(Keys.PageDown) && index > 0) {
         index--;
-        animation = model.animations[index];
+        animation = modelSkelly.animations[index];
         console.log(animation.name);
     }
 
@@ -142,9 +150,6 @@ async function updateAnimation(dt: number) {
 
 /* RENDER */
 async function renderScene() {
-    const pos = new Vector3(0, 0, 0);
-    const rot = new Vector3(0,0,0);
-    const scale = new Vector3(1, 1, 1);
-
-    Renderer.drawModel(model, pos, rot, scale, animation, time);
+    Renderer.drawModel(modelSkelly, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1), animation, time);
+    Renderer.drawModel(modelFloor, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 }

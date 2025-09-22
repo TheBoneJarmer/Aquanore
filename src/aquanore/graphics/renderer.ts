@@ -1,6 +1,5 @@
 import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
-import { PerspectiveCamera } from "./perspective-camera";
 import { Color } from "./color";
 import { Joint } from "./joint";
 import { BasicMaterial, StandardMaterial } from "./materials";
@@ -12,14 +11,21 @@ import { Scene } from "./scene";
 import { Shader, Shaders } from "./shaders";
 import { Sprite } from "./sprite";
 import { Texture } from "./texture";
-import { ICamera } from "../interfaces";
-import { OrthoCamera } from "./ortho-camera";
+import { LightType } from "../enums";
+import { Light } from "./light";
 
 export class Renderer {
     private static _shader: Shader;
     private static _shaderPolygon: Shader;
     private static _shaderModel: Shader;
+    private static _shaderScreen: Shader;
     private static _clearColor: Color;
+
+    private static _vao: WebGLVertexArrayObject;
+    private static _fboShadow: WebGLFramebuffer;
+    private static _texShadow: Texture;
+    private static _fboColor: WebGLFramebuffer;
+    private static _texColor: Texture;
 
     /**
      * Sets the polygon shader
@@ -72,6 +78,7 @@ export class Renderer {
         this._shader = null;
         this._shaderPolygon = Shaders.polygon;
         this._shaderModel = Shaders.model;
+        this._shaderScreen = Shaders.screen;
         this._clearColor = new Color(0, 0, 0);
 
         Aquanore.ctx.useProgram(null);
@@ -182,17 +189,17 @@ export class Renderer {
      * @param {number} animationTime - If an animation is set, provides the current time for interpolation.
      */
     static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0) {
-        if (!model) {
-            return;
-        }
-
         this.switchShader(this._shaderModel);
 
+        const gl = Aquanore.ctx;
         const shader = this._shader;
+        const light = Scene.lights.find(x => x.type == LightType.Directional);
         const matProjection = Scene.camera.projectionMatrix;
         const matView = Scene.camera.viewMatrix;
         const matModel = this.generateModelMatrix(pos, rot, scale);
         const matNormal = this.generateNormalMatrix(matModel);
+        const matProjectionShadow = this.generateShadowProjectionMatrix(-16, 16, 16, -16, -16, 16);
+        const matViewShadow = this.generateShadowViewMatrix(light);
 
         shader.umat4("u_projection", matProjection);
         shader.umat4("u_view", matView);
@@ -213,6 +220,15 @@ export class Renderer {
             shader.u1f(`u_light[${i}].range`, light.range);
         }
 
+        // Set the shadow
+        shader.umat4("u_projection_shadow", matProjectionShadow);
+        shader.umat4("u_view_shadow", matViewShadow);
+        shader.u1i("u_shadow_map", 31);
+
+        gl.activeTexture(gl.TEXTURE31);
+        gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
+
+        // Draw all primitives
         for (let mesh of model.meshes) {
             this.drawMesh_Animation(model, mesh, animation, animationTime);
             this.drawMesh_Primitives(mesh);
@@ -320,10 +336,86 @@ export class Renderer {
 
     /* INTERNAL FUNCTIONS */
     static __init() {
+        this.__initVao();
+        this.__initShadowMap();
+        this.__initColorMap();
+
         this.reset();
     }
 
+    static __initVao() {
+        const gl = Aquanore.ctx;
+        const vertices = [0, 0, innerWidth, 0, 0, innerHeight, innerWidth, 0, 0, innerHeight, innerWidth, innerHeight];
+        const uvs = [0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1];
+
+        const vao = gl.createVertexArray();
+        const vboVertices = gl.createBuffer();
+        const vboUVs = gl.createBuffer();
+
+        gl.bindVertexArray(vao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboVertices);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vboUVs);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindVertexArray(null);
+
+        this._vao = vao;
+    }
+
+    private static __initColorMap() {
+        const cnv = Aquanore.canvas;
+        const result = this.generateColorFramebuffer(cnv.width, cnv.height);
+
+        this._fboColor = result.fbo;
+        this._texColor = result.texColor;
+    }
+
+    private static __initShadowMap() {
+        const result = this.generateShadowFramebuffer(2048, 2048);
+
+        this._fboShadow = result.fbo;
+        this._texShadow = result.tex;
+    }
+
     static async __render() {
+        await this.__renderPhase1();
+        await this.__renderPhase2();
+        await this.__renderPhase3();
+
+        this.reset();
+    }
+
+    private static async __renderPhase1() {
+        const gl = Aquanore.ctx;
+        const shader = this._shaderModel;
+
+        // Render to the shadow fbo
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fboShadow);
+        gl.viewport(0, 0, 2048, 2048);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // Temp set the model shader to the shadow shader so every draw model call will use this shader instead
+        this._shaderModel = Shaders.shadow;
+
+        if (Aquanore.onRender3D != null) {
+            await Aquanore.onRender3D();
+        }
+
+        // And now reset the state to render normally again
+        this._shaderModel = shader;
+    }
+
+    private static async  __renderPhase2() {
         const gl = Aquanore.ctx;
         const cnv = Aquanore.canvas;
 
@@ -337,6 +429,7 @@ export class Renderer {
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fboColor);
         gl.viewport(0, 0, cnv.width, cnv.height);
         gl.clearColor(r, g, b, a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -344,15 +437,43 @@ export class Renderer {
         if (Aquanore.onRender3D != null) {
             await Aquanore.onRender3D();
         }
+    }
 
+    private static async __renderPhase3() {
+        const gl = Aquanore.ctx;
+        const cnv = Aquanore.canvas;
+
+        const r = this._clearColor.r / 255.0;
+        const g = this._clearColor.g / 255.0;
+        const b = this._clearColor.b / 255.0;
+        const a = this._clearColor.a / 255.0;
+
+        // Render the color map to the screen using the screen shader
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.clearColor(r, g, b, a);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(0, 0, cnv.width, cnv.height);
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
 
+        gl.useProgram(this._shaderScreen.id);
+        gl.uniform2f(gl.getUniformLocation(this._shaderScreen.id, "u_resolution"), innerWidth, innerHeight);
+        gl.uniform1i(gl.getUniformLocation(this._shaderScreen.id, "u_texture"), 0);
+
+        gl.bindVertexArray(this._vao);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._texColor.id);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindVertexArray(null);
+
+        // And render the 2D scene on top of it
         if (Aquanore.onRender2D != null) {
             await Aquanore.onRender2D();
         }
-
-        this.reset();
     }
 
     static async __resize() {
@@ -360,6 +481,84 @@ export class Renderer {
     }
 
     /* HELPER FUNCTIONS */
+    private static generateColorFramebuffer(width: number, height: number) {
+        const gl = Aquanore.ctx;
+
+        // Generate the color attachment
+        let texColor = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texColor);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // Generate the depth attachment
+        let texDepth = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texDepth);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+
+        // Generate the framebuffer
+        let fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texColor, 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, texDepth, 0);
+
+        // Check if the framebuffer is ok
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error(`Failed to generate color framebuffer: ${status}.`);
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+
+        return {
+            fbo: fbo,
+            texColor: new Texture(width, height, texColor),
+            texDepth: new Texture(width, height, texDepth)
+        };
+    }
+
+    private static generateShadowFramebuffer(width: number, height: number) {
+        const gl = Aquanore.ctx;
+
+        // Generate the attachment
+        let tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, width, height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Generate the framebuffer
+        let fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, tex, 0);
+
+        // Check if the framebuffer is ok
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error(`Failed to generate framebuffer: ${status}.`);
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+
+        return {
+            fbo: fbo,
+            tex: new Texture(width, height, tex),
+        };
+    }
+
     private static hasAnimationChannels(animation: ModelAnimation | null, obj: Mesh | Joint): boolean {
         if (animation == null) {
             return false;
@@ -504,6 +703,32 @@ export class Renderer {
     }
 
     /* MATRIX FUNCTIONS */
+    private static generateShadowProjectionMatrix(left: number, right: number, top: number, bottom: number, near: number, far: number) {
+        return Matrix4.ortho(left, right, top, bottom, near, far);
+    }
+
+    private static generateShadowViewMatrix(light: Light) {
+        if (light == null) {
+            return Matrix4.identity();
+        }
+
+        if (light.type == LightType.Directional) {
+            const source = new Vector3();
+            source.x = light.source.x;
+            source.y = light.source.y;
+            source.z = light.source.z;
+
+            const target = new Vector3(0, 0, 0);
+            const up = new Vector3(0, 1, 0);
+
+            return Matrix4.lookAt(source, target, up);
+        }
+
+        if (light.type == LightType.Point) {
+            // TODO: Generate depth view matrix for point light
+        }
+    }
+
     private static generateModelMatrix(pos: Vector3, rot: Vector3, scale: Vector3): Matrix4 {
         let m = Matrix4.identity();
         m = Matrix4.translate(m, pos.x, pos.y, pos.z);

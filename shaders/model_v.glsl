@@ -15,51 +15,64 @@ uniform mat4 u_projection;
 uniform mat3 u_normal;
 uniform mat4 u_mesh;
 uniform mat4 u_joint[99];
+uniform mat4 u_projection_shadow;
+uniform mat4 u_view_shadow;
 uniform bool u_skinned;
 
 out vec2 v_texcoord;
 out vec3 v_normal;
 out mat3 v_tbn;
 out vec3 v_frag;
+out vec4 v_shadow;
 
 mat4 get_matrix_model() {
-    return u_model * u_mesh;
-}
+    mat4 mat_skin = mat4(1.0f);
 
-mat4 get_matrix_skin() {
     if(u_skinned) {
         mat4 x = a_weight.x * u_joint[int(a_joint.x)];
         mat4 y = a_weight.y * u_joint[int(a_joint.y)];
         mat4 z = a_weight.z * u_joint[int(a_joint.z)];
         mat4 w = a_weight.w * u_joint[int(a_joint.w)];
 
-        return x + y + z + w;
+        mat_skin = x + y + z + w;
     }
 
-    return mat4(1);
+    return u_model * u_mesh * mat_skin;
+}
+
+mat4 get_matrix_shadow() {
+    mat4 mat_model = get_matrix_model();
+    return u_projection_shadow * u_view_shadow * mat_model;
+}
+
+mat4 get_matrix_mvp() {
+    mat4 mat_model = get_matrix_model();
+    return u_projection * u_view * mat_model;
 }
 
 mat3 get_matrix_tbn() {
     mat4 mat_model = get_matrix_model();
 
-    vec3 t = normalize(vec3(mat_model * vec4(a_tangent, 0.0)));
-    vec3 b = normalize(vec3(mat_model * vec4(a_bitangent, 0.0)));
-    vec3 n = normalize(vec3(mat_model * vec4(a_normal, 0.0)));
+    vec3 t = normalize(vec3(mat_model * vec4(a_tangent, 0.0f)));
+    vec3 b = normalize(vec3(mat_model * vec4(a_bitangent, 0.0f)));
+    vec3 n = normalize(vec3(mat_model * vec4(a_normal, 0.0f)));
 
     return mat3(t, b, n);
 }
 
 void main() {
     mat4 mat_model = get_matrix_model();
-    mat4 mat_skin = get_matrix_skin();
     mat3 mat_tbn = get_matrix_tbn();
-    vec4 v = vec4(a_vertex, 1.0);
+    mat4 mat_shadow = get_matrix_shadow();
+    mat4 mat_mvp = get_matrix_mvp();
+    vec4 v = vec4(a_vertex, 1.0f);
 
     v_texcoord = a_texcoord;
     v_normal = u_normal * a_normal;
 
     v_tbn = mat_tbn;
     v_frag = vec3(mat_model * v);
+    v_shadow = mat_shadow * v;
 
-    gl_Position = u_projection * u_view * mat_model * mat_skin * v;
+    gl_Position = mat_mvp * v;
 }
