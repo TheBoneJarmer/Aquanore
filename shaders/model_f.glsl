@@ -41,8 +41,10 @@ in vec4 v_shadow;
 
 out vec4 result;
 
-float calc_shadow() {
-    float bias = 0.005f;
+float calc_shadow(Light light) {
+    vec3 light_dir = normalize(light.source);
+    float bias = max(0.05f * (1.0f - dot(v_normal, light_dir)), 0.005f);
+    float shadow = 0.0f;
 
     vec3 shadow_xyz = v_shadow.xyz;
     float shadow_w = v_shadow.w;
@@ -50,14 +52,31 @@ float calc_shadow() {
     vec3 shadow_coords = shadow_xyz / shadow_w;
     shadow_coords = shadow_coords * 0.5f + 0.5f;
 
-    float depth = texture(u_shadow_map, shadow_coords.xy).r;
+    // float depth = texture(u_shadow_map, shadow_coords.xy).r;
     float depth_current = shadow_coords.z;
 
-    if (depth_current - bias > depth) {
-        return depth;
+    // if (depth_current - bias > depth) {
+    //     shadow = 1.0f;
+    // }
+
+    ivec2 texel_size_i = textureSize(u_shadow_map, 0);
+    vec2 texel_size = vec2(0, 0);
+    texel_size.x = float(texel_size_i.x);
+    texel_size.y = float(texel_size_i.y);
+
+    for(int x = -1; x <= 1; x++) {
+        for(int y = -1; y <= 1; y++) {
+            float pcf_depth = texture(u_shadow_map, shadow_coords.xy + vec2(x, y) * texel_size).r;
+
+            if(depth_current - bias > pcf_depth) {
+                shadow += 1.0f;
+            }
+        }
     }
 
-    return 1.0f;
+    shadow /= 4.0f;
+
+    return 1.0f - shadow;
 }
 
 vec3 calc_dir_light(Light light) {
@@ -82,7 +101,7 @@ vec3 calc_dir_light(Light light) {
         diffuse *= color;
     }
 
-    float shadow = calc_shadow();
+    float shadow = calc_shadow(light);
     ambient *= shadow;
 
     return (ambient.xyz + diffuse.xyz) * light.color.xyz;

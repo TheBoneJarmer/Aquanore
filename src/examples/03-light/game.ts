@@ -8,6 +8,7 @@ import { TextureLoader } from "../../aquanore/loaders";
 
 let modelRock: Model;
 let modelLight: Model;
+let modelFloor: Model;
 let angle: number;
 
 Aquanore.init();
@@ -22,19 +23,23 @@ Aquanore.onLoad = async () => {
     const matLight = new BasicMaterial();
     matLight.color = new Color(255, 255, 255);
 
-    const meshRock = new Mesh();
-    meshRock.primitives[0] = new Primitive(new TorusGeometry(), matRock);
+    modelRock = Model.torus();
+    modelRock.meshes.forEach((mesh) => {
+        mesh.primitives[0].material = matRock;
+    });
 
-    const meshLight = new Mesh();
-    meshLight.primitives[0] = new Primitive(new SphereGeometry(0.1), matLight);
+    modelLight = Model.sphere(0.1);
+    modelLight.meshes.forEach((mesh) => {
+        mesh.primitives[0].material = matLight;
+    });
 
-    modelRock = new Model();
-    modelRock.meshes.push(meshRock);
+    modelFloor = Model.box(10, 0.1, 10);
+    modelFloor.meshes.forEach((mesh) => {
+        const mat = mesh.primitives[0].material as StandardMaterial;
+        mat.color = new Color(35, 185, 35);
+    });
 
-    modelLight = new Model();
-    modelLight.meshes.push(meshLight);
-
-    Scene.camera.position.z = -5;
+    Scene.camera.translation.z = -5;
     Scene.lights[0] = new Light(LightType.Point);
     Scene.lights[0].source = new Vector3(-1, 0, -1);
 
@@ -53,12 +58,9 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    const pos = new Vector3();
-    const rot = new Vector3(0, MathHelper.radians(angle / 5), 0);
-    const scale = new Vector3(1, 1, 1);
-
-    Renderer.drawModel(modelRock, pos, rot, scale);
-    Renderer.drawModel(modelLight, Scene.lights[0].source, Vector3.ZERO, Vector3.ONE);
+    Renderer.drawModel(modelRock, new Vector3(0, 0, 0), new Vector3(0, MathHelper.radians(angle / 5), 0), new Vector3(1, 1, 1));
+    Renderer.drawModel(modelLight, Scene.lights[0].source, new Vector3(0, 0, 0), new Vector3(1, 1, 1));
+    Renderer.drawModel(modelFloor, new Vector3(0, -2, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 };
 
 await Aquanore.run();
