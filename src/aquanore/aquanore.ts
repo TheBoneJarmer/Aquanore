@@ -37,7 +37,7 @@ export class Aquanore {
     }
 
     /**
-     * Returns the options
+     * Returns the options used during initialization. Please do not modify the options after initialization or you'll fuck something up.
      * @returns {AquanoreOptions}
      */
     static get options(): AquanoreOptions {
