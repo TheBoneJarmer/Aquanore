@@ -17,7 +17,7 @@ uniform mat4 u_mesh;
 uniform mat4 u_joint[99];
 uniform mat4 u_projection_shadow;
 uniform mat4 u_view_shadow;
-uniform mat4 u_tsc;
+uniform mat4 u_tsc_shadow;
 uniform bool u_skinned;
 
 out vec2 v_texcoord;
@@ -44,7 +44,7 @@ mat4 get_matrix_model() {
 
 mat4 get_matrix_mvp_shadow() {
     mat4 mat_model = get_matrix_model();
-    return u_tsc * u_projection_shadow * u_view_shadow * mat_model;
+    return u_tsc_shadow * u_projection_shadow * u_view_shadow * mat_model;
 }
 
 mat4 get_matrix_mvp() {

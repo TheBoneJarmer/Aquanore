@@ -194,16 +194,11 @@ export class Renderer {
             const light = Scene.lights[lightIndex];
             const matProjectionShadow = this.generateShadowProjectionMatrix(light, -16, 16, 16, -16, -16, 16);
             const matViewShadow = this.generateShadowViewMatrix(light);
-            const matTSC = new Matrix4([
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
-                0.5, 0.5, 0.5, 1.0
-            ]);
+            const matTextureShadow = this.generateShadowTextureMatrix();
 
             shader.umat4("u_projection_shadow", matProjectionShadow);
             shader.umat4("u_view_shadow", matViewShadow);
-            shader.umat4("u_tsc", matTSC);
+            shader.umat4("u_tsc_shadow", matTextureShadow);
             shader.u1i("u_shadow_map", 31);
             shader.u1i("u_shadow_light", lightIndex);
 
@@ -603,6 +598,15 @@ export class Renderer {
     }
 
     /* MATRIX FUNCTIONS */
+    private static generateShadowTextureMatrix() {
+        return new Matrix4([
+            0.5, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0,
+            0.0, 0.0, 0.5, 0.0,
+            0.5, 0.5, 0.5, 1.0
+        ]);
+    }
+
     private static generateShadowProjectionMatrix(light: Light, left: number, right: number, top: number, bottom: number, near: number, far: number) {
         if (light == null) {
             return Matrix4.identity();
