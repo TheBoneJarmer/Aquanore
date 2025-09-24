@@ -1,53 +1,29 @@
 export class CanvasOptions {
-    private _dom = null;
-    private _autoResize = true;
+    dom: HTMLCanvasElement = null;
+    autoResize: boolean = true;
+}
 
-    /**
-     * Returns the DOM element setting
-     * @returns {HTMLCanvasElement}
-     */
-    get dom(): HTMLCanvasElement {
-        return this._dom;
-    }
+export class ShadowFrustrumOptions {
+    left: number = -16;
+    right: number = 16;
+    top: number = 16;
+    bottom: number = -16;
+    near: number = -16;
+    far: number = 16;
+}
 
-    /**
-     * Sets the DOM element. If this setting is untouched, Aquanore will create a canvas element and append it to the body.
-     * @param {HTMLCanvasElement} value
-     */
-    set dom(value: HTMLCanvasElement) {
-        if (value == null) {
-            throw new Error("DOM element cannot be null");
-        }
+export class ShadowMapOptions {
+    width: number = 4096;
+    height: number = 4096;
+}
 
-        this._dom = value;
-    }
-
-    /**
-     * Returns the autoResize setting
-     * @returns {boolean}
-     */
-    get autoResize(): boolean {
-        return this._autoResize;
-    }
-
-    /**
-     * If `true`, Aquanore will automically resize the canvas to match the window dimensions.
-     * Set this to `false` if you set a canvas element manually or if you wish to control the canvas size.
-     * @param {boolean} value
-     */
-    set autoResize(value: boolean) {
-        this._autoResize = value;
-    }
+export class ShadowOptions {
+    enabled: boolean = true;
+    frustrum: ShadowFrustrumOptions = new ShadowFrustrumOptions();
+    map: ShadowMapOptions = new ShadowMapOptions();
 }
 
 export class AquanoreOptions {
-    private _canvas = new CanvasOptions();
-
-    /**
-     * Returns the canvas options
-     * @returns {CanvasOptions}
-     */
-    get canvas(): CanvasOptions {
-        return this._canvas;
-    }
+    canvas: CanvasOptions = new CanvasOptions();
+    shadow: ShadowOptions = new ShadowOptions();
 }

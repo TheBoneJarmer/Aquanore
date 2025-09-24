@@ -224,10 +224,19 @@ export class Aquanore {
         await Renderer.__render();
 
         const gl = this._ctx;
-        const error = gl.getError();
+        const errNum = gl.getError();
 
-        if (error != 0) {
-            throw new Error(`OpenGL error ${error}`);
+        if (errNum != 0) {
+            let errStr = `${errNum}`;
+
+            if (errNum == gl.INVALID_ENUM) errStr = "INVALID_ENUM";
+            if (errNum == gl.INVALID_VALUE) errStr = "INVALID_VALUE";
+            if (errNum == gl.INVALID_OPERATION) errStr = "INVALID_OPERATION";
+            if (errNum == gl.OUT_OF_MEMORY) errStr = "OUT_OF_MEMORY";
+            if (errNum == gl.INVALID_FRAMEBUFFER_OPERATION) errStr = "INVALID_FRAMEBUFFER_OPERATION";
+            if (errNum == gl.CONTEXT_LOST_WEBGL) errStr = "CONTEXT_LOST";
+
+            throw new Error(`WebGL ${errStr}`);
         }
     }
 

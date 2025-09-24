@@ -192,15 +192,17 @@ export class Renderer {
             // Set the shadow map
             const lightIndex = Scene.lights.findIndex(x => x.type == LightType.Directional);
             const light = Scene.lights[lightIndex];
-            const matProjectionShadow = this.generateShadowProjectionMatrix(light, -16, 16, 16, -16, -16, 16);
+
+            const matProjectionShadow = this.generateShadowProjectionMatrix(light);
             const matViewShadow = this.generateShadowViewMatrix(light);
             const matTextureShadow = this.generateShadowTextureMatrix();
 
+            shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
+            shader.u1i("u_shadow_light", lightIndex);
+            shader.u1i("u_shadow_map", 31);
             shader.umat4("u_projection_shadow", matProjectionShadow);
             shader.umat4("u_view_shadow", matViewShadow);
             shader.umat4("u_tsc_shadow", matTextureShadow);
-            shader.u1i("u_shadow_map", 31);
-            shader.u1i("u_shadow_light", lightIndex);
 
             gl.activeTexture(gl.TEXTURE31);
             gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
@@ -316,13 +318,12 @@ export class Renderer {
                 shader.ucolor("u_material.ambient", material.ambient);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
-                shader.u1i("u_material.color_map", 0);
-                shader.u1i("u_material.normal_map", 1);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, material.colorMap.id);
 
+                    shader.u1i("u_material.color_map", 0);
                     shader.u1b("u_material.color_map_active", true);
                 }
 
@@ -330,6 +331,7 @@ export class Renderer {
                     gl.activeTexture(gl.TEXTURE1);
                     gl.bindTexture(gl.TEXTURE_2D, material.normalMap.id);
 
+                    shader.u1i("u_material.normal_map", 1);
                     shader.u1b("u_material.normal_map_active", true);
                 }
             }
@@ -348,7 +350,8 @@ export class Renderer {
     }
 
     private static __initShadowMap() {
-        const result = this.generateShadowFramebuffer(4096, 4096);
+        const options = Aquanore.options.shadow;
+        const result = this.generateShadowFramebuffer(options.map.width, options.map.height);
 
         this._fboShadow = result.fbo;
         this._texShadow = result.tex;
@@ -364,12 +367,17 @@ export class Renderer {
     private static async __renderPhase1() {
         const gl = Aquanore.ctx;
         const shader = this._shaderModel;
+        const options = Aquanore.options.shadow;
+
+        if (!options.enabled) {
+            return;
+        }
 
         // Render to the shadow fbo
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fboShadow);
-        gl.viewport(0, 0, 4096, 4096);
+        gl.viewport(0, 0, options.map.width, options.map.height);
         gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // Temp set the model shader to the shadow shader so every draw model call will use this shader instead
@@ -607,10 +615,19 @@ export class Renderer {
         ]);
     }
 
-    private static generateShadowProjectionMatrix(light: Light, left: number, right: number, top: number, bottom: number, near: number, far: number) {
+    private static generateShadowProjectionMatrix(light: Light) {
+        const shadowOptions = Aquanore.options.shadow;
+
         if (light == null) {
             return Matrix4.identity();
         }
+
+        const left = shadowOptions.frustrum.left;
+        const right = shadowOptions.frustrum.right;
+        const top = shadowOptions.frustrum.top;
+        const bottom = shadowOptions.frustrum.bottom;
+        const near = shadowOptions.frustrum.near;
+        const far = shadowOptions.frustrum.far;
 
         return Matrix4.ortho(left, right, top, bottom, near, far);
     }

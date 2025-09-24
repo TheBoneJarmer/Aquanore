@@ -33,6 +33,7 @@ uniform Material u_material;
 uniform int u_material_type;
 uniform mediump sampler2DShadow u_shadow_map;
 uniform int u_shadow_light;
+uniform bool u_shadow_enabled;
 
 in vec3 v_normal;
 in vec2 v_texcoord;
@@ -129,7 +130,11 @@ void main() {
     }
 
     if(u_material_type == STANDARD_MATERIAL) {
-        float shadow = calc_shadow();
+        float shadow = 1.0;
+
+        if (u_shadow_enabled) {
+            shadow = calc_shadow();
+        }
 
         for(int i = 0; i < 100; i++) {
             if(i >= u_light_count) {

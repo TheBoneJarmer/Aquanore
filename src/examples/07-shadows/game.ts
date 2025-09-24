@@ -1,4 +1,5 @@
 import { Aquanore } from "../../aquanore/aquanore";
+import { AquanoreOptions } from "../../aquanore/aquanore-options";
 import { Keys } from "../../aquanore/enums";
 import { Color, Model, Renderer, Scene } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
