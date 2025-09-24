@@ -1,6 +1,6 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { Keys, LightType } from "../../aquanore/enums";
-import { Camera, Color, Light, Mesh, Primitive, Model, Renderer, Scene } from "../../aquanore/graphics";
+import { Keys } from "../../aquanore/enums";
+import { Color, Mesh, Primitive, Model, Renderer, Scene } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector3 } from "../../aquanore/math";
@@ -18,8 +18,8 @@ let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus
 Aquanore.init();
 
 Aquanore.onLoad = () => {
-    Scene.camera.position.z = -3;
-    Scene.camera.position.y = 2;
+    Scene.camera.translation.z = -3;
+    Scene.camera.translation.y = 2;
     Scene.camera.rotation.x = MathHelper.radians(35);
 
     updateInfo();

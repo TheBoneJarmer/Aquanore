@@ -1,14 +1,12 @@
 import { Aquanore } from "../../aquanore/aquanore";
 import { LightType } from "../../aquanore/enums";
 import { Color, Light, Model, Renderer, Mesh, Primitive, Scene } from "../../aquanore/graphics";
-import { SphereGeometry, TorusGeometry } from "../../aquanore/graphics/geometries";
 import { BasicMaterial, StandardMaterial } from "../../aquanore/graphics/materials";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { TextureLoader } from "../../aquanore/loaders";
 
 let modelRock: Model;
 let modelLight: Model;
-let modelFloor: Model;
 let angle: number;
 
 Aquanore.init();
@@ -33,12 +31,6 @@ Aquanore.onLoad = async () => {
         mesh.primitives[0].material = matLight;
     });
 
-    modelFloor = Model.box(10, 0.1, 10);
-    modelFloor.meshes.forEach((mesh) => {
-        const mat = mesh.primitives[0].material as StandardMaterial;
-        mat.color = new Color(35, 185, 35);
-    });
-
     Scene.camera.translation.z = -5;
     Scene.lights[0] = new Light(LightType.Point);
     Scene.lights[0].source = new Vector3(-1, 0, -1);
@@ -60,7 +52,6 @@ Aquanore.onRender2D = () => {
 Aquanore.onRender3D = () => {
     Renderer.drawModel(modelRock, new Vector3(0, 0, 0), new Vector3(0, MathHelper.radians(angle / 5), 0), new Vector3(1, 1, 1));
     Renderer.drawModel(modelLight, Scene.lights[0].source, new Vector3(0, 0, 0), new Vector3(1, 1, 1));
-    Renderer.drawModel(modelFloor, new Vector3(0, -2, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 };
 
 await Aquanore.run();
