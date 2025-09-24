@@ -1,5 +1,5 @@
 #version 300 es
-precision highp float;
+precision mediump float;
 
 layout(location = 0) in vec3 a_vertex;
 layout(location = 5) in vec4 a_joint;

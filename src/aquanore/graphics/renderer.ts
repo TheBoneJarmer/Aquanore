@@ -185,44 +185,59 @@ export class Renderer {
      * @param {number} animationTime - If an animation is set, provides the current time for interpolation.
      */
     static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0) {
-        this.switchShader(this._shaderModel);
+        if (this.switchShader(this._shaderModel)) {
+            const shader = this._shader;
+            const gl = Aquanore.ctx;
 
-        const gl = Aquanore.ctx;
-        const shader = this._shader;
-        const light = Scene.lights.find(x => x.type == LightType.Directional);
-        const matProjection = Scene.camera.projectionMatrix;
-        const matView = Scene.camera.viewMatrix;
-        const matModel = this.generateModelMatrix(pos, rot, scale);
-        const matNormal = this.generateNormalMatrix(matModel);
-        const matProjectionShadow = this.generateShadowProjectionMatrix(light, -16, 16, 16, -16, -16, 16);
-        const matViewShadow = this.generateShadowViewMatrix(light);
+            // Set the shadow map
+            const lightIndex = Scene.lights.findIndex(x => x.type == LightType.Directional);
+            const light = Scene.lights[lightIndex];
+            const matProjectionShadow = this.generateShadowProjectionMatrix(light, -16, 16, 16, -16, -16, 16);
+            const matViewShadow = this.generateShadowViewMatrix(light);
+            const matTSC = new Matrix4([
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
+                0.5, 0.5, 0.5, 1.0
+            ]);
 
-        shader.umat4("u_projection", matProjection);
-        shader.umat4("u_view", matView);
-        shader.umat4("u_model", matModel);
-        shader.umat3("u_normal", matNormal);
-        shader.uvec3("u_camera", Scene.camera.translation);
-        shader.u1i("u_light_count", Scene.lights.length);
+            shader.umat4("u_projection_shadow", matProjectionShadow);
+            shader.umat4("u_view_shadow", matViewShadow);
+            shader.umat4("u_tsc", matTSC);
+            shader.u1i("u_shadow_map", 31);
+            shader.u1i("u_shadow_light", lightIndex);
 
-        // Set all lights
-        for (let i = 0; i < Scene.lights.length; i++) {
-            const light = Scene.lights[i];
+            gl.activeTexture(gl.TEXTURE31);
+            gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
 
-            shader.u1i(`u_light[${i}].type`, light.type);
-            shader.u1b(`u_light[${i}].enabled`, light.enabled);
-            shader.uvec3(`u_light[${i}].source`, light.source);
-            shader.ucolor(`u_light[${i}].color`, light.color);
-            shader.u1f(`u_light[${i}].strength`, light.strength);
-            shader.u1f(`u_light[${i}].range`, light.range);
+            // Set all lights
+            shader.u1i("u_light_count", Scene.lights.length);
+
+            for (let i = 0; i < Scene.lights.length; i++) {
+                const light = Scene.lights[i];
+
+                shader.u1i(`u_light[${i}].type`, light.type);
+                shader.u1b(`u_light[${i}].enabled`, light.enabled);
+                shader.uvec3(`u_light[${i}].source`, light.source);
+                shader.ucolor(`u_light[${i}].color`, light.color);
+                shader.u1f(`u_light[${i}].strength`, light.strength);
+                shader.u1f(`u_light[${i}].range`, light.range);
+            }
+
+            // Set some matrices that stay consistent in this function regardless of the other input
+            const matProjection = Scene.camera.projectionMatrix;
+            const matView = Scene.camera.viewMatrix;
+
+            shader.umat4("u_projection", matProjection);
+            shader.umat4("u_view", matView);
         }
 
-        // Set the shadow
-        shader.umat4("u_projection_shadow", matProjectionShadow);
-        shader.umat4("u_view_shadow", matViewShadow);
-        shader.u1i("u_shadow_map", 31);
+        const shader = this._shader;
+        const matModel = this.generateModelMatrix(pos, rot, scale);
+        const matNormal = this.generateNormalMatrix(matModel);
 
-        gl.activeTexture(gl.TEXTURE31);
-        gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
+        shader.umat4("u_model", matModel);
+        shader.umat3("u_normal", matNormal);
 
         // Draw all primitives
         for (let mesh of model.meshes) {
@@ -420,6 +435,8 @@ export class Renderer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
 
         // Generate the framebuffer
         let fbo = gl.createFramebuffer();
@@ -587,19 +604,11 @@ export class Renderer {
 
     /* MATRIX FUNCTIONS */
     private static generateShadowProjectionMatrix(light: Light, left: number, right: number, top: number, bottom: number, near: number, far: number) {
-        const cam = Scene.camera;
-
         if (light == null) {
             return Matrix4.identity();
         }
 
-        if (light.type == LightType.Directional) {
-            return Matrix4.ortho(left, right, top, bottom, near, far);
-        } else if (cam instanceof PerspectiveCamera) {
-            return Matrix4.perspective(cam.fov, cam.aspect, cam.near, cam.far);
-        } else {
-            return Matrix4.ortho(left, right, top, bottom, near, far);
-        }
+        return Matrix4.ortho(left, right, top, bottom, near, far);
     }
 
     private static generateShadowViewMatrix(light: Light) {

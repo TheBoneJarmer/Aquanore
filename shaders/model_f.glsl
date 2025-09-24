@@ -1,5 +1,5 @@
 #version 300 es
-precision highp float;
+precision mediump float;
 
 #define POINT_LIGHT 0
 #define DIRECTIONAL_LIGHT 1
@@ -31,55 +31,40 @@ uniform Light u_light[100];
 uniform int u_light_count;
 uniform Material u_material;
 uniform int u_material_type;
-uniform sampler2D u_shadow_map;
+uniform mediump sampler2DShadow u_shadow_map;
+uniform int u_shadow_light;
 
 in vec3 v_normal;
 in vec2 v_texcoord;
 in mat3 v_tbn;
 in vec3 v_frag;
 in vec4 v_shadow;
+in vec2 v_adjacent_pixels[5];
 
 out vec4 result;
 
-float calc_shadow(Light light) {
+float calc_shadow() {
+    Light light = u_light[u_shadow_light];
+    float shadow_visibility = 1.0f;
+    float shadow_spread = 1600.0f;
+
     vec3 light_dir = normalize(light.source);
     float bias = max(0.05f * (1.0f - dot(v_normal, light_dir)), 0.005f);
-    float shadow = 0.0f;
 
-    vec3 shadow_xyz = v_shadow.xyz;
-    float shadow_w = v_shadow.w;
+    for(int i = 0; i < 5; i++) {
+        vec3 coords = v_shadow.xyz;
+        coords = vec3(coords.xy + v_adjacent_pixels[i] / shadow_spread, coords.z - bias);
 
-    vec3 shadow_coords = shadow_xyz / shadow_w;
-    shadow_coords = shadow_coords * 0.5f + 0.5f;
+        float hit_value = texture(u_shadow_map, coords);
+        float lit_value = max(hit_value, 0.85f);
 
-    // float depth = texture(u_shadow_map, shadow_coords.xy).r;
-    float depth_current = shadow_coords.z;
-
-    // if (depth_current - bias > depth) {
-    //     shadow = 1.0f;
-    // }
-
-    ivec2 texel_size_i = textureSize(u_shadow_map, 0);
-    vec2 texel_size = vec2(0, 0);
-    texel_size.x = float(texel_size_i.x);
-    texel_size.y = float(texel_size_i.y);
-
-    for(int x = -1; x <= 1; x++) {
-        for(int y = -1; y <= 1; y++) {
-            float pcf_depth = texture(u_shadow_map, shadow_coords.xy + vec2(x, y) * texel_size).r;
-
-            if(depth_current - bias > pcf_depth) {
-                shadow += 1.0f;
-            }
-        }
+        shadow_visibility *= lit_value;
     }
 
-    shadow /= 4.0f;
-
-    return 1.0f - shadow;
+    return shadow_visibility;
 }
 
-vec3 calc_dir_light(Light light) {
+vec3 calc_dir_light(Light light, float shadow) {
     vec3 normal = normalize(v_normal);
 
     if(u_material.normal_map_active) {
@@ -91,7 +76,7 @@ vec3 calc_dir_light(Light light) {
     vec3 light_dir = normalize(light.source);
     float light_diff = max(dot(normal, light_dir), 0.0f);
 
-    vec4 ambient = u_material.ambient * u_material.color;
+    vec4 ambient = u_material.ambient * u_material.color * shadow;
     vec4 diffuse = u_material.color * light_diff;
 
     if(u_material.color_map_active) {
@@ -100,9 +85,6 @@ vec3 calc_dir_light(Light light) {
         ambient *= color;
         diffuse *= color;
     }
-
-    float shadow = calc_shadow(light);
-    ambient *= shadow;
 
     return (ambient.xyz + diffuse.xyz) * light.color.xyz;
 }
@@ -147,6 +129,8 @@ void main() {
     }
 
     if(u_material_type == STANDARD_MATERIAL) {
+        float shadow = calc_shadow();
+
         for(int i = 0; i < 100; i++) {
             if(i >= u_light_count) {
                 break;
@@ -157,7 +141,7 @@ void main() {
             }
 
             if(u_light[i].type == DIRECTIONAL_LIGHT) {
-                result.xyz += calc_dir_light(u_light[i]);
+                result.xyz += calc_dir_light(u_light[i], shadow);
             }
 
             if(u_light[i].type == POINT_LIGHT) {

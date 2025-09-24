@@ -1,5 +1,5 @@
 #version 300 es
-precision highp float;
+precision mediump float;
 
 layout(location = 0) in vec3 a_vertex;
 layout(location = 1) in vec3 a_normal;
@@ -17,6 +17,7 @@ uniform mat4 u_mesh;
 uniform mat4 u_joint[99];
 uniform mat4 u_projection_shadow;
 uniform mat4 u_view_shadow;
+uniform mat4 u_tsc;
 uniform bool u_skinned;
 
 out vec2 v_texcoord;
@@ -24,6 +25,7 @@ out vec3 v_normal;
 out mat3 v_tbn;
 out vec3 v_frag;
 out vec4 v_shadow;
+out vec2 v_adjacent_pixels[5];
 
 mat4 get_matrix_model() {
     mat4 mat_skin = mat4(1.0f);
@@ -40,9 +42,9 @@ mat4 get_matrix_model() {
     return u_model * u_mesh * mat_skin;
 }
 
-mat4 get_matrix_shadow() {
+mat4 get_matrix_mvp_shadow() {
     mat4 mat_model = get_matrix_model();
-    return u_projection_shadow * u_view_shadow * mat_model;
+    return u_tsc * u_projection_shadow * u_view_shadow * mat_model;
 }
 
 mat4 get_matrix_mvp() {
@@ -63,7 +65,7 @@ mat3 get_matrix_tbn() {
 void main() {
     mat4 mat_model = get_matrix_model();
     mat3 mat_tbn = get_matrix_tbn();
-    mat4 mat_shadow = get_matrix_shadow();
+    mat4 mat_mvp_shadow = get_matrix_mvp_shadow();
     mat4 mat_mvp = get_matrix_mvp();
     vec4 v = vec4(a_vertex, 1.0f);
 
@@ -72,7 +74,8 @@ void main() {
 
     v_tbn = mat_tbn;
     v_frag = vec3(mat_model * v);
-    v_shadow = mat_shadow * v;
+    v_shadow = mat_mvp_shadow * v;
+    v_adjacent_pixels = vec2[](vec2(0, 0), vec2(-1, 0), vec2(1, 0), vec2(0, 1), vec2(0, -1));
 
     gl_Position = mat_mvp * v;
 }
