@@ -240,7 +240,7 @@ export class Aquanore {
         }
     }
 
-    private static async callback(time) {
+    private static async callback(time: number) {
         await Aquanore.update(time);
         await Aquanore.render();
 

@@ -1,0 +1,1 @@
+node ./generate-shaders.js > ./src/aquanore/graphics/shaders/shader-sources.ts
