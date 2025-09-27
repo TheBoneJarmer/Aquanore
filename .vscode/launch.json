@@ -66,6 +66,15 @@
             "cwd": "${workspaceFolder}/src/examples/07-shadows",
             "internalConsoleOptions": "neverOpen",
             "args": []
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "08 - Fonts",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/08-fonts",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
         }
     ]
 }
