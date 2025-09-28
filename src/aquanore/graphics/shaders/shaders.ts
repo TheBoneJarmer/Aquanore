@@ -5,6 +5,7 @@ export class Shaders {
     private static _polygon: Shader;
     private static _model: Shader;
     private static _shadow: Shader;
+    private static _font: Shader;
 
     static get polygon() {
         return this._polygon;
@@ -18,10 +19,15 @@ export class Shaders {
         return this._shadow;
     }
 
+    static get font() {
+        return this._font;
+    }
+
     /* INTERNAL FUNCTIONS */
     static __init() {
         this._polygon = new Shader(ShaderSources.POLYGON_V, ShaderSources.POLYGON_F);
         this._model = new Shader(ShaderSources.MODEL_V, ShaderSources.MODEL_F);
         this._shadow = new Shader(ShaderSources.SHADOW_V, ShaderSources.SHADOW_F);
+        this._font = new Shader(ShaderSources.FONT_V, ShaderSources.FONT_F);
     }
 }

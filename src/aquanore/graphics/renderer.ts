@@ -13,12 +13,13 @@ import { Sprite } from "./sprite";
 import { Texture } from "./texture";
 import { LightType } from "../enums";
 import { Light } from "./light";
-import { PerspectiveCamera } from "./perspective-camera";
+import { Font } from "./font";
 
 export class Renderer {
     private static _shader: Shader;
     private static _shaderPolygon: Shader;
     private static _shaderModel: Shader;
+    private static _shaderFont: Shader;
     private static _clearColor: Color;
 
     private static _fboShadow: WebGLFramebuffer;
@@ -49,6 +50,18 @@ export class Renderer {
     }
 
     /**
+     * Sets the font shader
+     * @param {Shader} value
+     */
+    static set shaderFont(value: Shader) {
+        if (value == null) {
+            throw new Error("Value cannot be null");
+        }
+
+        this._shaderFont = value;
+    }
+
+    /**
      * Returns the current clear color
      * @returns {Color}
      */
@@ -75,6 +88,7 @@ export class Renderer {
         this._shader = null;
         this._shaderPolygon = Shaders.polygon;
         this._shaderModel = Shaders.model;
+        this._shaderFont = Shaders.font;
         this._clearColor = new Color(0, 0, 0);
 
         Aquanore.ctx.useProgram(null);
@@ -170,6 +184,47 @@ export class Renderer {
         }
 
         gl.drawArrays(gl.TRIANGLES, 0, polygon.vertices.length / 2);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindVertexArray(null);
+    }
+
+    public static drawText(font: Font, text: string, pos: Vector2, scale: Vector2, color: Color) {
+        this.switchShader(this._shaderFont);
+
+        const gl = Aquanore.ctx;
+        const cnv = Aquanore.canvas;
+
+        const shader = this._shader;
+        shader.u2f("u_resolution", cnv.width, cnv.height);
+        shader.u2f("u_rotation", 0, 1);
+        shader.uvec2("u_scale", scale);
+        shader.ucolor("u_color", color);
+
+        gl.bindTexture(gl.TEXTURE_2D, font.tex);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindVertexArray(font.id);
+
+        let advance = 0;
+
+        for (let char of text) {
+            const code = char.charCodeAt(0);
+            const glyphIndex = font.glyphs.findIndex(x => x.id == code);
+            const glyph = font.glyphs[glyphIndex];
+
+            if (!glyph) {
+                continue;
+            }
+
+            let textX = pos.x + glyph.xoffset * scale.x + advance;
+            let textY = pos.y + glyph.yoffset * scale.y;
+
+            shader.u2f("u_translation", textX, textY);
+            gl.drawArrays(gl.TRIANGLES, glyphIndex * 6, 6);
+
+            advance += glyph.width * scale.x;
+        }
+
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindVertexArray(null);

@@ -28,7 +28,6 @@ vec2 generate_vertex() {
 
 vec2 generate_uv() {
     vec2 v = a_uv;
-    v = 1.0 - v;
     v += u_offset;
 
     if(u_flip_hor) {
@@ -48,5 +47,5 @@ void main() {
 
     v_uv = uv;
 
-    gl_Position = vec4(vertex.x, vertex.y, 0, 1);
+    gl_Position = vec4(vertex.x, -vertex.y, 0, 1);
 }
