@@ -14,7 +14,7 @@ Aquanore.run();
 
 /* CALLBACKS */
 async function onLoad() {
-    font = new Font(32, "arial");
+    font = new Font(32, "Times New Roman");
 }
 
 async function onUpdate(dt: number) {
