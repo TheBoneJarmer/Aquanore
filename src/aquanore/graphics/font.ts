@@ -13,7 +13,7 @@ export class Glyph {
 }
 
 export class Font {
-    private static readonly CHARACTERS = `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/|"'@#$^&{}[] `;
+    private static readonly CHARACTERS = `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/\\|"'@#$^&{}[]<> áéíóúýäëïöüÿàèìòùỳãẽĩõũỹñ€`;
 
     private _size: number;
     private _family: string;

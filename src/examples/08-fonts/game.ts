@@ -26,7 +26,7 @@ async function onRender2D() {
     const scale = new Vector2(1, 1);
     const color = new Color(255, 255, 255);
 
-    Renderer.drawText(font, "Hello, World!", pos, scale, color);
+    Renderer.drawText(font, "<~(0)~> Hèllö, Wórld! <~(0)~>", pos, scale, color);
 }
 
 async function onRender3D() {
