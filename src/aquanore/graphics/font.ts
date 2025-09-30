@@ -1,19 +1,26 @@
 import { Aquanore } from "../aquanore";
 
+/**
+ * A glyph represents a character within the font
+ */
 export class Glyph {
     id: number;
     char: string;
     x: number;
     y: number;
-    xoffset: number;
-    yoffset: number;
     width: number;
     height: number;
-    baseline: number;
 }
 
+/**
+ * The font class represents a bitmap font image and data that can be used to render text.
+ */
 export class Font {
-    private static readonly CHARACTERS = `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/\\|"'@#$^&{}[]<> áéíóúýäëïöüÿàèìòùỳãẽĩõũỹñ€`;
+    /**
+     * The character string used to generate the bitmap font. It contains the characters I considered neccesary although you can choose to expand it or modify it.
+     * If you want to change it, to this before you call the `constructor` of this class.
+     */
+    public static CHARACTERS: string = `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/\\|"'@#$^&{}[]<>~ áéíóúýäëïöüÿàèìòùỳãẽĩõũỹñ€`;
 
     private _size: number;
     private _family: string;
@@ -25,26 +32,51 @@ export class Font {
 
     private _glyphs: Glyph[];
 
+    /**
+     * Returns the Vertex Array Object of the font's glyphs
+     * @returns {WebGLVertexArrayObject}
+     */
     get id(): WebGLVertexArrayObject {
         return this._vao;
     }
 
+    /**
+     * Returns the WebGL texture object of the font's bitmap image
+     * @returns {WebGLTexture}
+     */
     get tex(): WebGLTexture {
         return this._tex;
     }
 
+    /**
+     * Returns the width of the texture
+     * @returns {number}
+     */
     get texWidth(): number {
         return this._texWidth;
     }
 
+    /**
+     * Returns the height of the texture
+     * @returns {number}
+     */
     get texHeight(): number {
         return this._texHeight;
     }
 
+    /**
+     * Returns the array of glyphs
+     * @returns {Glyph[]}
+     */
     get glyphs(): Glyph[] {
         return this._glyphs;
     }
 
+    /**
+     * Constructs a font object
+     * @param size The font size in pixels
+     * @param family The font family string. This value works the same as the CSS property `font-family`.
+     */
     constructor(size: number, family: string) {
         this._size = size;
         this._family = family;
@@ -124,9 +156,6 @@ export class Font {
             glyph.y = charY;
             glyph.width = width;
             glyph.height = height;
-            glyph.xoffset = 0;
-            glyph.yoffset = 0;
-            glyph.baseline = metrics.ideographicBaseline;
 
             glyphs.push(glyph);
             advance += width;
@@ -211,5 +240,27 @@ export class Font {
         gl.bindVertexArray(null);
 
         this._vao = vao;
+    }
+
+    /**
+     * Measures the total width in pixels of the given text
+     * @param text The text to measure
+     * @returns The total width in pixels
+     */
+    public measureText(text: string) {
+        let advance = 0;
+
+        for (let i=0; i<text.length; i++) {
+            const char = text[i];
+            const glyph = this._glyphs.find(x => x.char == char);
+
+            if (glyph == null) {
+                continue;
+            }
+
+            advance += glyph.width;
+        }
+
+        return advance;
     }
 }

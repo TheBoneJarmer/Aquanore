@@ -216,8 +216,8 @@ export class Renderer {
                 continue;
             }
 
-            let textX = pos.x + glyph.xoffset * scale.x + advance;
-            let textY = pos.y + glyph.yoffset * scale.y;
+            let textX = pos.x * scale.x + advance;
+            let textY = pos.y + scale.y;
 
             shader.u2f("u_translation", textX, textY);
             gl.drawArrays(gl.TRIANGLES, glyphIndex * 6, 6);
