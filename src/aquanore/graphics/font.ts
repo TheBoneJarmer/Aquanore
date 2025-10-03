@@ -21,6 +21,7 @@ export class Font {
      * If you want to change it, to this before you call the `constructor` of this class.
      */
     public static CHARACTERS: string = `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/\\|"'@#$^&{}[]<>~ áéíóúýäëïöüÿàèìòùỳãẽĩõũỹñ€`;
+    public static PADDING: number = 4;
 
     private _size: number;
     private _family: string;
@@ -89,9 +90,10 @@ export class Font {
 
     private generateTexture() {
         const chars = Font.CHARACTERS;
+        const padding = Font.PADDING;
 
         const cnv = document.createElement("canvas");
-        cnv.width = this._size * chars.length;
+        cnv.width = (this._size + padding) * chars.length;
         cnv.height = this._size;
 
         const ctx = cnv.getContext("2d")!;
@@ -105,10 +107,10 @@ export class Font {
         for (let i = 0; i < chars.length; i++) {
             const char = chars[i];
             const metrics = ctx.measureText(char);
-            const width = metrics.width;
+            const width = Math.round(metrics.width);
 
             ctx.fillText(char, advance, 0);
-            advance += width;
+            advance += width + padding;
         }
 
         const gl = Aquanore.ctx;
@@ -129,6 +131,7 @@ export class Font {
 
     private generateGlyphs() {
         const chars = Font.CHARACTERS;
+        const padding = Font.PADDING;
 
         const cnv = document.createElement("canvas");
         cnv.width = this._size * chars.length;
@@ -146,7 +149,7 @@ export class Font {
             const charY = 0;
 
             const metrics = ctx.measureText(char);
-            const width = metrics.width;
+            const width = Math.round(metrics.width);
             const height = this._size;
 
             const glyph = new Glyph();
@@ -158,7 +161,7 @@ export class Font {
             glyph.height = height;
 
             glyphs.push(glyph);
-            advance += width;
+            advance += width + padding;
         }
 
         this._glyphs = glyphs;
