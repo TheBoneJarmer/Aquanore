@@ -1,5 +1,5 @@
 # Getting Started
-> **Tip!** You can use the [template](../src/examples/template/) folder to get started as well. This section just covers the setup if you like to do it from scratch. Either way is fine.
+> **Tip!** You can use the [template](../src/examples/template/) folder to get started as well. This section just covers the setup if you like to do it from scratch.
 
 ## Installation
 ```shell
@@ -59,12 +59,15 @@ Aquanore.onUpdate = async (dt: number) => {
 };
 
 Aquanore.onRender2D = async () => {
-    // Render sprites and polygons
+    // Render sprites, polygons and fonts
 };
 
 Aquanore.onRender3D() = async () => {
     // Render models
 };
+
+// Start the main loop
+Aquanore.run();
 ```
 
 ### Let's serve
