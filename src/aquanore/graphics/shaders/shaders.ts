@@ -24,7 +24,7 @@ export class Shaders {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         this._polygon = new Shader(ShaderSources.POLYGON_V, ShaderSources.POLYGON_F);
         this._model = new Shader(ShaderSources.MODEL_V, ShaderSources.MODEL_F);
         this._shadow = new Shader(ShaderSources.SHADOW_V, ShaderSources.SHADOW_F);

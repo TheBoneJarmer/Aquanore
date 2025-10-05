@@ -65,7 +65,7 @@ export class Joystick {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         window.addEventListener("gamepadconnected", this.onConnect);
         window.addEventListener("gamepaddisconnected", this.onDisconnect);
     }

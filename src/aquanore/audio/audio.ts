@@ -44,7 +44,7 @@ export class Audio {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         this._ctx = new AudioContext();
     }
 }

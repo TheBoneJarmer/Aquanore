@@ -94,3 +94,8 @@ export enum SoundStatus {
     Stopped,
     Playing,
 };
+
+export enum RigidBodyType {
+    DYNAMIC,
+    STATIC
+};

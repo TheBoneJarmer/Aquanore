@@ -1,12 +1,13 @@
 import { Aquanore } from "../../aquanore/aquanore";
 
-Aquanore.init();
+await Aquanore.init();
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
 Aquanore.onRender2D = onRender2D;
 Aquanore.onRender3D = onRender3D;
 Aquanore.onResize = onResize;
-Aquanore.run();
+
+await Aquanore.run();
 
 /* CALLBACKS */
 async function onLoad() {

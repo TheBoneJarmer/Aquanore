@@ -4,6 +4,7 @@ import { Shaders } from "./graphics/shaders";
 import { Joystick, Keyboard, Cursor } from "./input";
 import { AquanoreOptions } from "./aquanore-options";
 import { Audio } from "./audio";
+import { Physics } from "./physics";
 
 export class Aquanore {
     private static _ctx: WebGL2RenderingContext;
@@ -128,7 +129,7 @@ export class Aquanore {
      * Initializes Aquanore. This **must** be ran before doing anything else.
      * @param {AquanoreOptions} options (Optional) Initializes aquanore with a configuration
      */
-    static init(options: AquanoreOptions = new AquanoreOptions()) {
+    static async init(options: AquanoreOptions = new AquanoreOptions()) {
         this._options = options;
         this._lastTime = 0;
 
@@ -136,13 +137,14 @@ export class Aquanore {
         this.initListeners();
 
         // Run all init methods from the static classes
-        Keyboard.__init();
-        Shaders.__init();
-        Cursor.__init();
-        Joystick.__init();
-        Renderer.__init();
-        Scene.__init();
-        Audio.__init();
+        await Keyboard.__init();
+        await Shaders.__init();
+        await Cursor.__init();
+        await Joystick.__init();
+        await Renderer.__init();
+        await Scene.__init();
+        await Audio.__init();
+        await Physics.__init();
     }
 
     private static initCanvas() {
@@ -215,9 +217,10 @@ export class Aquanore {
             await this._onUpdate(deltaTime / 1000.0);
         }
 
-        Scene.__update();
-        Keyboard.__update();
-        Cursor.__update();
+        await Physics.__update();
+        await Scene.__update();
+        await Keyboard.__update();
+        await Cursor.__update();
     }
 
     private static async render() {

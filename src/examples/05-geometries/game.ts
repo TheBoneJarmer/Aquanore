@@ -15,7 +15,7 @@ let scale: Vector3 = new Vector3(1, 1, 1);
 let index = 0;
 let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = () => {
     Scene.camera.translation.z = -3;
@@ -54,7 +54,7 @@ Aquanore.onRender3D = () => {
     Renderer.drawModel(model, pos, rot, scale);
 };
 
-Aquanore.run();
+await Aquanore.run();
 
 window.addEventListener("load", () => {
     const left = document.getElementById("arrow-left");

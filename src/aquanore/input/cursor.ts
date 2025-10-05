@@ -56,7 +56,7 @@ export class Cursor {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         this._states = [];
         
         this.__initStates();
@@ -105,7 +105,7 @@ export class Cursor {
         });
     }
 
-    static __update() {
+    static async __update() {
         this._moveX = 0;
         this._moveY = 0;
         this._wheelX = 0;

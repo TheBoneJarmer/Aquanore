@@ -50,17 +50,26 @@ float calc_shadow() {
     float shadow_spread = 1600.0f;
 
     vec3 light_dir = normalize(light.source);
-    float bias = max(0.05f * (1.0f - dot(v_normal, light_dir)), 0.005f);
+    float bias = max(0.05 * 1.0 - dot(v_normal, light_dir), 0.005);
 
-    for(int i = 0; i < 5; i++) {
-        vec3 coords = v_shadow.xyz;
-        coords = vec3(coords.xy + v_adjacent_pixels[i] / shadow_spread, coords.z - bias);
+    // for(int i = 0; i < 5; i++) {
+    //     vec3 coords = v_shadow.xyz;
+    //     coords = vec3(coords.xy + v_adjacent_pixels[i] / shadow_spread, coords.z - bias);
 
-        float hit_value = texture(u_shadow_map, coords);
-        float lit_value = max(hit_value, 0.85f);
+    //     float hit_value = texture(u_shadow_map, coords);
+    //     float lit_value = max(hit_value, 0.5);
 
-        shadow_visibility *= lit_value;
-    }
+    //     shadow_visibility *= lit_value;
+    // }
+
+    vec3 coords = v_shadow.xyz;
+    coords *= 0.5 + 0.5;
+    coords = vec3(coords.xy, coords.z - bias);
+
+    float hit_value = texture(u_shadow_map, coords);
+    float lit_value = max(hit_value, 0.5);
+
+    shadow_visibility *= lit_value;
 
     return shadow_visibility;
 }
@@ -78,7 +87,7 @@ vec3 calc_dir_light(Light light, float shadow) {
     float light_diff = max(dot(normal, light_dir), 0.0f);
 
     vec4 ambient = u_material.ambient * u_material.color * shadow;
-    vec4 diffuse = u_material.color * light_diff;
+    vec4 diffuse = u_material.color * light_diff * shadow;
 
     if(u_material.color_map_active) {
         vec4 color = texture(u_material.color_map, v_texcoord);

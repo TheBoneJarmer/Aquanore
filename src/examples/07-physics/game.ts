@@ -1,69 +1,92 @@
 import { Aquanore } from "../../aquanore/aquanore";
+import { AquanoreOptions } from "../../aquanore/aquanore-options";
 import { Keys } from "../../aquanore/enums";
-import { Color, Model, ModelAnimation, Renderer, Scene } from "../../aquanore/graphics";
-import { MathHelper, Vector3 } from "../../aquanore/math";
-import { GltfLoader } from "../../aquanore/loaders";
+import { Scene } from "../../aquanore/graphics";
 import { Keyboard } from "../../aquanore/input";
-import { StandardMaterial } from "../../aquanore/graphics/materials";
+import { MathHelper, Vector3 } from "../../aquanore/math";
 
-let modelSkelly: Model;
-let modelFloor: Model;
-let animation: ModelAnimation;
-let index = 0;
-let time = 0;
-let paused = false;
+import { ActorCube } from "./actor-cube";
+import { ActorFloor } from "./actor-floor";
 
-await Aquanore.init();
+let cubes: ActorCube[];
+let floor: ActorFloor;
+let timer: number;
+
+const options = new AquanoreOptions();
+// options.shadow.enabled = false;
+
+await Aquanore.init(options);
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
+Aquanore.onRender2D = onRender2D;
 Aquanore.onRender3D = onRender3D;
+Aquanore.onResize = onResize;
 
 await Aquanore.run();
 
 /* CALLBACKS */
 async function onLoad() {
     await initScene();
-    await initModels();
+    await initActors();
 }
 
 async function onUpdate(dt: number) {
-    await updateScene(dt);
-    await updateAnimation(dt);
-    await updateInput(dt);
     await updateControls(dt);
+    await updateScene(dt);
+}
+
+async function onRender2D() {
+
 }
 
 async function onRender3D() {
     await renderScene();
 }
 
-/* INIT */
-async function initScene() {
-    Scene.camera.translation.z = -4;
-    Scene.camera.translation.y = 1;
+async function onResize() {
 
-    Scene.lights[0].source = new Vector3(1, 1, 1);
-
-    Renderer.clearColor = new Color(55, 55, 55);
 }
 
-async function initModels() {
-    let loader = new GltfLoader();
-    modelSkelly = await loader.load("models/Skeleton_Mage.glb");
+/* INIT */
+async function initActors() {
+    cubes = [];
+    floor = new ActorFloor();
+    timer = 0;
+}
 
-    if (modelSkelly.animations.length > 0) {
-        animation = modelSkelly.animations[index];
-        console.log(animation.name || "Animation");
-    }
+async function initScene() {
+    Scene.camera.translation = new Vector3(0, 5, -5);
+    Scene.camera.rotation = new Vector3(MathHelper.radians(45), 0, 0);
 
-    modelFloor = Model.box(10, 0.1, 10);
-    modelFloor.meshes.forEach((mesh) => {
-        const mat = mesh.primitives[0].material as StandardMaterial;
-        mat.color = new Color(35, 185, 35);
-    });
+    Scene.lights[0].source = new Vector3(1, 2, 1);
 }
 
 /* UPDATE */
+async function updateScene(dt: number) {
+    if (timer < 10) {
+        timer += 1;
+    } else {
+        const pos = new Vector3();
+        pos.x = -5 + Math.random() * 10;
+        pos.z = -5 + Math.random() * 10;
+        pos.y = 10 + Math.random() * 10;
+
+        const cube = new ActorCube();
+        cube.position = pos;
+
+        cubes.push(cube);
+        timer = 0;
+    }
+
+    for (let i=0; i<cubes.length; i++) {
+        await cubes[i].update();
+
+        if (cubes[i].removed) {
+            cubes.splice(i, 1);
+        }
+    }
+}
+
 async function updateControls(dt: number) {
     const moveSpeed = dt * 10;
     const rotSpeed = dt * 5;
@@ -113,44 +136,11 @@ async function updateControls(dt: number) {
     if (Keyboard.keyDown(Keys.Down)) cam.rotation.x += rotSpeed;
 }
 
-async function updateInput(dt: number) {
-    if (Keyboard.keyPressed(Keys.PageUp) && index < modelSkelly.animations.length - 1) {
-        index++;
-        animation = modelSkelly.animations[index];
-        console.log(animation.name);
-    }
-
-    if (Keyboard.keyPressed(Keys.PageDown) && index > 0) {
-        index--;
-        animation = modelSkelly.animations[index];
-        console.log(animation.name);
-    }
-
-    if (Keyboard.keyPressed(Keys.Space)) {
-        paused = !paused;
-    }
-}
-
-async function updateScene(dt: number) {
-
-}
-
-async function updateAnimation(dt: number) {
-    if (animation == null) {
-        return;
-    }
-
-    if (!paused) {
-        time += dt;
-    }
-
-    if (time > animation.getDuration()) {
-        time = 0;
-    }
-}
-
 /* RENDER */
 async function renderScene() {
-    Renderer.drawModel(modelSkelly, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1), animation, time);
-    Renderer.drawModel(modelFloor, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
+    for (let cube of cubes) {
+        await cube.render();
+    }
+
+    await floor.render();
 }

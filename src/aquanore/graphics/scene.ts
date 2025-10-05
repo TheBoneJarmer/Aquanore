@@ -40,11 +40,11 @@ export class Scene {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         this.reset();
     }
 
-    static __update() {
+    static async __update() {
         const cnv = Aquanore.canvas;
         
         if (this._camera instanceof PerspectiveCamera) {

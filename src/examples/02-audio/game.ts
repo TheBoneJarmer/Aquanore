@@ -11,7 +11,7 @@ let ambient: Sound;
 let handle: SoundInstance;
 let sprite: Sprite;
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = async () => {
     const sprLoader = new SpriteLoader();

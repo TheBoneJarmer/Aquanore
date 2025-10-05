@@ -6,6 +6,7 @@
     "src/aquanore/input/*",
     "src/aquanore/loaders/*",
     "src/aquanore/math/*",
+    "src/aquanore/physics/*",
     "src/aquanore/interfaces/*"
   ],
   "compilerOptions": {

@@ -46,7 +46,7 @@ export class Keyboard {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         this._states = [];
         
         this.__initStates();
@@ -168,7 +168,7 @@ export class Keyboard {
         this._states.push(new KeyState('NumpadDecimal', Keys.NumpadDecimal));
     }
 
-    static __update() {
+    static async __update() {
         for (let i = 0; i < this._states.length; i++) {
             const state = this._states[i];
 

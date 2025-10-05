@@ -398,7 +398,7 @@ export class Renderer {
     }
 
     /* INTERNAL FUNCTIONS */
-    static __init() {
+    static async __init() {
         this.__initShadowMap();
 
         this.reset();

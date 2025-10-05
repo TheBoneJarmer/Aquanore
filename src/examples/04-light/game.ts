@@ -9,7 +9,7 @@ let modelRock: Model;
 let modelLight: Model;
 let angle: number;
 
-Aquanore.init();
+await Aquanore.init();
 
 Aquanore.onLoad = async () => {
     const texLoader = new TextureLoader();
