@@ -18,7 +18,7 @@ import { RigidBody } from "./rigidbody";
 export class Collider {
     private _collider: RAPIER.Collider;
 
-    get collider(): RAPIER.Collider {
+    get rapierCollider(): RAPIER.Collider {
         return this._collider;
     }
 
@@ -56,7 +56,7 @@ export class Collider {
      */
     static cube(size: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.cuboid(size / 2, size / 2, size / 2);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -72,7 +72,7 @@ export class Collider {
      */
     static box(width: number, height: number, depth: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.cuboid(width / 2, height / 2, depth / 2);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -86,7 +86,7 @@ export class Collider {
      */
     static sphere(radius: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.ball(radius);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -101,7 +101,7 @@ export class Collider {
      */
     static capsule(halfHeight: number, radius: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.capsule(halfHeight, radius);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -116,7 +116,7 @@ export class Collider {
      */
     static cylinder(halfHeight: number, radius: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.cylinder(halfHeight, radius);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -131,7 +131,7 @@ export class Collider {
      */
     static cone(halfHeight: number, radius: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.cone(halfHeight, radius);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -148,7 +148,7 @@ export class Collider {
      */
     static roundCuboid(width: number, height: number, depth: number, borderRadius: number, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.roundCuboid(width / 2, height / 2, depth / 2, borderRadius);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -162,7 +162,7 @@ export class Collider {
      */
     static convexHull(points: Float32Array, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.convexHull(points)!;
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -177,7 +177,7 @@ export class Collider {
      */
     static trimesh(vertices: Float32Array, indices: Uint32Array, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.trimesh(vertices, indices);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }
@@ -194,7 +194,7 @@ export class Collider {
      */
     static heightfield(cols: number, rows: number, heights: Float32Array, scale: Vector3, body: RigidBody): Collider {
         const desc = RAPIER.ColliderDesc.heightfield(rows, cols, heights, scale);
-        const col = Physics.world.createCollider(desc, body.body);
+        const col = Physics.world.createCollider(desc, body.rapierBody);
 
         return new Collider(col);
     }

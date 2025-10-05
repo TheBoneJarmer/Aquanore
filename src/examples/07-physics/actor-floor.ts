@@ -10,9 +10,9 @@ export class ActorFloor {
     private _collider: Collider;
 
     constructor() {
-        const width = 10;
+        const width = 50;
         const height = 0.5;
-        const depth = 10;
+        const depth = 50;
 
         this._model = Model.box(width, height, depth);
         this._model.meshes.forEach((mesh) => {

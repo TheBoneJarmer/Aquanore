@@ -1,5 +1,4 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { AquanoreOptions } from "../../aquanore/aquanore-options";
 import { Keys } from "../../aquanore/enums";
 import { Scene } from "../../aquanore/graphics";
 import { Keyboard } from "../../aquanore/input";
@@ -7,15 +6,13 @@ import { MathHelper, Vector3 } from "../../aquanore/math";
 
 import { ActorCube } from "./actor-cube";
 import { ActorFloor } from "./actor-floor";
+import { ActorPlayer } from "./actor-player";
 
 let cubes: ActorCube[];
 let floor: ActorFloor;
-let timer: number;
+let player: ActorPlayer;
 
-const options = new AquanoreOptions();
-// options.shadow.enabled = false;
-
-await Aquanore.init(options);
+await Aquanore.init();
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
 Aquanore.onRender2D = onRender2D;
@@ -31,7 +28,7 @@ async function onLoad() {
 }
 
 async function onUpdate(dt: number) {
-    await updateControls(dt);
+    // await updateControls(dt);
     await updateScene(dt);
 }
 
@@ -51,32 +48,16 @@ async function onResize() {
 async function initActors() {
     cubes = [];
     floor = new ActorFloor();
-    timer = 0;
+    player = new ActorPlayer();
 }
 
 async function initScene() {
-    Scene.camera.translation = new Vector3(0, 5, -5);
-    Scene.camera.rotation = new Vector3(MathHelper.radians(45), 0, 0);
-
     Scene.lights[0].source = new Vector3(1, 2, 1);
 }
 
 /* UPDATE */
 async function updateScene(dt: number) {
-    if (timer < 10) {
-        timer += 1;
-    } else {
-        const pos = new Vector3();
-        pos.x = -5 + Math.random() * 10;
-        pos.z = -5 + Math.random() * 10;
-        pos.y = 10 + Math.random() * 10;
-
-        const cube = new ActorCube();
-        cube.position = pos;
-
-        cubes.push(cube);
-        timer = 0;
-    }
+    await player.update(dt);
 
     for (let i=0; i<cubes.length; i++) {
         await cubes[i].update();
@@ -143,4 +124,5 @@ async function renderScene() {
     }
 
     await floor.render();
+    await player.render();
 }

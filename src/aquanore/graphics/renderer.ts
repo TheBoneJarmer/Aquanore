@@ -362,6 +362,18 @@ export class Renderer {
             const material = pri.material;
             const geom = pri.geometry;
 
+            // If we are rendering to the shadow framebuffer and the primitive is set not to cast shadow we simply do not render it at all
+            if (!pri.castShadow && shader.id == Shaders.shadow.id) {
+                continue;
+            }
+
+            // If the primitive is not set to receive shadows we simply disable shadow rendering
+            shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
+
+            if (!pri.receiveShadow) {
+                shader.u1b("u_shadow_enabled", false);
+            }
+
             if (material instanceof BasicMaterial) {
                 shader.u1i("u_material_type", 0);
                 shader.ucolor("u_material.color", material.color);
@@ -371,8 +383,6 @@ export class Renderer {
                 shader.u1i("u_material_type", 1);
                 shader.ucolor("u_material.color", material.color);
                 shader.ucolor("u_material.ambient", material.ambient);
-                shader.u1b("u_material.cast_shadow", material.castShadow);
-                shader.u1b("u_material.recv_shadow", material.receiveShadow);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
 

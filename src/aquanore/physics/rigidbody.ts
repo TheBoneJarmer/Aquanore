@@ -34,7 +34,7 @@ export class RigidBody {
      * 
      * @returns The current rapier rigidbody instance.
      */
-    public get body(): RAPIER.RigidBody {
+    public get rapierBody(): RAPIER.RigidBody {
         return this._body;
     }
 

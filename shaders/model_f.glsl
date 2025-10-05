@@ -53,7 +53,7 @@ float calc_shadow() {
     float shadow_spread = 1600.0f;
 
     vec3 light_dir = normalize(light.source);
-    float bias = max(0.05 * 1.0 - dot(v_normal, light_dir), 0.005);
+    float bias = max(0.05f * 1.0f - dot(v_normal, light_dir), 0.005f);
 
     // for(int i = 0; i < 5; i++) {
     //     vec3 coords = v_shadow.xyz;
@@ -66,11 +66,11 @@ float calc_shadow() {
     // }
 
     vec3 coords = v_shadow.xyz;
-    coords *= 0.5 + 0.5;
+    coords *= 0.5f + 0.5f;
     coords = vec3(coords.xy, coords.z - bias);
 
     float hit_value = texture(u_shadow_map, coords);
-    float lit_value = max(hit_value, 0.5);
+    float lit_value = max(hit_value, 0.5f);
 
     shadow_visibility *= lit_value;
 
@@ -142,9 +142,9 @@ void main() {
     }
 
     if(u_material_type == STANDARD_MATERIAL) {
-        float shadow = 1.0;
+        float shadow = 1.0f;
 
-        if (u_shadow_enabled) {
+        if(u_shadow_enabled) {
             shadow = calc_shadow();
         }
 
@@ -166,7 +166,4 @@ void main() {
             }
         }
     }
-
-    result = vec4(1.0);
-    result *= calc_shadow();
 }
