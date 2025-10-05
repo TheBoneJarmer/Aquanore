@@ -7,6 +7,8 @@ export class StandardMaterial implements IMaterial {
     private _color: Color;
     private _colorMap: Texture | null;
     private _normalMap: Texture | null;
+    private _castShadow: boolean;
+    private _receiveShadow: boolean;
 
     get color(): Color {
         return this._color;
@@ -40,10 +42,28 @@ export class StandardMaterial implements IMaterial {
         this._ambient = value;
     }
 
+    get castShadow(): boolean {
+        return this._castShadow;
+    }
+
+    set castShadow(value: boolean) {
+        this._castShadow = value;
+    }
+
+    get receiveShadow(): boolean {
+        return this._receiveShadow;
+    }
+
+    set receiveShadow(value: boolean) {
+        this._receiveShadow = value;
+    }
+
     constructor() {              
         this._color = new Color(255, 255, 255);
         this._ambient = new Color(100, 100, 100);
         this._colorMap = null;
         this._normalMap = null;
+        this._castShadow = true;
+        this._receiveShadow = true;
     }
 }

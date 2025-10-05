@@ -50,6 +50,10 @@ async function initScene() {
 async function initModels() {
     let loader = new GltfLoader();
     modelSkelly = await loader.load("models/Skeleton_Mage.glb");
+    modelSkelly.meshes.forEach((mesh) => {
+        const mat = mesh.primitives[0].material as StandardMaterial;
+        mat.castShadow = false;
+    });
 
     if (modelSkelly.animations.length > 0) {
         animation = modelSkelly.animations[index];

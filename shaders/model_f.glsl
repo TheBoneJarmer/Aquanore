@@ -16,6 +16,9 @@ struct Material {
     bool color_map_active;
     sampler2D normal_map;
     bool normal_map_active;
+
+    bool cast_shadow;
+    bool recv_shadow;
 };
 
 struct Light {
@@ -57,7 +60,7 @@ float calc_shadow() {
     //     coords = vec3(coords.xy + v_adjacent_pixels[i] / shadow_spread, coords.z - bias);
 
     //     float hit_value = texture(u_shadow_map, coords);
-    //     float lit_value = max(hit_value, 0.5);
+    //     float lit_value = max(hit_value, 0.85);
 
     //     shadow_visibility *= lit_value;
     // }
@@ -164,6 +167,6 @@ void main() {
         }
     }
 
-    // result = vec4(1.0);
-    // result *= calc_shadow();
+    result = vec4(1.0);
+    result *= calc_shadow();
 }

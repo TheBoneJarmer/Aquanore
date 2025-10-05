@@ -371,6 +371,8 @@ export class Renderer {
                 shader.u1i("u_material_type", 1);
                 shader.ucolor("u_material.color", material.color);
                 shader.ucolor("u_material.ambient", material.ambient);
+                shader.u1b("u_material.cast_shadow", material.castShadow);
+                shader.u1b("u_material.recv_shadow", material.receiveShadow);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
 
