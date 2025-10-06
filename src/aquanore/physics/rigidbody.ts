@@ -90,6 +90,26 @@ export class RigidBody {
         this._body.setRotation(rot, true);
     }
 
+    public get linearVelocity(): Vector3 {
+        const v = this._body.linvel();
+        return new Vector3(v.x, v.y, v.z);
+    }
+
+    public set linearVelocity(value: Vector3) {
+        const v = new RAPIER.Vector3(value.x, value.y, value.z);
+        this._body.setLinvel(v, true);
+    }
+
+    public get angularVelocity(): Vector3 {
+        const v = this._body.angvel();
+        return new Vector3(v.x, v.y, v.z);
+    }
+
+    public set angularVelocity(value: Vector3) {
+        const v = new RAPIER.Vector3(value.x, value.y, value.z);        
+        this._body.setAngvel(v, true);
+    }
+
     /**
      * Creates a new rigid body instance of the specified type.
      * 
@@ -119,5 +139,10 @@ export class RigidBody {
      */
     public remove() {
         Physics.world.removeRigidBody(this._body);
+    }
+
+    public impulse(value: Vector3) {
+        const v = new RAPIER.Vector3(value.x, value.y, value.z);
+        this._body.applyImpulse(v, true);
     }
 }

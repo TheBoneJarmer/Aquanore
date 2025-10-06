@@ -31,7 +31,7 @@ export class ActorCube {
     }
 
     constructor() {
-        const size = 1;
+        const size = 1 + Math.random() * 4;
 
         this._model = Model.cube(size);
         this._model.meshes.forEach((mesh) => {
@@ -41,11 +41,10 @@ export class ActorCube {
             mat.color.b = 155 + Math.floor(Math.random() * 100);
         });
         
-        this._body = new RigidBody(RigidBodyType.DYNAMIC);
-        
-        this._collider = Collider.cube(size, this._body);
-        this._collider.restitution = Math.random() * 0.5;
+        this._body = new RigidBody(RigidBodyType.DYNAMIC);       
+        this._body.rapierBody.setAdditionalMass(100, true);
 
+        this._collider = Collider.cube(size, this._body);
         this._removed = false;
     }
 

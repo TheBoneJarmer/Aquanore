@@ -1,15 +1,13 @@
 import { Keys, RigidBodyType } from "../../aquanore/enums";
 import { Model, Renderer, Scene } from "../../aquanore/graphics";
 import { Joystick, Keyboard } from "../../aquanore/input";
-import { MathHelper, Vector3 } from "../../aquanore/math";
+import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
 import { Collider, RigidBody } from "../../aquanore/physics";
 
 export class ActorPlayer {
     private _model: Model;
     private _body: RigidBody;
     private _collider: Collider;
-
-    private _velocity: Vector3;
 
     constructor() {
         this._model = Model.sphere(1);
@@ -18,13 +16,10 @@ export class ActorPlayer {
         this._body.position = new Vector3(0, 2, 0);
 
         this._collider = Collider.sphere(1, this._body);
-
-        this._velocity = new Vector3(0, 0, 0);
     }
 
     async update(dt: number) {
         this.updateCamera(dt);
-        this.updateVelocity(dt);
         this.updateControls(dt);
     }
 
@@ -38,21 +33,28 @@ export class ActorPlayer {
     private updateControls(dt: number) {
         const pos = this._body.position;
         const rot = this._body.rotation;
-        const speed = 0.25;
 
         if (Joystick.isConnected(0)) {
-            this._velocity.x += Joystick.getAxis(0, 0) * speed;
-            this._velocity.z += Joystick.getAxis(0, 1) * speed;
+            const v = new Vector3();
+            v.x += Joystick.getAxis(0, 0);
+            v.z += Joystick.getAxis(0, 1);
+
+            this._body.impulse(new Vector3(v.x, v.y, v.z));
         } else {
             const up = Keyboard.keyDown(Keys.Up) || Keyboard.keyDown(Keys.W);
             const down = Keyboard.keyDown(Keys.Down) || Keyboard.keyDown(Keys.S);
             const left = Keyboard.keyDown(Keys.Left) || Keyboard.keyDown(Keys.A);
             const right = Keyboard.keyDown(Keys.Right) || Keyboard.keyDown(Keys.D);
+            const jump = Keyboard.keyDown(Keys.Space);
 
-            if (up) this._velocity.z -= speed;
-            if (down) this._velocity.z += speed;
-            if (left) this._velocity.x -= speed;
-            if (right) this._velocity.x += speed;
+            if (up) this._body.impulse(Vector3.BACKWARD);
+            if (down) this._body.impulse(Vector3.FORWARD);
+            if (left) this._body.impulse(Vector3.LEFT);
+            if (right) this._body.impulse(Vector3.RIGHT);
+
+            if (jump && this._body.linearVelocity.y == 0) {
+                this._body.impulse(new Vector3(0, 50, 0));
+            }
         }
 
         if (pos.y < -6) {
@@ -60,45 +62,11 @@ export class ActorPlayer {
             pos.y = 2;
             pos.z = 0;
 
-            this._velocity.x = 0;
-            this._velocity.z = 0;
-
-            this._body.rapierBody.resetForces(true);
-            this._body.rapierBody.resetTorques(true);
+            this._body.linearVelocity = new Vector3(0, 0, 0);
+            this._body.angularVelocity = new Vector3(0,0,0);
+            this._body.position = new Vector3(0, 2, 0);
+            this._body.rotation = new Vector3(0, 0, 0);
         }
-
-        this._body.position = pos;
-        this._body.rotation = rot;
-    }
-
-    private updateVelocity(dt: number) {
-        const minSpeed = -10;
-        const maxSpeed = 10;
-
-        this._velocity.x = MathHelper.clamp(this._velocity.x, minSpeed, maxSpeed);
-        this._velocity.z = MathHelper.clamp(this._velocity.z, minSpeed, maxSpeed);
-
-        if (this._velocity.x > dt) {
-            this._velocity.x -= 0.1;
-        } else if (this._velocity.x < -dt) {
-            this._velocity.x += 0.1;
-        } else {
-            this._velocity.x = 0;
-        }
-
-        if (this._velocity.z > dt) {
-            this._velocity.z -= 0.1;
-        } else if (this._velocity.z < -dt) {
-            this._velocity.z += 0.1;
-        } else {
-            this._velocity.z = 0;
-        }
-
-        const pos = this._body.position;
-        pos.x += this._velocity.x * dt;
-        pos.z += this._velocity.z * dt;
-
-        this._body.position = pos;
     }
 
     async render() {
