@@ -41,10 +41,11 @@ export class ActorCube {
             mat.color.b = 155 + Math.floor(Math.random() * 100);
         });
         
-        this._body = new RigidBody(RigidBodyType.DYNAMIC);       
+        this._body = new RigidBody(RigidBodyType.Dynamic);       
         this._body.rapierBody.setAdditionalMass(100, true);
 
         this._collider = Collider.cube(size, this._body);
+        this._collider.restitution = Math.random();
         this._removed = false;
     }
 

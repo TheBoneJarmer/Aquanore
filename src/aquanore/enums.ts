@@ -96,6 +96,8 @@ export enum SoundStatus {
 };
 
 export enum RigidBodyType {
-    DYNAMIC,
-    STATIC
+    Dynamic,
+    Static,
+    KinematicPosition,
+    KinematicVelocity
 };

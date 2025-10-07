@@ -12,10 +12,12 @@ export class ActorPlayer {
     constructor() {
         this._model = Model.sphere(1);
 
-        this._body = new RigidBody(RigidBodyType.DYNAMIC);
+        this._body = new RigidBody(RigidBodyType.Dynamic);
         this._body.position = new Vector3(0, 2, 0);
+        this._body.rapierBody.setGravityScale(4, true);
 
         this._collider = Collider.sphere(1, this._body);
+        this._collider.restitution = 1;
     }
 
     async update(dt: number) {
@@ -45,15 +47,15 @@ export class ActorPlayer {
             const down = Keyboard.keyDown(Keys.Down) || Keyboard.keyDown(Keys.S);
             const left = Keyboard.keyDown(Keys.Left) || Keyboard.keyDown(Keys.A);
             const right = Keyboard.keyDown(Keys.Right) || Keyboard.keyDown(Keys.D);
-            const jump = Keyboard.keyDown(Keys.Space);
+            const jump = Keyboard.keyPressed(Keys.Space);
 
             if (up) this._body.impulse(Vector3.BACKWARD);
             if (down) this._body.impulse(Vector3.FORWARD);
             if (left) this._body.impulse(Vector3.LEFT);
             if (right) this._body.impulse(Vector3.RIGHT);
 
-            if (jump && this._body.linearVelocity.y == 0) {
-                this._body.impulse(new Vector3(0, 50, 0));
+            if (jump) {
+                this._body.impulse(new Vector3(0, 100, 0));
             }
         }
 

@@ -4,6 +4,7 @@ import { Keys } from "../../aquanore/enums";
 import { Scene } from "../../aquanore/graphics";
 import { Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector3 } from "../../aquanore/math";
+import { Physics } from "../../aquanore/physics";
 
 import { ActorCube } from "./actor-cube";
 import { ActorFloor } from "./actor-floor";
@@ -66,11 +67,11 @@ async function initActors() {
 async function initScene() {
     Scene.lights[0].source = new Vector3(1, 2, 1);
 
-    for (let i=0; i<5; i++) {
+    for (let i=0; i<25; i++) {
         const pos = new Vector3();
-        pos.x = -25 + Math.random() * 25;
+        pos.x = -25 + Math.random() * 50;
         pos.y = 3;
-        pos.z = -25 + Math.random() * 25;
+        pos.z = -25 + Math.random() * 50;
 
         const rot = new Vector3();
         rot.y = MathHelper.radians(Math.random() * 360);

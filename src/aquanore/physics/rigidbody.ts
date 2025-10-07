@@ -122,10 +122,14 @@ export class RigidBody {
     constructor(type: RigidBodyType) {
         let desc: RAPIER.RigidBodyDesc;
 
-        if (type == RigidBodyType.DYNAMIC) {
+        if (type == RigidBodyType.Dynamic) {
             desc = RAPIER.RigidBodyDesc.dynamic();
-        } else {
+        } else if (type == RigidBodyType.Static) {
             desc = RAPIER.RigidBodyDesc.fixed();
+        } else if (type == RigidBodyType.KinematicPosition) {
+            desc = RAPIER.RigidBodyDesc.kinematicPositionBased();
+        } else {
+            desc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
         }
 
         this._body = Physics.world.createRigidBody(desc);

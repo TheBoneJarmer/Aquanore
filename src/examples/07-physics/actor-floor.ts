@@ -20,7 +20,7 @@ export class ActorFloor {
             mat.color = new Color(35, 185, 35);
         });
 
-        this._body = new RigidBody(RigidBodyType.STATIC);
+        this._body = new RigidBody(RigidBodyType.Static);
         this._collider = Collider.box(width, height, depth, this._body);
     }
 
