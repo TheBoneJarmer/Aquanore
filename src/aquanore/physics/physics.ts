@@ -1,5 +1,6 @@
 import * as RAPIER from "@dimforge/rapier3d-compat";
 import { Vector3 } from "../math";
+import { RapierUtils } from "./rapier-utils";
 
 /**
  * The `Physics` class provides a static interface for initializing and managing a physics simulation world
@@ -26,20 +27,16 @@ export class Physics {
      *
      * @returns The instance of a Rapier world representing the physics world.
      */
-    public static get world(): RAPIER.World {
+    public static get rapierWorld(): RAPIER.World {
         return this._world;
     }
 
     public static get gravity(): Vector3 {
-        const v = this._world.gravity;
-        const value = new Vector3(v.x, v.y, v.z);
-
-        return value;
+        return RapierUtils.fromVector3(this._world.gravity);
     }
 
     public static set gravity(value: Vector3) {
-        const v = new RAPIER.Vector3(value.x, value.y, value.z);
-        this._world.gravity = v;
+        this._world.gravity = RapierUtils.toVector3(value);
     }
 
     /* INTERNAL FUNCTIONS */

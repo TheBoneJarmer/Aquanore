@@ -2,7 +2,7 @@ import { Keys, RigidBodyType } from "../../aquanore/enums";
 import { Model, Renderer, Scene } from "../../aquanore/graphics";
 import { Joystick, Keyboard } from "../../aquanore/input";
 import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
-import { Collider, RigidBody } from "../../aquanore/physics";
+import { Collider, Physics, RigidBody } from "../../aquanore/physics";
 
 export class ActorPlayer {
     private _model: Model;
@@ -14,10 +14,10 @@ export class ActorPlayer {
 
         this._body = new RigidBody(RigidBodyType.Dynamic);
         this._body.position = new Vector3(0, 2, 0);
-        this._body.rapierBody.setGravityScale(4, true);
+        this._body.gravity = 4;
 
         this._collider = Collider.sphere(1, this._body);
-        this._collider.restitution = 1;
+        this._collider.restitution = 0.25;
     }
 
     async update(dt: number) {
@@ -68,6 +68,14 @@ export class ActorPlayer {
             this._body.angularVelocity = new Vector3(0,0,0);
             this._body.position = new Vector3(0, 2, 0);
             this._body.rotation = new Vector3(0, 0, 0);
+        }
+
+        if (Keyboard.keyPressed(Keys.G)) {
+            if (Physics.gravity.y == 0) {
+                Physics.gravity = new Vector3(0, -10, 0);
+            } else {
+                Physics.gravity = new Vector3(0, 0, 0);
+            }
         }
     }
 

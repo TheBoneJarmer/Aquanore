@@ -42,10 +42,9 @@ export class ActorCube {
         });
         
         this._body = new RigidBody(RigidBodyType.Dynamic);       
-        this._body.rapierBody.setAdditionalMass(100, true);
+        this._body.mass = 100;
 
         this._collider = Collider.cube(size, this._body);
-        this._collider.restitution = Math.random();
         this._removed = false;
     }
 

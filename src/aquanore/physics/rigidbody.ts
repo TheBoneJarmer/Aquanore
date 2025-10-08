@@ -4,6 +4,7 @@ import { Quaternion, Vector3 } from "../math";
 
 import { Physics } from "./physics";
 import { RigidBodyType } from "../enums";
+import { RapierUtils } from "./rapier-utils";
 
 /**
  * Represents a wrapper around a Rapier physics engine rigid body,
@@ -28,6 +29,7 @@ import { RigidBodyType } from "../enums";
  */
 export class RigidBody {
     private _body: RAPIER.RigidBody;
+    private _additionalMass: number;
 
     /**
      * Gets the underlying Rapier rigid body instance associated with this object.
@@ -45,8 +47,7 @@ export class RigidBody {
      * @returns {Vector3} The position vector (x, y, z) of the rigid body.
      */
     public get position(): Vector3 {
-        const t = this._body.translation();
-        return new Vector3(t.x, t.y, t.z);
+        return RapierUtils.fromVector3(this._body.translation());
     }
 
     /**
@@ -58,8 +59,7 @@ export class RigidBody {
      * @param value The new position as a Vector3.
      */
     public set position(value: Vector3) {
-        const tra = new RAPIER.Vector3(value.x, value.y, value.z);
-        this._body.setTranslation(tra, true);
+        this._body.setTranslation(RapierUtils.toVector3(value), true);
     }
 
     /**
@@ -71,10 +71,7 @@ export class RigidBody {
      * @returns {Vector3} The rotation of the rigid body in Euler angles.
      */
     public get rotation(): Vector3 {
-        const rot = this._body.rotation();
-        const q = new Quaternion(rot.x, rot.y, rot.z, rot.w);
-
-        return Quaternion.toEuler(q);
+        return RapierUtils.toEuler(this._body.rotation());
     }
 
     /**
@@ -84,30 +81,40 @@ export class RigidBody {
      * @param value The new rotation as a Euler instance.
      */
     public set rotation(value: Vector3) {
-        const q = Quaternion.fromEuler(value);
-        const rot = new RAPIER.Quaternion(q.x, q.y, q.z, q.w);
-        
-        this._body.setRotation(rot, true);
+        this._body.setRotation(RapierUtils.fromEuler(value), true);
     }
 
     public get linearVelocity(): Vector3 {
-        const v = this._body.linvel();
-        return new Vector3(v.x, v.y, v.z);
+        return RapierUtils.fromVector3(this._body.linvel());
     }
 
     public set linearVelocity(value: Vector3) {
-        const v = new RAPIER.Vector3(value.x, value.y, value.z);
-        this._body.setLinvel(v, true);
+        this._body.setLinvel(RapierUtils.toVector3(value), true);
     }
 
     public get angularVelocity(): Vector3 {
-        const v = this._body.angvel();
-        return new Vector3(v.x, v.y, v.z);
+        return RapierUtils.fromVector3(this._body.angvel());
     }
 
     public set angularVelocity(value: Vector3) {
-        const v = new RAPIER.Vector3(value.x, value.y, value.z);        
-        this._body.setAngvel(v, true);
+        this._body.setAngvel(RapierUtils.toVector3(value), true);
+    }
+
+    public get mass(): number {
+        return this._body.mass() + this._additionalMass;
+    }
+
+    public set mass(value: number) {
+        this._additionalMass = value;
+        this._body.setAdditionalMass(value, true);
+    }
+
+    public get gravity(): number {
+        return this._body.gravityScale();
+    }
+
+    public set gravity(value: number) {
+        this._body.setGravityScale(value, true);
     }
 
     /**
@@ -132,7 +139,8 @@ export class RigidBody {
             desc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
         }
 
-        this._body = Physics.world.createRigidBody(desc);
+        this._body = Physics.rapierWorld.createRigidBody(desc);
+        this._additionalMass = 0;
     }
 
     /**
@@ -142,11 +150,10 @@ export class RigidBody {
      * effectively disabling its simulation and interactions.
      */
     public remove() {
-        Physics.world.removeRigidBody(this._body);
+        Physics.rapierWorld.removeRigidBody(this._body);
     }
 
     public impulse(value: Vector3) {
-        const v = new RAPIER.Vector3(value.x, value.y, value.z);
-        this._body.applyImpulse(v, true);
+        this._body.applyImpulse(RapierUtils.toVector3(value), true);
     }
 }
