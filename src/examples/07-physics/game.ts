@@ -108,10 +108,16 @@ async function updateControls(dt: number) {
 
     if (Cursor.isButtonPressed(0)) {
         const coords = new Vector2(Cursor.x, Cursor.y);
+        const origin = Vector3.unproject(coords, Scene.camera)
+        const dir = Vector3.unprojectDir(coords, Scene.camera);
+        const raycast = Physics.castRay(origin, dir, 100, true);
+        const cube = cubes.find(x => x.collider.handle == raycast?.handle);
 
-        let origin = Vector3.unproject(coords, Scene.camera)
-        let dir = Vector3.unprojectDir(coords, Scene.camera);
-        let raycast = Physics.castRay(origin, dir, 100, true);
+        if (cube != null) {
+            const i = cubes.indexOf(cube);
+            cube.collider.remove();
+            cubes.splice(i, 1);
+        }
     }
 
     if (Cursor.isButtonPressed(2)) {
