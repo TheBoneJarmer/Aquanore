@@ -10,6 +10,18 @@ export class ActorCube {
     private _collider: Collider;
     private _removed: boolean;
 
+    public get model(): Model {
+        return this._model;
+    }
+
+    public get body(): RigidBody {
+        return this._body;
+    }
+
+    public get collider(): Collider {
+        return this._collider;
+    }
+
     get position() {
         return this._body.position;
     }
@@ -31,15 +43,15 @@ export class ActorCube {
     }
 
     constructor() {
-        const size = 1 + Math.random() * 4;
+        const size = 1 + Math.random();
 
         this._model = Model.cube(size);
-        this._model.meshes.forEach((mesh) => {
-            const mat = mesh.primitives[0].material as StandardMaterial;
-            mat.color.r = 155 + Math.floor(Math.random() * 100);
-            mat.color.g = 155 + Math.floor(Math.random() * 100);
-            mat.color.b = 155 + Math.floor(Math.random() * 100);
-        });
+        // this._model.meshes.forEach((mesh) => {
+        //     const mat = mesh.primitives[0].material as StandardMaterial;
+        //     mat.color.r = 155 + Math.floor(Math.random() * 100);
+        //     mat.color.g = 155 + Math.floor(Math.random() * 100);
+        //     mat.color.b = 155 + Math.floor(Math.random() * 100);
+        // });
         
         this._body = new RigidBody(RigidBodyType.Dynamic);       
         this._body.mass = 100;

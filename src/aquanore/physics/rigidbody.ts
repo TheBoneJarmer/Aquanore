@@ -117,6 +117,22 @@ export class RigidBody {
         this._body.setGravityScale(value, true);
     }
 
+    public get linearDamping(): number {
+        return this._body.linearDamping();
+    }
+
+    public set linearDamping(value: number) {
+        this._body.setLinearDamping(value);
+    }
+
+    public get angularDamping(): number {
+        return this._body.angularDamping();
+    }
+
+    public set angularDamping(value: number) {
+        this._body.setAngularDamping(value);
+    }
+
     /**
      * Creates a new rigid body instance of the specified type.
      * 

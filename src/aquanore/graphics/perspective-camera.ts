@@ -130,6 +130,14 @@ export class PerspectiveCamera implements ICamera {
         }
     }
 
+    get worldMatrix(): Matrix4 {
+        let m = Matrix4.identity();
+        m = Matrix4.translate(m, this._translation.x, this._translation.y, this._translation.z);
+        m = Matrix4.rotate(m, this._rotation.x, this._rotation.y, this._rotation.z);
+
+        return m;
+    }
+
     /**
      * Constructs a perspective camera
      * @param fov Field Of View

@@ -54,6 +54,10 @@ export class Quaternion {
         return new Quaternion(this._x, this._y, this._z, this._w);
     }
 
+    toString(): string {
+        return `${this._x},${this._y},${this._z},${this._w}`;
+    }
+
     static toEuler(q: Quaternion): Vector3 {
         const m = Matrix4.compose(Vector3.ZERO, q, Vector3.ONE);
         const euler = Matrix4.extractRotation(m);
@@ -167,18 +171,44 @@ export class Quaternion {
         return q1._x * q2._x + q1._y * q2._y + q1._z * q2._z + q1._w * q2._w;
     }
 
+    static floor(q: Quaternion): Quaternion {
+        return new Quaternion(Math.floor(q.x), Math.floor(q.y), Math.floor(q.z), Math.floor(q.w));
+    }
+
+    static ceil(q: Quaternion): Quaternion {
+        return new Quaternion(Math.ceil(q.x), Math.ceil(q.y), Math.floor(q.z), Math.floor(q.w));
+    }
+
+    static round(v: Quaternion): Quaternion {
+        return new Quaternion(Math.round(v.x), Math.round(v.y), Math.round(v.z), Math.round(v.w));
+    }
+
     /* BASIC MATH */
-    static add(q1: Quaternion, q2: Quaternion): Quaternion {
-        return new Quaternion(q1.x + q2.x, q1.y + q2.y, q1.z + q2.z, q1.w + q2.w);
+    static add(q: Quaternion, value: Quaternion | number): Quaternion {
+        if (value instanceof Quaternion) {
+            return new Quaternion(q.x + value.x, q.y + value.y, q.z + value.z, q.w + value.w);
+        } else {
+            return new Quaternion(q.x + value, q.y + value, q.z + value, q.w + value);
+        }
     }
 
-    static sub(q1: Quaternion, q2: Quaternion): Quaternion {
-        return new Quaternion(q1.x - q2.x, q1.y - q2.y, q1.z - q2.z, q1.w - q2.w);
+    static sub(q: Quaternion, value: Quaternion | number): Quaternion {
+        if (value instanceof Quaternion) {
+            return new Quaternion(q.x - value.x, q.y - value.y, q.z - value.z, q.w - value.w);
+        } else {
+            return new Quaternion(q.x - value, q.y - value, q.z - value, q.w - value);
+        }
     }
 
-    static mult(q1: Quaternion, q2: Quaternion): Quaternion {
-        const qax = q1.x, qay = q1.y, qaz = q1.z, qaw = q1.w;
-        const qbx = q2.x, qby = q2.y, qbz = q2.z, qbw = q2.w;
+    static mult(q: Quaternion, value: Quaternion | number): Quaternion {
+        let qax = q.x, qay = q.y, qaz = q.z, qaw = q.w;
+        let qbx = 0, qby = 0, qbz = 0, qbw = 0;
+
+        if (value instanceof Quaternion) {
+            qbx = value.x, qby = value.y, qbz = value.z, qbw = value.w;
+        } else {
+            qbx = value, qby = value, qbz = value, qbw = value;
+        }
 
         const x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
         const y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;

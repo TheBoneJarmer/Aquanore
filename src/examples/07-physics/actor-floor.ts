@@ -9,6 +9,18 @@ export class ActorFloor {
     private _body: RigidBody;
     private _collider: Collider;
 
+    public get model(): Model {
+        return this._model;
+    }
+
+    public get body(): RigidBody {
+        return this._body;
+    }
+
+    public get collider(): Collider {
+        return this._collider;
+    }
+
     constructor() {
         const width = 50;
         const height = 0.5;

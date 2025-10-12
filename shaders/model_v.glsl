@@ -49,7 +49,9 @@ mat4 get_matrix_mvp_shadow() {
 
 mat4 get_matrix_mvp() {
     mat4 mat_model = get_matrix_model();
-    return u_projection * u_view * mat_model;
+    mat4 mat_mvp = u_projection * u_view * mat_model;
+
+    return mat_mvp;
 }
 
 mat3 get_matrix_tbn() {

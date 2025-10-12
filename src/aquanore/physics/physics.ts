@@ -39,6 +39,22 @@ export class Physics {
         this._world.gravity = RapierUtils.toVector3(value);
     }
 
+    public static castRay(origin: Vector3, direction: Vector3, maxToi: number, solid: boolean) {
+        const rapOrigin = RapierUtils.fromVector3(origin);
+        const rapDirection = RapierUtils.fromVector3(direction);
+        const ray = new RAPIER.Ray(rapOrigin, rapDirection);
+        const hit = this._world.castRay(ray, maxToi, solid);
+
+        if (hit == null) {
+            return null;
+        }
+
+        return {
+            handle: hit.collider.handle,
+            point: RapierUtils.fromVector3(ray.pointAt(hit.timeOfImpact))
+        };
+    }
+
     /* INTERNAL FUNCTIONS */
     public static async __init() {
         await RAPIER.init();

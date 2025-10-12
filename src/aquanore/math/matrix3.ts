@@ -91,6 +91,10 @@ export class Matrix3 {
         return new Matrix3(this.values.map(x => x));
     }
 
+    toString(): string {
+        return this.values.join(",");
+    }
+
     static identity(): Matrix3 {
         const values = [
             1, 0, 0,

@@ -201,8 +201,8 @@ export class Renderer {
         shader.uvec2("u_scale", scale);
         shader.ucolor("u_color", color);
 
-        gl.bindTexture(gl.TEXTURE_2D, font.tex);
         gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, font.tex);
         gl.bindVertexArray(font.id);
 
         let advance = 0;

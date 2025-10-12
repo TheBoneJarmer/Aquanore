@@ -8,6 +8,7 @@ export interface ICamera {
 
     get projectionMatrix(): Matrix4;
     get viewMatrix(): Matrix4;
+    get worldMatrix(): Matrix4;
     
     lookAt(target: Vector3 | null): void;
 }

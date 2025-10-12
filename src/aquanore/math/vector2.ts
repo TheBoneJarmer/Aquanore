@@ -30,6 +30,10 @@ export class Vector2 {
         return new Vector2(this._x, this._y);
     }
 
+    toString(): string {
+        return `${this._x},${this._y}`;
+    }
+
     static distance(v1: Vector2, v2: Vector2): number {
         let x = v1.x - v2.x;
         let y = v1.y - v2.y;
@@ -47,20 +51,48 @@ export class Vector2 {
         return theta;
     }
 
+    static floor(v: Vector2): Vector2 {
+        return new Vector2(Math.floor(v.x), Math.floor(v.y));
+    }
+
+    static ceil(v: Vector2): Vector2 {
+        return new Vector2(Math.ceil(v.x), Math.ceil(v.y));
+    }
+
+    static round(v: Vector2): Vector2 {
+        return new Vector2(Math.round(v.x), Math.round(v.y));
+    }
+
     /* BASIC MATH */
-    static add(v1: Vector2, v2: Vector2): Vector2 {
-        return new Vector2(v1.x + v2.x, v1.y + v2.y,);
+    static add(v: Vector2, value: Vector2 | number): Vector2 {
+        if (value instanceof Vector2) {
+            return new Vector2(v.x + value.x, v.y + value.y);
+        } else {
+            return new Vector2(v.x + value, v.y + value);
+        }
     }
 
-    static sub(v1: Vector2, v2: Vector2): Vector2 {
-        return new Vector2(v1.x - v2.x, v1.y - v2.y);
+    static sub(v: Vector2, value: Vector2 | number): Vector2 {
+        if (value instanceof Vector2) {
+            return new Vector2(v.x - value.x, v.y - value.y);
+        } else {
+            return new Vector2(v.x - value, v.y - value);
+        }
     }
 
-    static mult(v1: Vector2, v2: Vector2): Vector2 {
-        return new Vector2(v1.x * v2.x, v1.y * v2.y);
+    static mult(v: Vector2, value: Vector2 | number): Vector2 {
+        if (value instanceof Vector2) {
+            return new Vector2(v.x * value.x, v.y * value.y);
+        } else {
+            return new Vector2(v.x * value, v.y * value);
+        }
     }
 
-    static div(v1: Vector2, v2: Vector2): Vector2 {
-        return new Vector2(v1.x / v2.x, v1.y / v2.y);
+    static div(v: Vector2, value: Vector2 | number): Vector2 {
+        if (value instanceof Vector2) {
+            return new Vector2(v.x / value.x, v.y / value.y);
+        } else {
+            return new Vector2(v.x / value, v.y / value);
+        }
     }
 }

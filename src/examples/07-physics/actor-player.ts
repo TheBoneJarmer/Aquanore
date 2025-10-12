@@ -1,13 +1,25 @@
 import { Keys, RigidBodyType } from "../../aquanore/enums";
 import { Model, Renderer, Scene } from "../../aquanore/graphics";
 import { Joystick, Keyboard } from "../../aquanore/input";
-import { MathHelper, Vector2, Vector3 } from "../../aquanore/math";
-import { Collider, Physics, RigidBody } from "../../aquanore/physics";
+import { MathHelper, Vector3 } from "../../aquanore/math";
+import { Collider, RigidBody } from "../../aquanore/physics";
 
 export class ActorPlayer {
     private _model: Model;
     private _body: RigidBody;
     private _collider: Collider;
+
+    public get model(): Model {
+        return this._model;
+    }
+
+    public get body(): RigidBody {
+        return this._body;
+    }
+
+    public get collider(): Collider {
+        return this._collider;
+    }
 
     constructor() {
         this._model = Model.sphere(1);
@@ -15,6 +27,7 @@ export class ActorPlayer {
         this._body = new RigidBody(RigidBodyType.Dynamic);
         this._body.position = new Vector3(0, 2, 0);
         this._body.gravity = 4;
+        this._body.linearDamping = 1;
 
         this._collider = Collider.sphere(1, this._body);
         this._collider.restitution = 0.25;
@@ -28,8 +41,8 @@ export class ActorPlayer {
     private updateCamera(dt: number) {
         const pos = this._body.position;
 
-        Scene.camera.translation = new Vector3(-pos.x, pos.y + 5, -pos.z - 10);
-        Scene.camera.rotation = new Vector3(MathHelper.radians(25), 0, 0);
+        // Scene.camera.translation = new Vector3(-pos.x, pos.y + 5, -pos.z - 10);
+        // Scene.camera.rotation = new Vector3(MathHelper.radians(25), 0, 0);
     }
 
     private updateControls(dt: number) {
@@ -47,16 +60,11 @@ export class ActorPlayer {
             const down = Keyboard.keyDown(Keys.Down) || Keyboard.keyDown(Keys.S);
             const left = Keyboard.keyDown(Keys.Left) || Keyboard.keyDown(Keys.A);
             const right = Keyboard.keyDown(Keys.Right) || Keyboard.keyDown(Keys.D);
-            const jump = Keyboard.keyPressed(Keys.Space);
 
             if (up) this._body.impulse(Vector3.BACKWARD);
             if (down) this._body.impulse(Vector3.FORWARD);
             if (left) this._body.impulse(Vector3.LEFT);
             if (right) this._body.impulse(Vector3.RIGHT);
-
-            if (jump) {
-                this._body.impulse(new Vector3(0, 100, 0));
-            }
         }
 
         if (pos.y < -6) {
@@ -65,17 +73,9 @@ export class ActorPlayer {
             pos.z = 0;
 
             this._body.linearVelocity = new Vector3(0, 0, 0);
-            this._body.angularVelocity = new Vector3(0,0,0);
+            this._body.angularVelocity = new Vector3(0, 0, 0);
             this._body.position = new Vector3(0, 2, 0);
             this._body.rotation = new Vector3(0, 0, 0);
-        }
-
-        if (Keyboard.keyPressed(Keys.G)) {
-            if (Physics.gravity.y == 0) {
-                Physics.gravity = new Vector3(0, -10, 0);
-            } else {
-                Physics.gravity = new Vector3(0, 0, 0);
-            }
         }
     }
 

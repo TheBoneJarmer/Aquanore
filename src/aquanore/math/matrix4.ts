@@ -149,6 +149,10 @@ export class Matrix4 {
         return new Matrix4(this.values.map(x => x));
     }
 
+    toString(): string {
+        return this.values.join(",");
+    }
+
     static identity(): Matrix4 {
         const values = [
             1, 0, 0, 0,

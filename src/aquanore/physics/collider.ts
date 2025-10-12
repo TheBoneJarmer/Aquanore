@@ -22,6 +22,10 @@ export class Collider {
         return this._collider;
     }
 
+    get handle(): number {
+        return this._collider.handle;
+    }
+
     get mass(): number {
         return this._collider.mass();
     }
@@ -36,6 +40,14 @@ export class Collider {
 
     set restitution(value: number) {
         this._collider.setRestitution(value);
+    }
+
+    get friction(): number {
+        return this._collider.friction();
+    }
+
+    set friction(value: number) {
+        this._collider.setFriction(value);
     }
 
     constructor(collider: RAPIER.Collider) {
