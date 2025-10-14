@@ -110,7 +110,7 @@ async function updateControls(dt: number) {
         const coords = new Vector2(Cursor.x, Cursor.y);
         const origin = Vector3.unproject(coords, Scene.camera)
         const dir = Vector3.unprojectDir(coords, Scene.camera);
-        const raycast = Physics.castRay(origin, dir, 100, true);
+        const raycast = Physics.raycast(origin, dir, 100, true);
         const cube = cubes.find(x => x.collider.handle == raycast?.handle);
 
         if (cube != null) {
@@ -125,7 +125,7 @@ async function updateControls(dt: number) {
 
         let origin = Vector3.unproject(coords, Scene.camera)
         let dir = Vector3.unprojectDir(coords, Scene.camera);
-        let raycast = Physics.castRay(origin, dir, 100, true);
+        let raycast = Physics.raycast(origin, dir, 100, true);
 
         if (raycast != null) {
             const pos = raycast.point;

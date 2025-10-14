@@ -4,6 +4,7 @@ import { Vector3 } from "../math";
 
 import { Physics } from "./physics";
 import { RigidBody } from "./rigidbody";
+import { RapierUtils } from "./rapier-utils";
 
 /**
  * The `Collider` class provides a wrapper around RAPIER's collider objects,
@@ -56,6 +57,25 @@ export class Collider {
 
     remove() {
         Physics.rapierWorld.removeCollider(this._collider, true);
+    }
+
+    raycast(origin: Vector3, direction: Vector3, maxToi: number, solid: boolean) {
+        const rapOrigin = RapierUtils.fromVector3(origin);
+        const rapDirection = RapierUtils.fromVector3(direction);
+        const ray = new RAPIER.Ray(rapOrigin, rapDirection);
+        const hit = this._collider.castRayAndGetNormal(ray, maxToi, solid);
+
+        if (hit == null) {
+            return null;
+        }
+
+        let point = RapierUtils.fromVector3(ray.pointAt(hit.timeOfImpact));
+        let normal = RapierUtils.fromVector3(hit.normal);
+
+        return {
+            point: point,
+            normal: normal
+        };
     }
 
     /* FACTORY FUNCTIONS */

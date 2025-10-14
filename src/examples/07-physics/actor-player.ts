@@ -41,8 +41,8 @@ export class ActorPlayer {
     private updateCamera(dt: number) {
         const pos = this._body.position;
 
-        // Scene.camera.translation = new Vector3(-pos.x, pos.y + 5, -pos.z - 10);
-        // Scene.camera.rotation = new Vector3(MathHelper.radians(25), 0, 0);
+        Scene.camera.translation = new Vector3(-pos.x, pos.y + 5, -pos.z - 10);
+        Scene.camera.rotation = new Vector3(MathHelper.radians(25), 0, 0);
     }
 
     private updateControls(dt: number) {
