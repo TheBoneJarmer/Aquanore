@@ -57,15 +57,6 @@
             "cwd": "${workspaceFolder}/src/examples/06-models",
             "internalConsoleOptions": "neverOpen",
             "args": []
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "07 - Physics",
-            "runtimeExecutable": "vite",
-            "cwd": "${workspaceFolder}/src/examples/07-physics",
-            "internalConsoleOptions": "neverOpen",
-            "args": []
         }
     ]
 }

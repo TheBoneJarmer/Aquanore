@@ -4,7 +4,6 @@ import { Shaders } from "./graphics/shaders";
 import { Joystick, Keyboard, Cursor } from "./input";
 import { AquanoreOptions } from "./aquanore-options";
 import { Audio } from "./audio";
-import { Physics } from "./physics";
 
 export class Aquanore {
     private static _ctx: WebGL2RenderingContext;
@@ -144,7 +143,6 @@ export class Aquanore {
         await Renderer.__init();
         await Scene.__init();
         await Audio.__init();
-        await Physics.__init();
     }
 
     private static initCanvas() {
@@ -217,7 +215,6 @@ export class Aquanore {
             await this._onUpdate(deltaTime / 1000.0);
         }
 
-        await Physics.__update();
         await Scene.__update();
         await Keyboard.__update();
         await Cursor.__update();
