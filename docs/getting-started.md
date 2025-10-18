@@ -47,8 +47,8 @@ Finally, let's add the game ts file itself and our basic project structure is co
 ```ts
 import { Aquanore } from "aquanore";
 
-// Run this to initialize Aquanore with everything
-Aquanore.init();
+// Run this to initialize Aquanore
+await Aquanore.init();
 
 Aquanore.onLoad = async () => {
     // Load assets and initialize game states
@@ -66,8 +66,12 @@ Aquanore.onRender3D() = async () => {
     // Render models
 };
 
+Aquanore.onResize = async () => {
+    // When the window resizes
+}
+
 // Start the main loop
-Aquanore.run();
+await Aquanore.run();
 ```
 
 ### Let's serve

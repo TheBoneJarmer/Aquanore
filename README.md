@@ -1,9 +1,9 @@
 # Aquanore
-Aquanore is a light-weight 2D and 3D WebGL framework for creating web games. I started with a raw and barely stable version back in 2015 and kept updating and improving that version ever since. As of today it is a polished library that can be used for creating HTML5 games for both desktop and mobile!
-
-Aquanore is written in TypeScript and therefore has a type definition available. It can however also be used in vanilla JavaScript. The design goal is to keep it simple and as straightforward as possible to setup a game project.
+Aquanore is a light-weight 2D and 3D WebGL framework for creating web games. I started with a raw and barely stable 2D version back in 2015 and kept updating and improving that version ever since. As of today it is a polished library that can be used for creating HTML5 games for both desktop and mobile!
 
 ## Usage
+> **Note** The docs are still very much a WIP and are now limited to markdown files. At some point in time I will consider building a website.
+
 Please see the [docs](./docs/index.md) for more info.
 
 ## Examples
