@@ -1,6 +1,6 @@
 {
   "name": "aquanore",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Aquanore is a 2D and 3D WebGL game framework",
   "author": "Ruben Labruyere",
   "license": "MIT",
@@ -12,7 +12,10 @@
     "html5",
     "webgl",
     "aquanore",
-    "2d"
+    "2d",
+    "3d",
+    "game",
+    "framework"
   ],
   "bugs": {
     "url": "https://github.com/TheBoneJarmer/aquanore/issues"
