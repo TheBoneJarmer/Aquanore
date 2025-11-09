@@ -3,15 +3,15 @@ import { IGeometry } from "../../interfaces/geometry";
 import { Vector2, Vector3 } from "../../math";
 
 export class Geometry implements IGeometry {
-    private _vao: WebGLVertexArrayObject;
-    private _indices: number[];
-    private _vertices: number[];
-    private _uvs: number[];
-    private _normals: number[];
-    private _tangents: number[];
-    private _bitangents: number[];
-    private _joints: number[];
-    private _weights: number[];
+    private _vao: WebGLVertexArrayObject = null;
+    private _indices: number[] = [];
+    private _vertices: number[] = [];
+    private _uvs: number[] = [];
+    private _normals: number[] = [];
+    private _tangents: number[] = [];
+    private _bitangents: number[] = [];
+    private _joints: number[] = [];
+    private _weights: number[] = [];
 
     get vao(): WebGLVertexArrayObject {
         return this._vao;
@@ -178,6 +178,7 @@ export class Geometry implements IGeometry {
         const vboJoint = gl.createBuffer();
         const vboWeight = gl.createBuffer();
 
+        // Validate buffer data
         if (this._vertices.length % 3 > 0) {
             throw new Error("Vertex array length not size of 3");
         }
@@ -198,6 +199,41 @@ export class Geometry implements IGeometry {
             throw new Error("UV array length mismatch");
         }
 
+        // Update empty buffers
+        if (this._uvs.length == 0) {
+            for (let i = 0; i < this._vertices.length / 3; i++) {
+                this._uvs.push(0);
+                this._uvs.push(0);
+            }
+        }
+
+        if (this._normals.length == 0) {
+            for (let i=0; i<this._vertices.length / 3; i++) {
+                this._normals.push(0);
+                this._normals.push(0);
+                this._normals.push(0);
+            }
+        }
+
+        if (this._joints.length == 0) {
+            for (let i = 0; i < this._vertices.length / 3; i++) {
+                this._joints.push(0);
+                this._joints.push(0);
+                this._joints.push(0);
+                this._joints.push(0);
+            }
+        }
+
+        if (this._weights.length == 0) {
+            for (let i = 0; i < this._vertices.length / 3; i++) {
+                this._weights.push(0);
+                this._weights.push(0);
+                this._weights.push(0);
+                this._weights.push(0);
+            }
+        }
+
+        // Generate buffer objects
         gl.bindVertexArray(vao);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vboVertex);
