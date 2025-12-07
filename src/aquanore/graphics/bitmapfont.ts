@@ -1,5 +1,4 @@
 import { Aquanore } from "../aquanore";
-import { TextureLoader } from "../loaders";
 import { Texture } from "./texture";
 
 export class BitmapFontGlyph {

@@ -14,3 +14,4 @@ export * from "./mesh-skin";
 export * from "./model-animation";
 export * from "./model-animation-channel";
 export * from "./font";
+export * from "./bitmapfont";
