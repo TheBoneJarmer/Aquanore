@@ -49,7 +49,7 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    modelSkelly = await loader.load("models/Skeleton_Mage.glb");
+    modelSkelly = await loader.load("models/debug.gltf");
     modelSkelly.meshes.forEach((mesh) => {
         mesh.primitives.forEach((pri) => {
             // pri.castShadow = true;
