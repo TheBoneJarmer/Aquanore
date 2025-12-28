@@ -6,8 +6,6 @@ export class Cursor {
     private static _y: number;
     private static _prevX: number;
     private static _prevY: number;
-    private static _moveX: number;
-    private static _moveY: number;
     private static _wheelX: number;
     private static _wheelY: number;
 
@@ -25,14 +23,6 @@ export class Cursor {
 
     static get prevY(): number {
         return this._prevY;
-    }
-
-    static get moveX(): number {
-        return this._moveX;
-    }
-
-    static get moveY(): number {
-        return this._moveY;
     }
 
     static get wheelX(): number {
@@ -58,7 +48,7 @@ export class Cursor {
     /* INTERNAL FUNCTIONS */
     static async __init() {
         this._states = [];
-        
+
         this.__initStates();
     }
 
@@ -79,12 +69,10 @@ export class Cursor {
             this._y = e.clientY - cnv.getBoundingClientRect().top;
         });
         cnv.addEventListener("pointermove", (e) => {
-            this._prevX = this._x;
-            this._prevY = this._y;
+            // this._prevX = this._x;
+            // this._prevY = this._y;
             this._x = e.clientX - cnv.getBoundingClientRect().left;
             this._y = e.clientY - cnv.getBoundingClientRect().top;
-            this._moveX = this._prevX - this._x;
-            this._moveY = this._prevY - this._y;
         });
         cnv.addEventListener("pointerup", (e) => {
             if (this._states[e.button] === 2) {
@@ -106,8 +94,8 @@ export class Cursor {
     }
 
     static async __update() {
-        this._moveX = 0;
-        this._moveY = 0;
+        this._prevX = this._x;
+        this._prevY = this._y;
         this._wheelX = 0;
         this._wheelY = 0;
 

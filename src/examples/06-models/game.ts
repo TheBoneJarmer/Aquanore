@@ -3,15 +3,19 @@ import { Keys } from "../../aquanore/enums";
 import { Color, Model, ModelAnimation, Renderer, Scene } from "../../aquanore/graphics";
 import { MathHelper, Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
-import { Keyboard } from "../../aquanore/input";
+import { Cursor, Keyboard } from "../../aquanore/input";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 
-let modelSkelly: Model;
+let model: Model;
 let modelFloor: Model;
 let animation: ModelAnimation;
 let index = 0;
 let time = 0;
 let paused = false;
+
+let position: Vector3;
+let rotation: Vector3;
+let scale: Vector3;
 
 await Aquanore.init();
 Aquanore.onLoad = onLoad;
@@ -40,25 +44,29 @@ async function onRender3D() {
 /* INIT */
 async function initScene() {
     Scene.camera.translation.z = -4;
-    Scene.camera.translation.y = 1;
+    Scene.camera.translation.y = 0;
 
     Scene.lights[0].source = new Vector3(1, 1, 1);
 
     Renderer.clearColor = new Color(55, 55, 55);
+
+    position = new Vector3(0, 0, 0);
+    rotation = new Vector3(0, 0, 0);
+    scale = new Vector3(1, 1, 1);
 }
 
 async function initModels() {
     let loader = new GltfLoader();
-    modelSkelly = await loader.load("models/debug.gltf");
-    modelSkelly.meshes.forEach((mesh) => {
+    model = await loader.load("models/suzanne.glb");
+    model.meshes.forEach((mesh) => {
         mesh.primitives.forEach((pri) => {
-            // pri.castShadow = true;
-            // pri.receiveShadow = false;
+            pri.castShadow = false;
+            pri.receiveShadow = false;
         });
     });
 
-    if (modelSkelly.animations.length > 0) {
-        animation = modelSkelly.animations[index];
+    if (model.animations.length > 0) {
+        animation = model.animations[index];
         console.log(animation.name || "Animation");
     }
 
@@ -120,20 +128,36 @@ async function updateControls(dt: number) {
 }
 
 async function updateInput(dt: number) {
-    if (Keyboard.keyPressed(Keys.PageUp) && index < modelSkelly.animations.length - 1) {
+    if (Keyboard.keyPressed(Keys.PageUp) && index < model.animations.length - 1) {
         index++;
-        animation = modelSkelly.animations[index];
+        animation = model.animations[index];
         console.log(animation.name);
     }
 
     if (Keyboard.keyPressed(Keys.PageDown) && index > 0) {
         index--;
-        animation = modelSkelly.animations[index];
+        animation = model.animations[index];
         console.log(animation.name);
     }
 
     if (Keyboard.keyPressed(Keys.Space)) {
         paused = !paused;
+    }
+
+    if (Cursor.isButtonDown(0)) {
+        rotation.y += (Cursor.x - Cursor.prevX) * dt;
+        rotation.x += (Cursor.y - Cursor.prevY) * dt;
+    }
+
+    if (Cursor.isButtonPressed(2)) {
+        rotation = new Vector3(0, 0, 0);
+
+        Scene.camera.translation = new Vector3(0, 1, -4);
+        Scene.camera.rotation = new Vector3(0, 0, 0);
+    }
+
+    if (Cursor.wheelY) {
+        Scene.camera.translation.z -= Cursor.wheelY * dt;
     }
 }
 
@@ -157,6 +181,6 @@ async function updateAnimation(dt: number) {
 
 /* RENDER */
 async function renderScene() {
-    Renderer.drawModel(modelSkelly, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1), animation, time);
-    Renderer.drawModel(modelFloor, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
+    Renderer.drawModel(model, position, rotation, scale, animation, time);
+    // Renderer.drawModel(modelFloor, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 }
