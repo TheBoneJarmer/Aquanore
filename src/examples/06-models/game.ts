@@ -44,7 +44,7 @@ async function onRender3D() {
 /* INIT */
 async function initScene() {
     Scene.camera.translation.z = -4;
-    Scene.camera.translation.y = 0;
+    Scene.camera.translation.y = 1;
 
     Scene.lights[0].source = new Vector3(1, 1, 1);
 
@@ -57,11 +57,11 @@ async function initScene() {
 
 async function initModels() {
     let loader = new GltfLoader();
-    model = await loader.load("models/suzanne.glb");
+    model = await loader.load("models/mage.glb");
     model.meshes.forEach((mesh) => {
         mesh.primitives.forEach((pri) => {
-            pri.castShadow = false;
-            pri.receiveShadow = false;
+            pri.castShadow = true;
+            pri.receiveShadow = true;
         });
     });
 
@@ -182,5 +182,5 @@ async function updateAnimation(dt: number) {
 /* RENDER */
 async function renderScene() {
     Renderer.drawModel(model, position, rotation, scale, animation, time);
-    // Renderer.drawModel(modelFloor, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
+    Renderer.drawModel(modelFloor, new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 }
