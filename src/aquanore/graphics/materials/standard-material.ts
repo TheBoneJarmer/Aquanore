@@ -1,3 +1,4 @@
+import { Shading } from "../../enums";
 import { IMaterial } from "../../interfaces";
 import { Color } from "../color";
 import { Texture } from "../texture";
@@ -7,6 +8,7 @@ export class StandardMaterial implements IMaterial {
     private _color: Color;
     private _colorMap: Texture | null;
     private _normalMap: Texture | null;
+    private _shading: Shading;
 
     get color(): Color {
         return this._color;
@@ -40,10 +42,19 @@ export class StandardMaterial implements IMaterial {
         this._ambient = value;
     }
 
+    get shading() {
+        return this._shading;
+    }
+
+    set shading(value: Shading) {
+        this._shading = value;
+    }
+
     constructor() {              
         this._color = new Color(255, 255, 255);
         this._ambient = new Color(100, 100, 100);
         this._colorMap = null;
         this._normalMap = null;
+        this._shading = Shading.Normal;
     }
 }

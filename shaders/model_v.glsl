@@ -27,6 +27,8 @@ out vec3 v_frag;
 out vec4 v_shadow;
 out vec2 v_adjacent_pixels[5];
 
+flat out vec3 v_normal_flat;
+
 mat4 get_matrix_model() {
     mat4 mat_skin = mat4(1.0f);
 
@@ -73,6 +75,7 @@ void main() {
 
     v_texcoord = a_texcoord;
     v_normal = u_normal * a_normal;
+    v_normal_flat = u_normal * a_normal;
 
     v_tbn = mat_tbn;
     v_frag = vec3(mat_model * v);

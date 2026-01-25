@@ -101,3 +101,8 @@ export enum RigidBodyType {
     KinematicPosition,
     KinematicVelocity
 };
+
+export enum Shading {
+    Normal = 0,
+    Flat = 1
+}

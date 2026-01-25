@@ -99,10 +99,14 @@ export class Vector3 {
      * @returns {Vector3}
      */
     static normalized(v: Vector3): Vector3 {
-        const scalar = 1 / this.length(v);
+        const m = this.length(v);
 
-        if (isFinite(scalar)) {
-            return new Vector3(v.x * scalar, v.y * scalar, v.z * scalar);
+        if (isFinite(m)) {
+            const x = v.x / m;
+            const y = v.y / m;
+            const z = v.z / m;
+
+            return new Vector3(x, y, z);
         }
 
         return new Vector3();
@@ -182,7 +186,7 @@ export class Vector3 {
      * @param cam The camera
      * @returns The unprojected coordinates
      */
-    static unproject(v: Vector2, cam:ICamera): Vector3 {
+    static unproject(v: Vector2, cam: ICamera): Vector3 {
         const cnv = Aquanore.canvas;
 
         let ndc = new Vector2();

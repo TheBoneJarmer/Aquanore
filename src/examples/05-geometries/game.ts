@@ -1,5 +1,5 @@
 import { Aquanore } from "../../aquanore/aquanore";
-import { Keys } from "../../aquanore/enums";
+import { Keys, Shading } from "../../aquanore/enums";
 import { Color, Mesh, Primitive, Model, Renderer, Scene } from "../../aquanore/graphics";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
 import { Keyboard } from "../../aquanore/input";
@@ -14,6 +14,8 @@ let scale: Vector3 = new Vector3(1, 1, 1);
 
 let index = 0;
 let geometries = ["Cube", "Box", "Sphere", "Capsule", "Cylinder", "Cone", "Torus", "TorusKnot", "Ring"];
+let wireframe = false;
+let shading = Shading.Normal;
 
 await Aquanore.init();
 
@@ -44,6 +46,84 @@ Aquanore.onUpdate = (dt: number) => {
         updateModel();
         updateInfo();
     }
+
+    if (Keyboard.keyPressed(Keys.W)) {
+        wireframe = !wireframe;
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad1)) {
+        index = 0;
+
+        updateInfo();
+        updateModel();
+    }
+    
+    if (Keyboard.keyPressed(Keys.Numpad2)) {
+        index = 1;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad3)) {
+        index = 2;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad4)) {
+        index = 3;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad5)) {
+        index = 4;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad6)) {
+        index = 5;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad7)) {
+        index = 6;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad8)) {
+        index = 7;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.Numpad9)) {
+        index = 8;
+        
+        updateInfo();
+        updateModel();
+    }
+
+    if (Keyboard.keyPressed(Keys.S)) {
+        if (shading == Shading.Normal) {
+            shading = Shading.Flat;
+        } else {
+            shading = Shading.Normal;
+        }
+
+        updateInfo();
+        updateModel();
+    }
 };
 
 Aquanore.onRender2D = () => {
@@ -51,7 +131,7 @@ Aquanore.onRender2D = () => {
 };
 
 Aquanore.onRender3D = () => {
-    Renderer.drawModel(model, pos, rot, scale);
+    Renderer.drawModel(model, pos, rot, scale, null, null, wireframe);
 };
 
 await Aquanore.run();
@@ -98,6 +178,7 @@ function updateInfo() {
 function updateModel() {
     let mat = new StandardMaterial();
     mat.color = new Color(35, 200, 35);
+    mat.shading = shading;
 
     let geom: IGeometry | null = null;
 
@@ -113,6 +194,9 @@ function updateModel() {
 
     if (geom != null) {
         const pri = new Primitive(geom, mat);
+        pri.castShadow = false;
+        pri.receiveShadow = false;
+
         const mesh = new Mesh();
         mesh.primitives.push(pri);
 

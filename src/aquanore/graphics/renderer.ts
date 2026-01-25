@@ -11,7 +11,7 @@ import { Scene } from "./scene";
 import { Shader, Shaders } from "./shaders";
 import { Sprite } from "./sprite";
 import { Texture } from "./texture";
-import { LightType } from "../enums";
+import { LightType, Shading } from "../enums";
 import { Light } from "./light";
 import { Font } from "./font";
 import { BitmapFont } from "./bitmapfont";
@@ -190,7 +190,7 @@ export class Renderer {
         gl.bindVertexArray(null);
     }
 
-     public static drawBitmapFont(font: BitmapFont, text: string, pos: Vector2, scale: Vector2, color: Color) {
+    public static drawBitmapFont(font: BitmapFont, text: string, pos: Vector2, scale: Vector2, color: Color) {
         if (!font) {
             return;
         }
@@ -280,7 +280,7 @@ export class Renderer {
      * @param {ModelAnimation} animation - If set, transforms the model's primitives based on the animation channels
      * @param {number} animationTime - If an animation is set, provides the current time for interpolation.
      */
-    static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0) {
+    static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0, wireframe: boolean = false) {
         if (this.switchShader(this._shaderModel)) {
             const shader = this._shader;
             const gl = Aquanore.ctx;
@@ -335,7 +335,7 @@ export class Renderer {
         // Draw all primitives
         for (let mesh of model.meshes) {
             this.drawMesh_Animation(model, mesh, animation, animationTime);
-            this.drawMesh_Primitives(mesh);
+            this.drawMesh_Primitives(mesh, wireframe);
         }
     }
 
@@ -395,7 +395,7 @@ export class Renderer {
         shader.u1b("u_skinned", true);
     }
 
-    private static drawMesh_Primitives(mesh: Mesh) {
+    private static drawMesh_Primitives(mesh: Mesh, wireframe: boolean) {
         const gl = Aquanore.ctx;
         const shader = this._shader;
 
@@ -426,6 +426,7 @@ export class Renderer {
                 shader.ucolor("u_material.ambient", material.ambient);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
+                shader.u1i("u_material.shading", material.shading);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
@@ -445,7 +446,13 @@ export class Renderer {
             }
 
             gl.bindVertexArray(geom.vao);
-            gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            
+            if (wireframe) {
+                gl.drawElements(gl.LINE_STRIP, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            } else {
+                gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            }
+
             gl.bindVertexArray(null);
         }
     }

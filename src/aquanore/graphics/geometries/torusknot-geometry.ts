@@ -73,7 +73,7 @@ export class TorusKnotGeometry extends Geometry {
         this.generateBuffers();
     }
 
-    #calculatePositionOnCurve(u, p, q, radius) {
+    #calculatePositionOnCurve(u: number, p: number, q: number, radius: number) {
         const cu = Math.cos(u);
         const su = Math.sin(u);
         const quOverP = q / p * u;

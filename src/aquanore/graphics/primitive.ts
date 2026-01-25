@@ -1,3 +1,4 @@
+import { Shading } from "../enums";
 import { IGeometry, IMaterial } from "../interfaces";
 
 /**

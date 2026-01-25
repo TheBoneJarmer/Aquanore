@@ -208,7 +208,7 @@ export class Geometry implements IGeometry {
         }
 
         if (this._normals.length == 0) {
-            for (let i=0; i<this._vertices.length / 3; i++) {
+            for (let i = 0; i < this._vertices.length / 3; i++) {
                 this._normals.push(0);
                 this._normals.push(0);
                 this._normals.push(0);
