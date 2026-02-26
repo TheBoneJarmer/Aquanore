@@ -19,15 +19,15 @@ export class Vector3 {
     private _z: number;
 
     /**
-     * The x value
-     * @return {number}
+     * Returns the x component of this vector
+     * @returns {number}
      */
     get x(): number {
         return this._x;
     }
 
     /**
-     * Sets the x value
+     * Sets the x component of this vector
      * @param {number} value
      */
     set x(value: number) {
@@ -35,15 +35,15 @@ export class Vector3 {
     }
 
     /**
-     * The y value
-     * @return {number}
+     * Returns the y component of this vector
+     * @returns {number}
      */
     get y(): number {
         return this._y;
     }
 
     /**
-     * Sets the y value
+     * Sets the y component of this vector
      * @param {number} value
      */
     set y(value: number) {
@@ -51,15 +51,15 @@ export class Vector3 {
     }
 
     /**
-     * The z value
-     * @return {number}
+     * Returns the z component of this vector
+     * @returns {number}
      */
     get z(): number {
         return this._z;
     }
 
     /**
-     * Sets the z value
+     * Sets the z component of this vector
      * @param {number} value
      */
     set z(value: number) {
@@ -73,7 +73,7 @@ export class Vector3 {
     }
 
     /**
-     * Returns a new Vector3 instance with the values from this Vector3 instance.
+     * Creates a deep clone of this object
      * @returns {Vector3}
      */
     clone(): Vector3 {

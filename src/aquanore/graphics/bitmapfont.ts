@@ -23,18 +23,30 @@ export class BitmapFont {
 
     private _vboVertices: WebGLBuffer = null;
     private _vboTexcoords: WebGLBuffer = null;
-    private _vao: WebGLVertexArrayObject = null;
+    private _id: WebGLVertexArrayObject = null;
 
-    public get tex() {
+    /**
+     * Returns the WebGL texture object of the font's bitmap image
+     * @returns {WebGLTexture}
+     */
+    public get tex(): WebGLTexture {
         return this._tex;
     }
 
-    public get glyphs() {
+    /**
+     * Returns the glyph array
+     * @returns {BitmapFontGlyph[]}
+     */
+    public get glyphs(): BitmapFontGlyph[] {
         return this._glyphs;
     }
 
-    public get vao() {
-        return this._vao;
+    /**
+     * Returns the Vertex Array Object of the font's glyphs
+     * @returns {WebGLVertexArrayObject}
+     */
+    public get id(): WebGLVertexArrayObject {
+        return this._id;
     }
 
     public constructor(tex: Texture, data: string) {
@@ -123,11 +135,11 @@ export class BitmapFont {
     private generateBuffers(): void {
         const gl = Aquanore.ctx!;
 
-        this._vao = gl.createVertexArray();
+        this._id = gl.createVertexArray();
         this._vboVertices = gl.createBuffer();
         this._vboTexcoords = gl.createBuffer();
 
-        gl.bindVertexArray(this._vao);
+        gl.bindVertexArray(this._id);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vboVertices);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertices), gl.STATIC_DRAW);

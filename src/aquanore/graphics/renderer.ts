@@ -204,7 +204,7 @@ export class Renderer {
         gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
         gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindVertexArray(font.vao);
+        gl.bindVertexArray(font.id);
 
         let advance = 0;
 

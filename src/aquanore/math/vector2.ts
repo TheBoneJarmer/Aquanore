@@ -5,18 +5,34 @@ export class Vector2 {
     private _x: number;
     private _y: number;
 
+    /**
+     * Returns the x component of this vector
+     * @returns {number}
+     */
     get x(): number {
         return this._x;
     }
 
+    /**
+     * Sets the x component of this vector
+     * @param {number} value
+     */
     set x(value: number) {
         this._x = value;
     }
 
+    /**
+     * Returns the y component of this vector
+     * @returns {number}
+     */
     get y(): number {
         return this._y;
     }
 
+    /**
+     * Sets the y component of this vector
+     * @param {number} value
+     */
     set y(value: number) {
         this._y = value;
     }
@@ -26,6 +42,10 @@ export class Vector2 {
         this._y = y;
     }
 
+    /**
+     * Returns a deep clone of this object
+     * @returns Vector2
+     */
     clone(): Vector2 {
         return new Vector2(this._x, this._y);
     }
@@ -34,6 +54,12 @@ export class Vector2 {
         return `${this._x},${this._y}`;
     }
 
+    /**
+     * Calculates the distance in pixels between two vectors
+     * @param {Vector2} v1
+     * @param {Vector2} v2
+     * @returns {number} The distance in pixels
+     */
     static distance(v1: Vector2, v2: Vector2): number {
         let x = v1.x - v2.x;
         let y = v1.y - v2.y;
@@ -41,6 +67,12 @@ export class Vector2 {
         return Math.sqrt((x * x) + (y * y));
     }
 
+    /**
+     * Calculates the angle in radians between two vectors
+     * @param {Vector2} v1
+     * @param {Vector2} v2
+     * @returns {number}
+     */
     static angle(v1: Vector2, v2: Vector2): number {
         let theta = Math.atan2(v2.y - v1.y, v2.x - v1.x);
 

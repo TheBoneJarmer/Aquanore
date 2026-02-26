@@ -7,14 +7,26 @@ export class Texture {
     private _width: number;
     private _height: number;
 
+    /**
+     * Returns the WebGL texture object
+     * @returns {WebGLTexture}
+     */
     get id(): WebGLTexture {
         return this._id;
     }
 
+    /**
+     * Returns the texture width in pixels
+     * @returns {number}
+     */
     get width(): number {
         return this._width;
     }
 
+    /**
+     * Returns the texture height in pixels
+     * @returns {number}
+     */
     get height(): number {
         return this._height;
     }
