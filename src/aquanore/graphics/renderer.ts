@@ -202,7 +202,7 @@ export class Renderer {
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
         gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
-        gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
+        gl.bindTexture(gl.TEXTURE_2D, font.tex);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindVertexArray(font.id);
 
@@ -279,6 +279,7 @@ export class Renderer {
      * @param {Vector3} scale - The model's scale
      * @param {ModelAnimation} animation - If set, transforms the model's primitives based on the animation channels
      * @param {number} animationTime - If an animation is set, provides the current time for interpolation.
+     * @param {boolean} wireframe - If true the wireframe of the model gets rendered instead of the model's faces
      */
     static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0, wireframe: boolean = false) {
         if (this.switchShader(this._shaderModel)) {
