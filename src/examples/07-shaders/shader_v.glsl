@@ -15,6 +15,7 @@ uniform mat4 u_mesh;
 uniform mat4 u_joint[99];
 uniform bool u_skinned;
 
+out vec4 v_fragcoord;
 out vec2 v_texcoord;
 out vec3 v_normal;
 
@@ -41,11 +42,13 @@ mat4 get_matrix_mvp() {
 }
 
 void main() {
+    mat4 mat_model = get_matrix_model();
     mat4 mat_mvp = get_matrix_mvp();
     vec4 v = vec4(a_vertex, 1.0f);
 
     v_texcoord = a_texcoord;
     v_normal = u_normal * a_normal;
+    v_fragcoord = v * mat_model;
 
     gl_Position = mat_mvp * v;
 }

@@ -97,6 +97,7 @@ export class Renderer {
 
     /**
      * Manually switch to another shader. This function is called by every render function below but can be called manually as well.
+     * This is necessary for when you like to set custom uniforms
      * @param {Shader} shader - The shader
      * @returns {boolean} True if the switch succeeded or false if it didn't.
      */
@@ -282,54 +283,51 @@ export class Renderer {
      * @param {boolean} wireframe - If true the wireframe of the model gets rendered instead of the model's faces
      */
     static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0, wireframe: boolean = false) {
-        if (this.switchShader(this._shaderModel)) {
-            const shader = this._shader;
-            const gl = Aquanore.ctx;
-
-            // Set the shadow map
-            const lightIndex = Scene.lights.findIndex(x => x.type == LightType.Directional);
-            const light = Scene.lights[lightIndex];
-
-            const matProjectionShadow = this.generateShadowProjectionMatrix(light);
-            const matViewShadow = this.generateShadowViewMatrix(light);
-            const matTextureShadow = this.generateShadowTextureMatrix();
-
-            shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
-            shader.u1i("u_shadow_light", lightIndex);
-            shader.u1i("u_shadow_map", 31);
-            shader.umat4("u_projection_shadow", matProjectionShadow);
-            shader.umat4("u_view_shadow", matViewShadow);
-            shader.umat4("u_tsc_shadow", matTextureShadow);
-
-            gl.activeTexture(gl.TEXTURE31);
-            gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
-
-            // Set all lights
-            shader.u1i("u_light_count", Scene.lights.length);
-
-            for (let i = 0; i < Scene.lights.length; i++) {
-                const light = Scene.lights[i];
-
-                shader.u1i(`u_light[${i}].type`, light.type);
-                shader.u1b(`u_light[${i}].enabled`, light.enabled);
-                shader.uvec3(`u_light[${i}].source`, light.source);
-                shader.ucolor(`u_light[${i}].color`, light.color);
-                shader.u1f(`u_light[${i}].strength`, light.strength);
-                shader.u1f(`u_light[${i}].range`, light.range);
-            }
-
-            // Set some matrices that stay consistent in this function regardless of the other input
-            const matProjection = Scene.camera.projectionMatrix;
-            const matView = Scene.camera.viewMatrix;
-
-            shader.umat4("u_projection", matProjection);
-            shader.umat4("u_view", matView);
-        }
+        this.switchShader(this._shaderModel);
 
         const shader = this._shader;
+        const gl = Aquanore.ctx;
+
+        // Set the shadow map
+        const lightIndex = Scene.lights.findIndex(x => x.type == LightType.Directional);
+        const light = Scene.lights[lightIndex];
+
+        const matProjectionShadow = this.generateShadowProjectionMatrix(light);
+        const matViewShadow = this.generateShadowViewMatrix(light);
+        const matTextureShadow = this.generateShadowTextureMatrix();
+
+        shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
+        shader.u1i("u_shadow_light", lightIndex);
+        shader.u1i("u_shadow_map", 31);
+        shader.umat4("u_projection_shadow", matProjectionShadow);
+        shader.umat4("u_view_shadow", matViewShadow);
+        shader.umat4("u_tsc_shadow", matTextureShadow);
+
+        gl.activeTexture(gl.TEXTURE31);
+        gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
+
+        // Set all lights
+        shader.u1i("u_light_count", Scene.lights.length);
+
+        for (let i = 0; i < Scene.lights.length; i++) {
+            const light = Scene.lights[i];
+
+            shader.u1i(`u_light[${i}].type`, light.type);
+            shader.u1b(`u_light[${i}].enabled`, light.enabled);
+            shader.uvec3(`u_light[${i}].source`, light.source);
+            shader.ucolor(`u_light[${i}].color`, light.color);
+            shader.u1f(`u_light[${i}].strength`, light.strength);
+            shader.u1f(`u_light[${i}].range`, light.range);
+        }
+
+        // Set some matrices that stay consistent in this function regardless of the other input
+        const matProjection = Scene.camera.projectionMatrix;
+        const matView = Scene.camera.viewMatrix;
         const matModel = this.generateModelMatrix(pos, rot, scale);
         const matNormal = this.generateNormalMatrix(matModel);
 
+        shader.umat4("u_projection", matProjection);
+        shader.umat4("u_view", matView);
         shader.umat4("u_model", matModel);
         shader.umat3("u_normal", matNormal);
 
@@ -447,7 +445,7 @@ export class Renderer {
             }
 
             gl.bindVertexArray(geom.vao);
-            
+
             if (wireframe) {
                 gl.drawElements(gl.LINE_STRIP, geom.indices.length, gl.UNSIGNED_SHORT, 0);
             } else {
