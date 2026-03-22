@@ -13,6 +13,7 @@ Please see the [docs](./docs/index.md) for more info.
 4. [Lights](./src/examples/04-light/)
 5. [Geometries](./src/examples/05-geometries/)
 6. [Models](./src/examples/06-models/)
+7. [Shaders](./src/examples/07-shaders/)
 
 ## Contribution
 For now I will not accept pull requests as the library still needs some expected fine-tuning from my end.
