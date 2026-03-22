@@ -26,10 +26,10 @@ export class BitmapFont {
     private _id: WebGLVertexArrayObject = null;
 
     /**
-     * Returns the WebGL texture object of the font's bitmap image
-     * @returns {WebGLTexture}
+     * Returns the texture object of the font's bitmap image
+     * @returns {Texture}
      */
-    public get tex(): WebGLTexture {
+    public get tex(): Texture {
         return this._tex;
     }
 
@@ -99,10 +99,10 @@ export class BitmapFont {
             }
 
             const i = glyph.id * 12;
-            const tcX = glyph.x / this._tex!.width;
-            const tcY = glyph.y / this._tex!.height;
-            const tcW = glyph.width / this._tex!.width;
-            const tcH = glyph.height / this._tex!.height;
+            const tcX = glyph.x / this._tex.width;
+            const tcY = glyph.y / this._tex.height;
+            const tcW = glyph.width / this._tex.width;
+            const tcH = glyph.height / this._tex.height;
 
             this._vertices[i + 0] = 0;
             this._vertices[i + 1] = 0;

@@ -203,7 +203,7 @@ export class Renderer {
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
         gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
         gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
-        gl.bindTexture(gl.TEXTURE_2D, font.tex);
+        gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindVertexArray(font.id);
 
