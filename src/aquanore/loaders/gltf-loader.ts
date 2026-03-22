@@ -223,7 +223,11 @@ export class GltfLoader {
 
     private async parseTexture(gltf: any, obj: any, path: string) {
         const source = obj.source;
+        const sampler = obj.sampler;
         const objImage = gltf.images[source];
+        const objSampler = gltf.samplers[sampler];
+
+        // TODO: Do something with sampler
 
         if (objImage.uri) {
             const folder = this.getFolder(`${path}${objImage.uri}`);
@@ -618,6 +622,10 @@ export class GltfLoader {
      * @returns The buffer without stride.
      */
     private removeStrideFromBuffer(buffer: ArrayBuffer, byteStride: number, componentType: ComponentType, accessorTypeSize: AccessorTypeSize): ArrayBuffer {
+        if (byteStride == 0) {
+            return buffer;
+        }
+
         let byteCount = this.getComponentSize(componentType) * accessorTypeSize;
         let total = (buffer.byteLength / byteStride) * byteCount;
         let result = new Uint8Array(total);

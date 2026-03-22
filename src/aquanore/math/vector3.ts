@@ -19,15 +19,15 @@ export class Vector3 {
     private _z: number;
 
     /**
-     * The x value
-     * @return {number}
+     * Returns the x component of this vector
+     * @returns {number}
      */
     get x(): number {
         return this._x;
     }
 
     /**
-     * Sets the x value
+     * Sets the x component of this vector
      * @param {number} value
      */
     set x(value: number) {
@@ -35,15 +35,15 @@ export class Vector3 {
     }
 
     /**
-     * The y value
-     * @return {number}
+     * Returns the y component of this vector
+     * @returns {number}
      */
     get y(): number {
         return this._y;
     }
 
     /**
-     * Sets the y value
+     * Sets the y component of this vector
      * @param {number} value
      */
     set y(value: number) {
@@ -51,15 +51,15 @@ export class Vector3 {
     }
 
     /**
-     * The z value
-     * @return {number}
+     * Returns the z component of this vector
+     * @returns {number}
      */
     get z(): number {
         return this._z;
     }
 
     /**
-     * Sets the z value
+     * Sets the z component of this vector
      * @param {number} value
      */
     set z(value: number) {
@@ -73,7 +73,7 @@ export class Vector3 {
     }
 
     /**
-     * Returns a new Vector3 instance with the values from this Vector3 instance.
+     * Creates a deep clone of this object
      * @returns {Vector3}
      */
     clone(): Vector3 {
@@ -99,10 +99,14 @@ export class Vector3 {
      * @returns {Vector3}
      */
     static normalized(v: Vector3): Vector3 {
-        const scalar = 1 / this.length(v);
+        const m = this.length(v);
 
-        if (isFinite(scalar)) {
-            return new Vector3(v.x * scalar, v.y * scalar, v.z * scalar);
+        if (isFinite(m)) {
+            const x = v.x / m;
+            const y = v.y / m;
+            const z = v.z / m;
+
+            return new Vector3(x, y, z);
         }
 
         return new Vector3();
@@ -182,7 +186,7 @@ export class Vector3 {
      * @param cam The camera
      * @returns The unprojected coordinates
      */
-    static unproject(v: Vector2, cam:ICamera): Vector3 {
+    static unproject(v: Vector2, cam: ICamera): Vector3 {
         const cnv = Aquanore.canvas;
 
         let ndc = new Vector2();

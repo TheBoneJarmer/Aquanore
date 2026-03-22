@@ -11,34 +11,66 @@ export class Quaternion {
     private _z: number;
     private _w: number;
 
+    /**
+     * Returns the x component of this quaternion
+     * @returns {number}
+     */
     get x(): number {
         return this._x;
     }
 
+    /**
+     * Sets the x component of this quaternion
+     * @param {number} value
+     */
     set x(value: number) {
         this._x = value;
     }
 
+    /**
+     * Returns the y component of this quaternion
+     * @returns {number}
+     */
     get y(): number {
         return this._y;
     }
 
+    /**
+     * Sets the y component of this quaternion
+     * @param {number} value
+     */
     set y(value: number) {
         this._y = value;
     }
 
+    /**
+     * Returns the z component of this quaternion
+     * @returns {number}
+     */
     get z(): number {
         return this._z;
     }
 
+    /**
+     * Sets the z component of this quaternion
+     * @param {number} value
+     */
     set z(value: number) {
         this._z = value;
     }
 
+    /**
+     * Returns the w component of this quaternion
+     * @returns {number}
+     */
     get w(): number {
         return this._w;
     }
 
+    /**
+     * Sets the w component of this quaternion
+     * @param {number} value
+     */
     set w(value: number) {
         this._w = value;
     }
@@ -50,6 +82,10 @@ export class Quaternion {
         this._w = w;
     }
 
+    /**
+     * Returns a deep clone of this object
+     * @returns {Quaternion}
+     */
     clone(): Quaternion {
         return new Quaternion(this._x, this._y, this._z, this._w);
     }
@@ -58,6 +94,11 @@ export class Quaternion {
         return `${this._x},${this._y},${this._z},${this._w}`;
     }
 
+    /**
+     * Converts a quaternion to euler angles
+     * @param {Quaternion} q
+     * @returns {Vector3}
+     */
     static toEuler(q: Quaternion): Vector3 {
         const m = Matrix4.compose(Vector3.ZERO, q, Vector3.ONE);
         const euler = Matrix4.extractRotation(m);
@@ -65,6 +106,11 @@ export class Quaternion {
         return euler;
     }
 
+    /**
+     * Constructs a quaternion from euler angles
+     * @param {Vector3} v
+     * @returns {Quaternion}
+     */
     static fromEuler(v: Vector3): Quaternion {
         const roll = v.x;
         const pitch = v.y;
@@ -86,10 +132,20 @@ export class Quaternion {
         return q;
     }
 
+    /**
+     * Calculates the length of a quaternion
+     * @param {Quaternion} q
+     * @returns {number}
+     */
     static length(q: Quaternion): number {
         return Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
     }
 
+    /**
+     * Normalizes the components of a quaternion
+     * @param {Quaternion} q
+     * @returns {Quaternion}
+     */
     static normalized(q: Quaternion): Quaternion {
         const length = this.length(q);
 
@@ -101,10 +157,22 @@ export class Quaternion {
         return new Quaternion(q.x * scalar, q.y * scalar, q.z * scalar, q.w * scalar);
     }
 
+    /**
+     * Inverses a queaternion
+     * @param {Quaternion} q
+     * @returns {Quaternion}
+     */
     static inversed(q: Quaternion): Quaternion {
         return new Quaternion(q.x * -1, q.y * -1, q.z * -1, q.w);
     }
 
+    /**
+     * Calculates the spherical linear position between two quaternions
+     * @param {Quaternion} q1
+     * @param {Quaternion} q2
+     * @param {number} t
+     * @returns {Quaternion}
+     */
     static slerp(q1: Quaternion, q2: Quaternion, t: number): Quaternion {
         if (t === 0) {
             return q1;
@@ -166,7 +234,7 @@ export class Quaternion {
 
         return new Quaternion(x, y, z, w);
     }
-
+    
     static dot(q1: Quaternion, q2: Quaternion): number {
         return q1._x * q2._x + q1._y * q2._y + q1._z * q2._z + q1._w * q2._w;
     }

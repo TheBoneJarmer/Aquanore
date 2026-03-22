@@ -1,6 +1,6 @@
 {
   "name": "aquanore",
-  "version": "3.2.1",
+  "version": "3.5.0",
   "description": "Aquanore is a 2D and 3D WebGL game framework",
   "author": "Ruben Labruyere",
   "license": "MIT",
@@ -26,6 +26,6 @@
   "type": "module",
   "devDependencies": {
     "typescript": "^5.9.2",
-    "vite": "^5.3.3"
+    "vite": "^8.0.1"
   }
 }

@@ -11,9 +11,10 @@ import { Scene } from "./scene";
 import { Shader, Shaders } from "./shaders";
 import { Sprite } from "./sprite";
 import { Texture } from "./texture";
-import { LightType } from "../enums";
+import { LightType, Shading } from "../enums";
 import { Light } from "./light";
 import { Font } from "./font";
+import { BitmapFont } from "./bitmapfont";
 
 export class Renderer {
     private static _shader: Shader;
@@ -96,10 +97,11 @@ export class Renderer {
 
     /**
      * Manually switch to another shader. This function is called by every render function below but can be called manually as well.
+     * This is necessary for when you like to set custom uniforms
      * @param {Shader} shader - The shader
-     * @returns True if the switch succeeded or false if it didn't.
+     * @returns {boolean} True if the switch succeeded or false if it didn't.
      */
-    static switchShader(shader: Shader) {
+    static switchShader(shader: Shader): boolean {
         const gl = Aquanore.ctx;
 
         if (shader == null) {
@@ -189,7 +191,47 @@ export class Renderer {
         gl.bindVertexArray(null);
     }
 
-    public static drawText(font: Font, text: string, pos: Vector2, scale: Vector2, color: Color) {
+    public static drawBitmapFont(font: BitmapFont, text: string, pos: Vector2, scale: Vector2, color: Color) {
+        if (!font) {
+            return;
+        }
+
+        this.switchShader(this._shaderFont);
+
+        const gl = Aquanore.ctx;
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
+        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
+        gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
+        gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindVertexArray(font.id);
+
+        let advance = 0;
+
+        for (let c of text) {
+            const index = c.charCodeAt(0);
+            const glyph = font.glyphs[index];
+
+            if (!glyph) {
+                continue;
+            }
+
+            let textX = pos.x + glyph.xoffset * scale.x + advance;
+            let textY = pos.y + glyph.yoffset * scale.y;
+
+            gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_translation"), textX, textY);
+            gl.drawArrays(gl.TRIANGLES, index * 6, 6);
+
+            advance += glyph.xadvance * scale.x;
+        }
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindVertexArray(null);
+    }
+
+    public static drawFont(font: Font, text: string, pos: Vector2, scale: Vector2, color: Color) {
         this.switchShader(this._shaderFont);
 
         const gl = Aquanore.ctx;
@@ -238,63 +280,61 @@ export class Renderer {
      * @param {Vector3} scale - The model's scale
      * @param {ModelAnimation} animation - If set, transforms the model's primitives based on the animation channels
      * @param {number} animationTime - If an animation is set, provides the current time for interpolation.
+     * @param {boolean} wireframe - If true the wireframe of the model gets rendered instead of the model's faces
      */
-    static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0) {
-        if (this.switchShader(this._shaderModel)) {
-            const shader = this._shader;
-            const gl = Aquanore.ctx;
-
-            // Set the shadow map
-            const lightIndex = Scene.lights.findIndex(x => x.type == LightType.Directional);
-            const light = Scene.lights[lightIndex];
-
-            const matProjectionShadow = this.generateShadowProjectionMatrix(light);
-            const matViewShadow = this.generateShadowViewMatrix(light);
-            const matTextureShadow = this.generateShadowTextureMatrix();
-
-            shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
-            shader.u1i("u_shadow_light", lightIndex);
-            shader.u1i("u_shadow_map", 31);
-            shader.umat4("u_projection_shadow", matProjectionShadow);
-            shader.umat4("u_view_shadow", matViewShadow);
-            shader.umat4("u_tsc_shadow", matTextureShadow);
-
-            gl.activeTexture(gl.TEXTURE31);
-            gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
-
-            // Set all lights
-            shader.u1i("u_light_count", Scene.lights.length);
-
-            for (let i = 0; i < Scene.lights.length; i++) {
-                const light = Scene.lights[i];
-
-                shader.u1i(`u_light[${i}].type`, light.type);
-                shader.u1b(`u_light[${i}].enabled`, light.enabled);
-                shader.uvec3(`u_light[${i}].source`, light.source);
-                shader.ucolor(`u_light[${i}].color`, light.color);
-                shader.u1f(`u_light[${i}].strength`, light.strength);
-                shader.u1f(`u_light[${i}].range`, light.range);
-            }
-
-            // Set some matrices that stay consistent in this function regardless of the other input
-            const matProjection = Scene.camera.projectionMatrix;
-            const matView = Scene.camera.viewMatrix;
-
-            shader.umat4("u_projection", matProjection);
-            shader.umat4("u_view", matView);
-        }
+    static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0, wireframe: boolean = false) {
+        this.switchShader(this._shaderModel);
 
         const shader = this._shader;
+        const gl = Aquanore.ctx;
+
+        // Set the shadow map
+        const lightIndex = Scene.lights.findIndex(x => x.type == LightType.Directional);
+        const light = Scene.lights[lightIndex];
+
+        const matProjectionShadow = this.generateShadowProjectionMatrix(light);
+        const matViewShadow = this.generateShadowViewMatrix(light);
+        const matTextureShadow = this.generateShadowTextureMatrix();
+
+        shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
+        shader.u1i("u_shadow_light", lightIndex);
+        shader.u1i("u_shadow_map", 31);
+        shader.umat4("u_projection_shadow", matProjectionShadow);
+        shader.umat4("u_view_shadow", matViewShadow);
+        shader.umat4("u_tsc_shadow", matTextureShadow);
+
+        gl.activeTexture(gl.TEXTURE31);
+        gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
+
+        // Set all lights
+        shader.u1i("u_light_count", Scene.lights.length);
+
+        for (let i = 0; i < Scene.lights.length; i++) {
+            const light = Scene.lights[i];
+
+            shader.u1i(`u_light[${i}].type`, light.type);
+            shader.u1b(`u_light[${i}].enabled`, light.enabled);
+            shader.uvec3(`u_light[${i}].source`, light.source);
+            shader.ucolor(`u_light[${i}].color`, light.color);
+            shader.u1f(`u_light[${i}].strength`, light.strength);
+            shader.u1f(`u_light[${i}].range`, light.range);
+        }
+
+        // Set some matrices that stay consistent in this function regardless of the other input
+        const matProjection = Scene.camera.projectionMatrix;
+        const matView = Scene.camera.viewMatrix;
         const matModel = this.generateModelMatrix(pos, rot, scale);
         const matNormal = this.generateNormalMatrix(matModel);
 
+        shader.umat4("u_projection", matProjection);
+        shader.umat4("u_view", matView);
         shader.umat4("u_model", matModel);
         shader.umat3("u_normal", matNormal);
 
         // Draw all primitives
         for (let mesh of model.meshes) {
             this.drawMesh_Animation(model, mesh, animation, animationTime);
-            this.drawMesh_Primitives(mesh);
+            this.drawMesh_Primitives(mesh, wireframe);
         }
     }
 
@@ -354,7 +394,7 @@ export class Renderer {
         shader.u1b("u_skinned", true);
     }
 
-    private static drawMesh_Primitives(mesh: Mesh) {
+    private static drawMesh_Primitives(mesh: Mesh, wireframe: boolean) {
         const gl = Aquanore.ctx;
         const shader = this._shader;
 
@@ -385,6 +425,7 @@ export class Renderer {
                 shader.ucolor("u_material.ambient", material.ambient);
                 shader.u1b("u_material.normal_map_active", false);
                 shader.u1b("u_material.color_map_active", false);
+                shader.u1i("u_material.shading", material.shading);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
@@ -404,7 +445,13 @@ export class Renderer {
             }
 
             gl.bindVertexArray(geom.vao);
-            gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+
+            if (wireframe) {
+                gl.drawElements(gl.LINE_STRIP, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            } else {
+                gl.drawElements(gl.TRIANGLES, geom.indices.length, gl.UNSIGNED_SHORT, 0);
+            }
+
             gl.bindVertexArray(null);
         }
     }

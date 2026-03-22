@@ -11,6 +11,7 @@ precision mediump float;
 struct Material {
     vec4 color;
     vec4 ambient;
+    int shading;
 
     sampler2D color_map;
     bool color_map_active;
@@ -44,6 +45,8 @@ in mat3 v_tbn;
 in vec3 v_frag;
 in vec4 v_shadow;
 in vec2 v_adjacent_pixels[5];
+
+flat in vec3 v_normal_flat;
 
 out vec4 result;
 
@@ -80,6 +83,10 @@ float calc_shadow() {
 vec3 calc_dir_light(Light light, float shadow) {
     vec3 normal = normalize(v_normal);
 
+    if (u_material.shading == 1) {
+        normal = normalize(v_normal_flat);
+    }
+
     if(u_material.normal_map_active) {
         normal = texture(u_material.normal_map, v_texcoord).rgb;
         normal = normal * 2.0f - 1.0f;
@@ -104,6 +111,10 @@ vec3 calc_dir_light(Light light, float shadow) {
 
 vec3 calc_point_light(Light light) {
     vec3 normal = normalize(v_normal);
+
+    if (u_material.shading == 1) {
+        normal = normalize(v_normal_flat);
+    }
 
     if(u_material.normal_map_active) {
         normal = texture(u_material.normal_map, v_texcoord).rgb;

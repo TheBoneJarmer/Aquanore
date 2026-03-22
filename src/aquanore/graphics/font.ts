@@ -3,7 +3,7 @@ import { Aquanore } from "../aquanore";
 /**
  * A glyph represents a character within the font
  */
-export class Glyph {
+export class FontGlyph {
     id: number;
     char: string;
     x: number;
@@ -31,7 +31,7 @@ export class Font {
     private _texWidth: number;
     private _texHeight: number;
 
-    private _glyphs: Glyph[];
+    private _glyphs: FontGlyph[];
 
     /**
      * Returns the Vertex Array Object of the font's glyphs
@@ -67,9 +67,9 @@ export class Font {
 
     /**
      * Returns the array of glyphs
-     * @returns {Glyph[]}
+     * @returns {FontGlyph[]}
      */
-    get glyphs(): Glyph[] {
+    get glyphs(): FontGlyph[] {
         return this._glyphs;
     }
 
@@ -141,7 +141,7 @@ export class Font {
         ctx.font = `${this._size}px ${this._family}`;
 
         let advance: number = 0;
-        let glyphs: Glyph[] = [];
+        let glyphs: FontGlyph[] = [];
 
         for (let i = 0; i < chars.length; i++) {
             const char = chars[i];
@@ -152,7 +152,7 @@ export class Font {
             const width = Math.round(metrics.width);
             const height = this._size;
 
-            const glyph = new Glyph();
+            const glyph = new FontGlyph();
             glyph.id = char.charCodeAt(0);
             glyph.char = char;
             glyph.x = charX;
