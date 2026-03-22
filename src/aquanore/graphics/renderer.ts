@@ -98,9 +98,9 @@ export class Renderer {
     /**
      * Manually switch to another shader. This function is called by every render function below but can be called manually as well.
      * @param {Shader} shader - The shader
-     * @returns True if the switch succeeded or false if it didn't.
+     * @returns {boolean} True if the switch succeeded or false if it didn't.
      */
-    static switchShader(shader: Shader) {
+    static switchShader(shader: Shader): boolean {
         const gl = Aquanore.ctx;
 
         if (shader == null) {
