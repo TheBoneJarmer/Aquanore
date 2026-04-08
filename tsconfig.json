@@ -15,6 +15,7 @@
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": false,
+    "rootDir": "./src",
     "outDir": "dist",
     "declarationMap": true,
     "removeComments": true,
