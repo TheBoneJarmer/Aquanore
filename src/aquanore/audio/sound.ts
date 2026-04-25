@@ -1,5 +1,3 @@
-import { Audio } from "./audio";
-
 export class Sound {
     private _buffer: AudioBuffer;
 

@@ -1,23 +1,24 @@
 import { Aquanore } from "../aquanore";
 import { Vector2, MathHelper, Matrix3, Matrix4, Vector3, Quaternion } from "../math";
+import { LightType } from "../enums";
+import { BasicMaterial, StandardMaterial } from "./materials";
+import { Shader, Shaders } from "./shaders";
+
 import { Color } from "./color";
 import { Joint } from "./joint";
-import { BasicMaterial, StandardMaterial } from "./materials";
 import { Mesh } from "./mesh";
 import { Model } from "./model";
 import { ModelAnimation } from "./model-animation";
 import { Polygon } from "./polygon";
 import { Scene } from "./scene";
-import { Shader, Shaders } from "./shaders";
 import { Sprite } from "./sprite";
 import { Texture } from "./texture";
-import { LightType, Shading } from "../enums";
 import { Light } from "./light";
 import { Font } from "./font";
 import { BitmapFont } from "./bitmapfont";
 
 export class Renderer {
-    private static _shader: Shader;
+    private static _shader: Shader | null;
     private static _shaderPolygon: Shader;
     private static _shaderModel: Shader;
     private static _shaderFont: Shader;
@@ -155,6 +156,10 @@ export class Renderer {
     static drawPolygon(polygon: Polygon, pos: Vector2, scale: Vector2, origin: Vector2, angle: number, color: Color, texture: Texture | null = null, textureOffset: Vector2 | null = null, flipTextureHor: boolean | null = false, flipTextureVert: boolean | null = false) {
         this.switchShader(this._shaderPolygon);
 
+        if (!this._shader) {
+            return;
+        }
+
         const gl = Aquanore.ctx;
         const cnv = Aquanore.canvas;
         const cos = Math.cos(MathHelper.radians(angle + 90));
@@ -196,6 +201,10 @@ export class Renderer {
             return;
         }
 
+        if (!this._shader) {
+            return;
+        }
+
         this.switchShader(this._shaderFont);
 
         const gl = Aquanore.ctx;
@@ -234,14 +243,17 @@ export class Renderer {
     public static drawFont(font: Font, text: string, pos: Vector2, scale: Vector2, color: Color) {
         this.switchShader(this._shaderFont);
 
+        if (!this._shader) {
+            return;
+        }
+
         const gl = Aquanore.ctx;
         const cnv = Aquanore.canvas;
 
-        const shader = this._shader;
-        shader.u2f("u_resolution", cnv.width, cnv.height);
-        shader.u2f("u_rotation", 0, 1);
-        shader.uvec2("u_scale", scale);
-        shader.ucolor("u_color", color);
+        this._shader.u2f("u_resolution", cnv.width, cnv.height);
+        this._shader.u2f("u_rotation", 0, 1);
+        this._shader.uvec2("u_scale", scale);
+        this._shader.ucolor("u_color", color);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, font.tex);
@@ -261,7 +273,7 @@ export class Renderer {
             let textX = pos.x * scale.x + advance;
             let textY = pos.y + scale.y;
 
-            shader.u2f("u_translation", textX, textY);
+            this._shader.u2f("u_translation", textX, textY);
             gl.drawArrays(gl.TRIANGLES, glyphIndex * 6, 6);
 
             advance += glyph.width * scale.x;
@@ -285,7 +297,10 @@ export class Renderer {
     static drawModel(model: Model, pos: Vector3, rot: Vector3, scale: Vector3, animation: ModelAnimation | null = null, animationTime: number | null = 0, wireframe: boolean = false) {
         this.switchShader(this._shaderModel);
 
-        const shader = this._shader;
+        if (!this._shader) {
+            return;
+        }
+
         const gl = Aquanore.ctx;
 
         // Set the shadow map
@@ -296,28 +311,28 @@ export class Renderer {
         const matViewShadow = this.generateShadowViewMatrix(light);
         const matTextureShadow = this.generateShadowTextureMatrix();
 
-        shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
-        shader.u1i("u_shadow_light", lightIndex);
-        shader.u1i("u_shadow_map", 31);
-        shader.umat4("u_projection_shadow", matProjectionShadow);
-        shader.umat4("u_view_shadow", matViewShadow);
-        shader.umat4("u_tsc_shadow", matTextureShadow);
+        this._shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
+        this._shader.u1i("u_shadow_light", lightIndex);
+        this._shader.u1i("u_shadow_map", 31);
+        this._shader.umat4("u_projection_shadow", matProjectionShadow);
+        this._shader.umat4("u_view_shadow", matViewShadow);
+        this._shader.umat4("u_tsc_shadow", matTextureShadow);
 
         gl.activeTexture(gl.TEXTURE31);
         gl.bindTexture(gl.TEXTURE_2D, this._texShadow.id);
 
         // Set all lights
-        shader.u1i("u_light_count", Scene.lights.length);
+        this._shader.u1i("u_light_count", Scene.lights.length);
 
         for (let i = 0; i < Scene.lights.length; i++) {
             const light = Scene.lights[i];
 
-            shader.u1i(`u_light[${i}].type`, light.type);
-            shader.u1b(`u_light[${i}].enabled`, light.enabled);
-            shader.uvec3(`u_light[${i}].source`, light.source);
-            shader.ucolor(`u_light[${i}].color`, light.color);
-            shader.u1f(`u_light[${i}].strength`, light.strength);
-            shader.u1f(`u_light[${i}].range`, light.range);
+            this._shader.u1i(`u_light[${i}].type`, light.type);
+            this._shader.u1b(`u_light[${i}].enabled`, light.enabled);
+            this._shader.uvec3(`u_light[${i}].source`, light.source);
+            this._shader.ucolor(`u_light[${i}].color`, light.color);
+            this._shader.u1f(`u_light[${i}].strength`, light.strength);
+            this._shader.u1f(`u_light[${i}].range`, light.range);
         }
 
         // Set some matrices that stay consistent in this function regardless of the other input
@@ -326,10 +341,10 @@ export class Renderer {
         const matModel = this.generateModelMatrix(pos, rot, scale);
         const matNormal = this.generateNormalMatrix(matModel);
 
-        shader.umat4("u_projection", matProjection);
-        shader.umat4("u_view", matView);
-        shader.umat4("u_model", matModel);
-        shader.umat3("u_normal", matNormal);
+        this._shader.umat4("u_projection", matProjection);
+        this._shader.umat4("u_view", matView);
+        this._shader.umat4("u_model", matModel);
+        this._shader.umat3("u_normal", matNormal);
 
         // Draw all primitives
         for (let mesh of model.meshes) {
@@ -339,7 +354,7 @@ export class Renderer {
     }
 
     private static drawMesh_Animation(model: Model, mesh: Mesh, animation: ModelAnimation | null, time: number | null) {
-        if (mesh.skin != null) {
+        if (mesh.skin !== -1) {
             this.drawMesh_Animation_Skinned(model, mesh, animation, time);
         } else {
             this.drawMesh_Animation_Normal(model, mesh, animation, time);
@@ -347,100 +362,109 @@ export class Renderer {
     }
 
     private static drawMesh_Animation_Normal(model: Model, mesh: Mesh, animation: ModelAnimation | null, time: number | null) {
-        const shader = this._shader;
+        if (!this._shader) {
+            return;
+        }
+
         const localTransform = this.getTransform(mesh);
         const animatedTransform = this.getAnimatedTransform(mesh.index, animation, time);
 
-        if (mesh.parent == null) {
+        if (mesh.parent === -1) {
             let mat = Matrix4.identity();
             mat = Matrix4.multiply(mat, localTransform);
             mat = Matrix4.multiply(mat, animatedTransform);
 
-            shader.umat4("u_mesh", mat);
+            this._shader.umat4("u_mesh", mat);
         } else {
-            const root = model.joints.find(x => x.parent == null);
+            const root = model.joints.find(x => x.parent === -1)!;
             const transforms = this.getJointTransforms(model, root.index, animation, time, Matrix4.identity());
-            const globalTransform = transforms.get(mesh.parent);
+            const globalTransform = transforms.get(mesh.parent)!;
 
             let mat = Matrix4.identity();
             mat = Matrix4.multiply(mat, globalTransform);
             mat = Matrix4.multiply(mat, localTransform);
             mat = Matrix4.multiply(mat, animatedTransform);
 
-            shader.umat4("u_mesh", mat);
+            this._shader.umat4("u_mesh", mat);
         }
 
-        shader.u1b("u_skinned", false);
+        this._shader.u1b("u_skinned", false);
     }
 
     private static drawMesh_Animation_Skinned(model: Model, mesh: Mesh, animation: ModelAnimation | null, time: number | null) {
-        const shader = this._shader;
+        if (!this._shader) {
+            return;
+        }
+
         const skin = model.skins[mesh.skin];
-        const root = model.joints.find(x => x.parent == null);
+        const root = model.joints.find(x => x.parent === -1)!;
         const transforms = this.getJointTransforms(model, root.index, animation, time, Matrix4.identity());
 
         for (let i = 0; i < skin.joints.length; i++) {
-            const transform = transforms.get(skin.joints[i]);
+            const transform = transforms.get(skin.joints[i])!;
 
             let mat = Matrix4.identity();
             mat = Matrix4.multiply(mat, transform);
             mat = Matrix4.multiply(mat, skin.matrices[i]);
 
-            shader.umat4(`u_joint[${i}]`, mat);
+            this._shader.umat4(`u_joint[${i}]`, mat);
         }
 
         const matMesh = Matrix4.identity();
-        shader.umat4("u_mesh", matMesh);
-        shader.u1b("u_skinned", true);
+        this._shader.umat4("u_mesh", matMesh);
+        this._shader.u1b("u_skinned", true);
     }
 
     private static drawMesh_Primitives(mesh: Mesh, wireframe: boolean) {
         const gl = Aquanore.ctx;
-        const shader = this._shader;
+
+        if (!this._shader) {
+            return;
+        }
 
         for (let pri of mesh.primitives) {
             const material = pri.material;
             const geom = pri.geometry;
 
             // If we are rendering to the shadow framebuffer and the primitive is set not to cast shadow we simply do not render it at all
-            if (!pri.castShadow && shader.id == Shaders.shadow.id) {
+            if (!pri.castShadow && this._shader.id == Shaders.shadow.id) {
                 continue;
             }
 
             // If the primitive is not set to receive shadows we simply disable shadow rendering
-            shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
+            this._shader.u1b("u_shadow_enabled", Aquanore.options.shadow.enabled);
 
             if (!pri.receiveShadow) {
-                shader.u1b("u_shadow_enabled", false);
+                this._shader.u1b("u_shadow_enabled", false);
             }
 
             if (material instanceof BasicMaterial) {
-                shader.u1i("u_material_type", 0);
-                shader.ucolor("u_material.color", material.color);
+                this._shader.u1i("u_material_type", 0);
+                this._shader.ucolor("u_material.color", material.color);
             }
 
             if (material instanceof StandardMaterial) {
-                shader.u1i("u_material_type", 1);
-                shader.ucolor("u_material.color", material.color);
-                shader.ucolor("u_material.ambient", material.ambient);
-                shader.u1b("u_material.normal_map_active", false);
-                shader.u1b("u_material.color_map_active", false);
-                shader.u1i("u_material.shading", material.shading);
+                this._shader.u1i("u_material_type", 1);
+                this._shader.ucolor("u_material.color", material.color);
+                this._shader.ucolor("u_material.ambient", material.ambient);
+                this._shader.u1b("u_material.normal_map_active", false);
+                this._shader.u1b("u_material.color_map_active", false);
+                this._shader.u1i("u_material.shading", material.shading);
 
                 if (material.colorMap != null) {
                     gl.activeTexture(gl.TEXTURE0);
                     gl.bindTexture(gl.TEXTURE_2D, material.colorMap.id);
 
-                    shader.u1i("u_material.color_map", 0);
-                    shader.u1b("u_material.color_map_active", true);
+                    this._shader.u1i("u_material.color_map", 0);
+                    this._shader.u1b("u_material.color_map_active", true);
                 }
 
                 if (material.normalMap != null) {
                     gl.activeTexture(gl.TEXTURE1);
                     gl.bindTexture(gl.TEXTURE_2D, material.normalMap.id);
 
-                    shader.u1i("u_material.normal_map", 1);
-                    shader.u1b("u_material.normal_map_active", true);
+                    this._shader.u1i("u_material.normal_map", 1);
+                    this._shader.u1b("u_material.normal_map_active", true);
                 }
             }
 
@@ -634,7 +658,7 @@ export class Renderer {
         let rotation = new Quaternion(0, 0, 0, 1);
         let scale = new Vector3(1, 1, 1);
 
-        if (animation == null) {
+        if (animation == null || time == null) {
             return Matrix4.identity();
         }
 

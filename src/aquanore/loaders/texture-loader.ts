@@ -11,7 +11,7 @@ export class TextureLoader {
             };
 
             img.onerror = (err) => {
-                reject(`Failed to load image ${path}`);
+                reject(new Error(`Failed to load image ${path}`));
             };
         });
     }

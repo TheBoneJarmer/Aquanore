@@ -1,5 +1,4 @@
 import { Matrix4 } from "../math";
-import { Joint } from "./joint";
 
 export class MeshSkin {
     private _joints: number[];

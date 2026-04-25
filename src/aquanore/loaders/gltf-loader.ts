@@ -168,7 +168,7 @@ export class GltfLoader {
             const index = scene.nodes[i];
             const node = gltf.nodes[index];
 
-            await this.parseNode(gltf, node, index, null);
+            await this.parseNode(gltf, node, index, -1);
         }
     }
 

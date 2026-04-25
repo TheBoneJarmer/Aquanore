@@ -10,11 +10,11 @@ export class Aquanore {
     private static _canvas: HTMLCanvasElement;
     private static _options: AquanoreOptions;
     private static _lastTime: number;
-    private static _onUpdate: Function = null;
-    private static _onRender2D: Function = null;
-    private static _onRender3D: Function = null;
-    private static _onLoad: Function = null;
-    private static _onResize: Function = null;
+    private static _onUpdate: Function | null;
+    private static _onRender2D: Function | null;
+    private static _onRender3D: Function | null;
+    private static _onLoad: Function | null;
+    private static _onResize: Function | null;
 
     /**
      * Returns the WebGL context from the canvas
@@ -22,7 +22,7 @@ export class Aquanore {
      */
     static get ctx(): WebGL2RenderingContext {
         if (this._ctx == null) {
-            this._ctx = this._canvas.getContext("webgl2");
+            this._ctx = this._canvas.getContext("webgl2")!;
         }
 
         return this._ctx;
@@ -48,7 +48,7 @@ export class Aquanore {
      * Gets the function to be called on each update.
      * @returns {Function}
      */
-    static get onUpdate(): Function {
+    static get onUpdate(): Function | null {
         return this._onUpdate;
     }
 
@@ -64,7 +64,7 @@ export class Aquanore {
      * Gets the function to be called for 2D rendering.
      * @returns {Function}
      */
-    static get onRender2D(): Function {
+    static get onRender2D(): Function | null {
         return this._onRender2D;
     }
 
@@ -80,7 +80,7 @@ export class Aquanore {
      * Gets the function to be called for 3D rendering.
      * @returns {Function}
      */
-    static get onRender3D(): Function {
+    static get onRender3D(): Function | null {
         return this._onRender3D;
     }
 
@@ -96,7 +96,7 @@ export class Aquanore {
      * Gets the function to be called on load.
      * @returns {Function}
      */
-    static get onLoad(): Function {
+    static get onLoad(): Function | null {
         return this._onLoad;
     }
 
@@ -112,7 +112,7 @@ export class Aquanore {
      * Gets the function to be called on resize.
      * @returns {Function}
      */
-    static get onResize(): Function {
+    static get onResize(): Function | null {
         return this._onResize;
     }
 
@@ -202,12 +202,12 @@ export class Aquanore {
         console.log(``);
         console.log(`[EXTENSIONS]`);
 
-        for (let ext of extensions) {
+        for (let ext of extensions ?? []) {
             console.log(ext);
         }
     }
 
-    private static async update(time) {
+    private static async update(time: number) {
         const deltaTime = time - this._lastTime;
         this._lastTime = time;
 

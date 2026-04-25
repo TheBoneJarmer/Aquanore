@@ -3,15 +3,15 @@ import { IGeometry } from "../../interfaces/geometry";
 import { Vector2, Vector3 } from "../../math";
 
 export class Geometry implements IGeometry {
-    private _vao: WebGLVertexArrayObject = null;
-    private _indices: number[] = [];
-    private _vertices: number[] = [];
-    private _uvs: number[] = [];
-    private _normals: number[] = [];
-    private _tangents: number[] = [];
-    private _bitangents: number[] = [];
-    private _joints: number[] = [];
-    private _weights: number[] = [];
+    private _vao: WebGLVertexArrayObject;
+    private _indices: number[];
+    private _vertices: number[];
+    private _uvs: number[];
+    private _normals: number[];
+    private _tangents: number[];
+    private _bitangents: number[];
+    private _joints: number[];
+    private _weights: number[];
 
     get vao(): WebGLVertexArrayObject {
         return this._vao;
@@ -83,6 +83,16 @@ export class Geometry implements IGeometry {
 
     set joints(value: number[]) {
         this._joints = value;
+    }
+
+    constructor() {
+        this._vertices = [];
+        this._normals = [];
+        this._uvs = [];
+        this._tangents = [];
+        this._bitangents = [];
+        this._joints = [];
+        this._weights = [];
     }
 
     /**

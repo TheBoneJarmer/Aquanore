@@ -10,7 +10,7 @@ export class OrthoCamera implements ICamera {
     private _bottom: number;
     private _near: number;
     private _far: number;
-    private _target: Vector3;
+    private _target: Vector3 | null;
 
     /**
      * Gets the left plane of the orthographic camera.
@@ -195,7 +195,7 @@ export class OrthoCamera implements ICamera {
         this._target = null;
     }
 
-    lookAt(target: Vector3 | null): void {
+    lookAt(target: Vector3 | null) {
         this._target = target;
     }
 }

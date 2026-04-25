@@ -19,6 +19,7 @@
     "outDir": "dist",
     "declarationMap": true,
     "removeComments": true,
+    "strictPropertyInitialization": false,
     "lib": [
       "ESNext",
       "DOM"

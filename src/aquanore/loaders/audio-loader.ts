@@ -9,6 +9,8 @@ export class AudioLoader {
             const audioBuffer = await Audio.ctx.decodeAudioData(arrayBuffer);
 
             return new Sound(audioBuffer);
+        } else {
+            throw new Error(`Failed to load sound`);
         }
     }
 }

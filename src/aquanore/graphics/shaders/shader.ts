@@ -15,7 +15,7 @@ export class Shader {
 
     /**
      * Constructs a shader object from a vertex shader source string and a fragment shader source string. 
-     * Don't forget to add the \\n characters at the end of each line or else the thing wont compile.
+     * Don't forget to add the \\n characters at the end of each line or else the damn thing wont compile.
      * @param {string} vSource The vertex shader source
      * @param {string} fSource The fragment shader source
      */
@@ -39,9 +39,9 @@ export class Shader {
         return program;
     }
 
-    private compileShader(source: string, type: number) {
+    private compileShader(source: string, type: number): WebGLShader {
         const gl = Aquanore.ctx;
-        const shader = gl.createShader(type);
+        const shader = gl.createShader(type)!;
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
 

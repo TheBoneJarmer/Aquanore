@@ -106,7 +106,7 @@ export class Matrix3 {
     }
 
     static from(src: Matrix3 | Matrix4): Matrix3 {
-        let values = [];
+        let values: number[] = [];
 
         if (src instanceof Matrix3) {
             values = src.values.map(x => x);

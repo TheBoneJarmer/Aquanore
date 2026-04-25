@@ -8,7 +8,7 @@ export class PerspectiveCamera implements ICamera {
     private _near: number;
     private _far: number;
     private _aspect: number;
-    private _target: Vector3;
+    private _target: Vector3 | null;
 
     /**
      * Returns the camera's translation
@@ -155,7 +155,7 @@ export class PerspectiveCamera implements ICamera {
         this._target = null;
     }
 
-    lookAt(target: Vector3 | null): void {
+    lookAt(target: Vector3 | null) {
         this._target = target;
     }
 }

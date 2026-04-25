@@ -5,7 +5,7 @@ export class CanvasOptions {
     /**
      * The HTML canvas element used by Aquanore to render to. By default a canvas element will be generated the size of the entire inner window.
      */
-    dom: HTMLCanvasElement = null;
+    dom: HTMLCanvasElement | null = null;
 
     /**
      * Automatically resizes the canvas to fill up the entire inner window. Set to false if you wish to set the canvas dimensions manually.

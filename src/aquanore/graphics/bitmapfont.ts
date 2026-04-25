@@ -16,14 +16,14 @@ export class BitmapFontGlyph {
  * Used to import bitmap fonts generated with the SnowB Bitmap Font tool at https://snowb.org/
  */
 export class BitmapFont {
-    private _tex: Texture = null;
-    private _vertices: number[] = [];
-    private _texcoords: number[] = [];
-    private _glyphs: BitmapFontGlyph[] = [];
+    private _tex: Texture;
+    private _vertices: number[];
+    private _texcoords: number[];
+    private _glyphs: BitmapFontGlyph[];
 
-    private _vboVertices: WebGLBuffer = null;
-    private _vboTexcoords: WebGLBuffer = null;
-    private _id: WebGLVertexArrayObject = null;
+    private _vboVertices: WebGLBuffer;
+    private _vboTexcoords: WebGLBuffer;
+    private _id: WebGLVertexArrayObject;
 
     /**
      * Returns the texture object of the font's bitmap image
@@ -49,13 +49,18 @@ export class BitmapFont {
         return this._id;
     }
 
-    public constructor(tex: Texture, data: string) {
+    constructor(tex: Texture, data: string) {
         this._tex = tex;
+        this._glyphs = [];
+        this._vertices = [];
+        this._texcoords = [];
 
         this.parseGlyphs(data);
+        this.generateBufferData();
+        this.generateBuffers();
     }
 
-    private parseGlyphs(data: string): void {
+    private parseGlyphs(data: string) {
         const lines = data.split('\n');
 
         for (let line of lines) {
@@ -82,12 +87,9 @@ export class BitmapFont {
 
             this._glyphs[glyph.id] = glyph;
         }
-
-        this.generateBufferData();
-        this.generateBuffers();
     }
 
-    private generateBufferData(): void {
+    private generateBufferData() {
         for (let i = 0; i < 1024 * 64; i++) {
             this._vertices[i] = 0;
             this._texcoords[i] = 0;
@@ -132,7 +134,7 @@ export class BitmapFont {
         }
     }
 
-    private generateBuffers(): void {
+    private generateBuffers() {
         const gl = Aquanore.ctx!;
 
         this._id = gl.createVertexArray();
