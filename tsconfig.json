@@ -1,12 +1,6 @@
 {
   "include": [
-    "src/aquanore/*",
-    "src/aquanore/audio/*",
-    "src/aquanore/graphics/*",
-    "src/aquanore/input/*",
-    "src/aquanore/loaders/*",
-    "src/aquanore/math/*",
-    "src/aquanore/interfaces/*"
+    "src/aquanore/"
   ],
   "compilerOptions": {
     "target": "esnext",
@@ -15,9 +9,8 @@
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": false,
-    "rootDir": "./src",
+    "rootDir": "./src/aquanore",
     "outDir": "dist",
-    "declarationMap": true,
     "removeComments": true,
     "strictPropertyInitialization": false,
     "lib": [
