@@ -7,7 +7,7 @@ import { Vector2 } from "../../aquanore/math";
 type Platform = {
     x: number;
     y: number;
-    scale: number;
+    width: number;
     state: number;
     dir: number;
     speed: number;
@@ -33,8 +33,8 @@ const player: Player = {
 }
 
 let platforms: Platform[] = [];
-let width = 48;
-let height = 48;
+let globalWidth = 48;
+let globalHeight = 48;
 let scroll = 0;
 let score = 0;
 let level = 1;
@@ -51,49 +51,53 @@ await Aquanore.run();
 
 /* FUNCTIONS */
 async function initAssets() {
-    poly = Polygon.rectangle(width, height);
+    poly = Polygon.rectangle(1, 1);
     font = new Font(24, "Arial");
 }
 
 async function initPlayer(canvas: HTMLCanvasElement) {
-    player.x = canvas.width / 2 - width / 2;
-    player.y = canvas.height - height;
+    player.x = canvas.width / 2 - globalWidth / 2;
+    player.y = canvas.height - globalHeight;
     player.velX = 0;
     player.velY = 0;
 }
 
 async function generatePlatforms(canvas: HTMLCanvasElement) {
-    const offset = -height * 4;
+    const offset = -globalHeight * 4;
     const total = 10;
     const begin = platforms.length;
     const end = platforms.length + total;
 
     for (let i = begin; i < end; i++) {
-        const scale = 10 - Math.floor(level / 10);
+        let width = canvas.width / 4 - level;
 
-        let x = Math.random() * (canvas.width - width * scale);
-        x = Math.round(x / 32) * 32;
+        if (width < globalWidth) {
+            width = globalWidth;
+        }
 
+        let x = canvas.width / 2 - width / 2;
         let y = canvas.height + offset;
-        y -= i * height * 8;
+        y -= i * globalHeight * 8;
 
         const p: Platform = {
             x: x,
             y: y,
-            scale: scale,
+            width: width,
             state: 0,
             dir: Math.round(Math.random()),
-            speed: 1 + level
+            speed: level * 1.125
         };
 
         platforms.push(p);
     }
 }
 
-async function updateKeyboard(friction: number) {
+async function updateKeyboard(dt: number) {
     if (Joystick.isConnected(0) === true) {
         return;
     }
+
+    const friction = dt * 10;
 
     if (Keyboard.keyDown(Keys.Left)) {
         player.velX -= friction;
@@ -114,11 +118,12 @@ async function updateKeyboard(friction: number) {
     }
 }
 
-async function updateJoystick(friction: number) {
+async function updateJoystick(dt: number) {
     if (Joystick.isConnected(0) === false) {
         return;
     }
 
+    const friction = dt * 1000;
     const hor = Joystick.getAxis(0, 0) * friction;
     const buttons = Joystick.getButtons(0);
 
@@ -134,12 +139,12 @@ async function updateJoystick(friction: number) {
 
     if (buttons[0] === true) {
         if (player.velY === 0) {
-            player.velY = friction * 35;
+            player.velY = friction * 2.5;
         }
     }
 }
 
-async function updateWorld(speed: number, friction: number) {
+async function updateLevel(dt: number) {
     const canvas = Aquanore.canvas;
 
     // Update level
@@ -149,17 +154,30 @@ async function updateWorld(speed: number, friction: number) {
         await generatePlatforms(canvas);
     }
 
+    if (player.y + globalHeight > canvas.height && platforms.some(x => x.state === 2)) {
+        score = 0;
+        level = 1;
+        platforms = [];
+
+        player.y = canvas.height - globalHeight;
+        player.velY = 0;
+
+        await generatePlatforms(canvas);
+    }
+
     // Update score
     if (player.velY > 0) {
-        score++;
+        score += level;
     }
 
     if (platforms.some(x => x.state === 1)) {
         score--;
     }
+}
 
-    // Update physics and platforms
-    player.velY -= friction;
+async function updatePlatforms(dt: number) {
+    const canvas = Aquanore.canvas;
+    const friction = dt * 100;
 
     for (let i = 0; i < platforms.length; i++) {
         const p = platforms[i];
@@ -170,7 +188,7 @@ async function updateWorld(speed: number, friction: number) {
             p.x -= friction * p.speed;
         }
 
-        if (p.x + p.scale * width > canvas.width) {
+        if (p.x + p.width > canvas.width) {
             p.dir = 1;
         }
 
@@ -178,7 +196,15 @@ async function updateWorld(speed: number, friction: number) {
             p.dir = 0;
         }
     }
+}
 
+async function updatePhysics(dt: number) {
+    const friction = dt * 100;
+
+    // Make the player fall
+    player.velY -= friction;
+
+    // Update platform physics
     for (let i = 0; i < platforms.length; i++) {
         const p = platforms[i];
 
@@ -186,12 +212,12 @@ async function updateWorld(speed: number, friction: number) {
             continue;
         }
 
-        if (player.x + width < p.x || player.x > p.x + p.scale * width) {
+        if (player.x + globalWidth < p.x || player.x > p.x + p.width) {
             p.state = 0;
             continue;
         }
 
-        if (player.y + height < p.y || player.y + height > p.y + height) {
+        if (player.y + globalHeight < p.y || player.y + globalHeight > p.y + globalHeight) {
             p.state = 0;
             continue;
         }
@@ -205,11 +231,15 @@ async function updateWorld(speed: number, friction: number) {
         }
 
         p.state = 1;
+        player.y = p.y - globalHeight;
         player.velY = 0;
-        player.y = p.y - height;
     }
+}
 
-    // Update pos
+async function updatePlayer(dt: number) {
+    const canvas = Aquanore.canvas;
+    const speed = dt * 100;
+
     player.x += player.velX;
     player.y -= player.velY;
 
@@ -221,13 +251,13 @@ async function updateWorld(speed: number, friction: number) {
         player.velX = 0;
     }
 
-    if (player.x > canvas.width - width) {
-        player.x = canvas.width - width;
+    if (player.x > canvas.width - globalWidth) {
+        player.x = canvas.width - globalWidth;
         player.velX = 0;
     }
 
-    if (player.y + height > canvas.height) {
-        player.y = canvas.height - height;
+    if (player.y + globalHeight > canvas.height) {
+        player.y = canvas.height - globalHeight;
         player.velY = 0;
 
         if (platforms.some(x => x.state === 2)) {
@@ -235,7 +265,6 @@ async function updateWorld(speed: number, friction: number) {
             level = 1;
             platforms = [];
 
-            await initPlayer(canvas);
             await generatePlatforms(canvas);
         }
     }
@@ -250,7 +279,7 @@ async function updateWorld(speed: number, friction: number) {
 async function renderPlatforms() {
     for (let p of platforms) {
         const pos = new Vector2(p.x, p.y + scroll);
-        const scale = new Vector2(p.scale, 1);
+        const scale = new Vector2(p.width, globalHeight);
         const origin = new Vector2(0, 0);
         const color = new Color(35, 100, 35);
 
@@ -272,7 +301,7 @@ async function renderPlatforms() {
 
 async function renderPlayer() {
     const pos = new Vector2(player.x, player.y + scroll);
-    const scale = new Vector2(1, 1);
+    const scale = new Vector2(globalWidth, globalHeight);
     const origin = new Vector2(0, 0);
     const color = new Color(35, 35, 255);
 
@@ -309,12 +338,12 @@ async function onLoad() {
 }
 
 async function onUpdate(dt: number) {
-    const speed = dt * 500;
-    const friction = dt * 50;
-
-    await updateJoystick(friction);
-    await updateKeyboard(friction);
-    await updateWorld(speed, friction);
+    await updateJoystick(dt);
+    await updateKeyboard(dt);
+    await updateLevel(dt);
+    await updatePhysics(dt);
+    await updatePlatforms(dt);
+    await updatePlayer(dt);
 }
 
 async function onRender2D() {
