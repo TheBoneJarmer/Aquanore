@@ -66,6 +66,15 @@
             "cwd": "${workspaceFolder}/src/examples/07-shaders",
             "internalConsoleOptions": "neverOpen",
             "args": []
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "08 - Input",
+            "runtimeExecutable": "vite",
+            "cwd": "${workspaceFolder}/src/examples/08-input",
+            "internalConsoleOptions": "neverOpen",
+            "args": []
         }
     ]
 }
