@@ -97,7 +97,7 @@ async function updateKeyboard(dt: number) {
         return;
     }
 
-    const friction = dt * 10;
+    const friction = dt * 1000;
 
     if (Keyboard.keyDown(Keys.Left)) {
         player.velX -= friction;
@@ -113,7 +113,7 @@ async function updateKeyboard(dt: number) {
 
     if (Keyboard.keyPressed(Keys.Space)) {
         if (player.velY === 0) {
-            player.velY = friction * 35;
+            player.velY = friction * 2.5;
         }
     }
 }
