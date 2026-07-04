@@ -4,6 +4,7 @@ import { Color } from "../color";
 
 export class Shader {
     private _id: WebGLProgram;
+    private _locations: Map<string, WebGLUniformLocation>;
 
     /**
      * Returns the WebGL shader program object
@@ -24,6 +25,7 @@ export class Shader {
         const fShader = this.compileShader(fSource, Aquanore.ctx.FRAGMENT_SHADER);
 
         this._id = this.compileProgram(vShader, fShader);
+        this._locations = new Map();
     }
 
     private compileProgram(vShader: WebGLShader, fShader: WebGLShader): WebGLProgram {
@@ -67,13 +69,13 @@ export class Shader {
      * @param {number} i1 The int
      */
     u1i(name: string, i1: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
-        
-        if (loc == -1) {
+        const loc = this.getUniformLocation(name);
+
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform1i(loc, i1);
     }
 
@@ -84,13 +86,13 @@ export class Shader {
      * @param {number} i2 The second int
      */
     u2i(name: string, i1: number, i2: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform2i(loc, i1, i2);
     }
 
@@ -102,13 +104,13 @@ export class Shader {
      * @param {number} i3 The third int
      */
     u3i(name: string, i1: number, i2: number, i3: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform3i(loc, i1, i2, i3);
     }
 
@@ -121,13 +123,13 @@ export class Shader {
      * @param {number} i4 The fourth int
      */
     u4i(name: string, i1: number, i2: number, i3: number, i4: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform4i(loc, i1, i2, i3, i4);
     }
 
@@ -137,13 +139,13 @@ export class Shader {
      * @param {number} f1 The float
      */
     u1f(name: string, f1: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform1f(loc, f1);
     }
 
@@ -154,13 +156,13 @@ export class Shader {
      * @param {number} f2 The second float
      */
     u2f(name: string, f1: number, f2: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform2f(loc, f1, f2);
     }
 
@@ -172,13 +174,13 @@ export class Shader {
      * @param {number} f3 The third float
      */
     u3f(name: string, f1: number, f2: number, f3: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform3f(loc, f1, f2, f3);
     }
 
@@ -191,13 +193,13 @@ export class Shader {
      * @param {number} f4 The fourth float
      */
     u4f(name: string, f1: number, f2: number, f3: number, f4: number) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform4f(loc, f1, f2, f3, f4);
     }
 
@@ -207,13 +209,13 @@ export class Shader {
      * @param {boolean} b1 The boolean
      */
     u1b(name: string, b1: boolean) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform1i(loc, b1 ? 1 : 0);
     }
 
@@ -224,13 +226,13 @@ export class Shader {
      * @param {boolean} b2 The second boolean
      */
     u2b(name: string, b1: boolean, b2: boolean) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform2i(loc, b1 ? 1 : 0, b2 ? 1 : 0);
     }
 
@@ -242,13 +244,13 @@ export class Shader {
      * @param {boolean} b3 The third boolean
      */
     u3b(name: string, b1: boolean, b2: boolean, b3: boolean) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform3i(loc, b1 ? 1 : 0, b2 ? 1 : 0, b3 ? 1 : 0);
     }
 
@@ -261,13 +263,13 @@ export class Shader {
      * @param {boolean} b4 The fourth boolean
      */
     u4b(name: string, b1: boolean, b2: boolean, b3: boolean, b4: boolean) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform4i(loc, b1 ? 1 : 0, b2 ? 1 : 0, b3 ? 1 : 0, b4 ? 1 : 0);
     }
 
@@ -278,13 +280,13 @@ export class Shader {
      * @param {Vector2} vec The vector2 object
      */
     uvec2(name: string, vec: Vector2) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform2f(loc, vec.x, vec.y);
     }
 
@@ -295,13 +297,13 @@ export class Shader {
      * @param {Vector3} vec The vector3 object
      */
     uvec3(name: string, vec: Vector3) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform3f(loc, vec.x, vec.y, vec.z);
     }
 
@@ -312,13 +314,13 @@ export class Shader {
      * @param {Matrix3} mat The matrix3 object
      */
     umat3(name: string, mat: Matrix3) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniformMatrix3fv(loc, false, mat.values);
     }
 
@@ -329,13 +331,13 @@ export class Shader {
      * @param {Matrix4} mat The matrix4 object
      */
     umat4(name: string, mat: Matrix4) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniformMatrix4fv(loc, false, mat.values);
     }
 
@@ -346,13 +348,31 @@ export class Shader {
      * @param {Color} color The color object
      */
     ucolor(name: string, color: Color) {
-        const gl = Aquanore.ctx;
-        const loc = gl.getUniformLocation(this._id, name);
+        const loc = this.getUniformLocation(name);
 
-        if (loc == -1) {
+        if (loc === null) {
             return;
         }
 
+        const gl = Aquanore.ctx;
         gl.uniform4f(loc, color.r / 255, color.g / 255, color.b / 255, color.a / 255);
+    }
+
+    /* HELPER FUNCTIONS */
+    private getUniformLocation(name: string): WebGLUniformLocation | null {
+        const gl = Aquanore.ctx;
+        const entry = this._locations.get(name);
+
+        if (entry) {
+            return entry;
+        }
+
+        const loc = gl.getUniformLocation(this._id, name);
+
+        if (loc !== null) {
+            this._locations.set(name, loc);
+        }
+
+        return loc;
     }
 }

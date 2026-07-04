@@ -9,7 +9,10 @@ export class Aquanore {
     private static _ctx: WebGL2RenderingContext;
     private static _canvas: HTMLCanvasElement;
     private static _options: AquanoreOptions;
-    private static _lastTime: number;
+
+    private static _dt: number;
+    private static _then: number;
+
     private static _onUpdate: Function | null;
     private static _onRender2D: Function | null;
     private static _onRender3D: Function | null;
@@ -130,7 +133,7 @@ export class Aquanore {
      */
     static async init(options: AquanoreOptions = new AquanoreOptions()) {
         this._options = options;
-        this._lastTime = 0;
+        this._then = 0;
 
         this.initCanvas();
         this.initListeners();
@@ -177,8 +180,8 @@ export class Aquanore {
     /**
      * Starts the main loop
      */
-    static async run() {
-        this._lastTime = 0;
+    public static async run() {
+        this._then = 0;
 
         if (this._onLoad != null) {
             await this._onLoad();
@@ -190,39 +193,21 @@ export class Aquanore {
     /**
      * Log WebGL related info
      */
-    static info() {
+    public static getGlInfo() {
         const gl = this._ctx;
-        const webglVersion = gl.getParameter(gl.VERSION);
-        const glslVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
-        const extensions = gl.getSupportedExtensions();
 
-        console.log(`[INFO]`);
-        console.log(`WebGL Version: ${webglVersion}`);
-        console.log(`GLSL Version: ${glslVersion}`);
-        console.log(``);
-        console.log(`[EXTENSIONS]`);
-
-        for (let ext of extensions ?? []) {
-            console.log(ext);
+        return {
+            version: gl.getParameter(gl.VERSION),
+            glslVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+            extensions: gl.getSupportedExtensions(),
         }
     }
 
-    private static async update(time: number) {
-        const deltaTime = time - this._lastTime;
-        this._lastTime = time;
-
-        if (this._onUpdate != null) {
-            await this._onUpdate(deltaTime / 1000.0);
-        }
-
-        await Scene.__update();
-        await Keyboard.__update();
-        await Cursor.__update();
-    }
-
-    private static async render() {
-        await Renderer.__render();
-
+    /**
+     * Returns the first WebGL error found if any
+     * @returns {string | undefined}
+     */
+    public static getGlError(): string | undefined {
         const gl = this._ctx;
         const errNum = gl.getError();
 
@@ -236,8 +221,28 @@ export class Aquanore {
             if (errNum == gl.INVALID_FRAMEBUFFER_OPERATION) errStr = "INVALID_FRAMEBUFFER_OPERATION";
             if (errNum == gl.CONTEXT_LOST_WEBGL) errStr = "CONTEXT_LOST";
 
-            throw new Error(`WebGL ${errStr}`);
+            return errStr;
         }
+    }
+
+    /* CALLBACK */
+    private static async update(now: number) {
+        now /= 1000.0;
+
+        this._dt = now - this._then;
+        this._then = now;
+
+        if (this._onUpdate != null) {
+            await this._onUpdate(this._dt);
+        }
+
+        await Scene.__update();
+        await Keyboard.__update();
+        await Cursor.__update();
+    }
+
+    private static async render() {
+        await Renderer.__render();
     }
 
     private static async callback(time: number) {

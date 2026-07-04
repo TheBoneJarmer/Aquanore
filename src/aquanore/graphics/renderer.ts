@@ -166,27 +166,27 @@ export class Renderer {
         const sin = Math.sin(MathHelper.radians(angle + 90));
 
         gl.bindVertexArray(polygon.vao);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), cnv.width, cnv.height);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), cos, sin);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_translation"), pos.x, pos.y);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_origin"), origin.x, origin.y);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_offset"), 0, 0);
-        gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
-        gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_texture_active"), 0);
-        gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_flip_hor"), 0);
-        gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_flip_vert"), 0);
+        this._shader.u2f("u_resolution", cnv.width, cnv.height);
+        this._shader.u2f("u_rotation", cos, sin);
+        this._shader.u2f("u_translation", pos.x, pos.y);
+        this._shader.u2f("u_scale", scale.x, scale.y);
+        this._shader.u2f("u_origin", origin.x, origin.y);
+        this._shader.u2f("u_offset", 0, 0);
+        this._shader.ucolor("u_color", color);
+        this._shader.u1b("u_texture_active", false);
+        this._shader.u1b("u_flip_hor", false);
+        this._shader.u1b("u_flip_vert", false);
 
         if (texture != null) {
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture.id);
 
-            gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_texture_active"), 1);
-            gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_flip_hor"), flipTextureHor ? 1 : 0);
-            gl.uniform1i(gl.getUniformLocation(this._shader.id, "u_flip_vert"), flipTextureVert ? 1 : 0);
+            this._shader.u1b("u_texture_active", true);
+            this._shader.u1b("u_flip_hor", flipTextureHor || false);
+            this._shader.u1b("u_flip_vert", flipTextureVert || false);
 
             if (textureOffset != null) {
-                gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_offset"), textureOffset.x, textureOffset.y);
+                this._shader.u2f("u_offset", textureOffset.x, textureOffset.y);
             }
         }
 
@@ -201,17 +201,17 @@ export class Renderer {
             return;
         }
 
+        this.switchShader(this._shaderFont);
+
         if (!this._shader) {
             return;
         }
 
-        this.switchShader(this._shaderFont);
-
         const gl = Aquanore.ctx;
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_resolution"), window.innerWidth, window.innerHeight);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_rotation"), 0, 1);
-        gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_scale"), scale.x, scale.y);
-        gl.uniform4f(gl.getUniformLocation(this._shader.id, "u_color"), color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
+        this._shader.u2f("u_resolution", window.innerWidth, window.innerHeight);
+        this._shader.u2f("u_rotation", 0, 1);
+        this._shader.u2f("u_scale", scale.x, scale.y);
+        this._shader.ucolor("u_color", color);
         gl.bindTexture(gl.TEXTURE_2D, font.tex.id);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindVertexArray(font.id);
@@ -229,7 +229,7 @@ export class Renderer {
             let textX = pos.x + glyph.xoffset * scale.x + advance;
             let textY = pos.y + glyph.yoffset * scale.y;
 
-            gl.uniform2f(gl.getUniformLocation(this._shader.id, "u_translation"), textX, textY);
+            this._shader.u2f("u_translation", textX, textY);
             gl.drawArrays(gl.TRIANGLES, index * 6, 6);
 
             advance += glyph.xadvance * scale.x;
