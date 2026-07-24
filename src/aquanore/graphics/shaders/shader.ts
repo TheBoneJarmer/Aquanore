@@ -1,6 +1,7 @@
 import { Aquanore } from "../../aquanore";
 import { Matrix3, Matrix4, Vector3, Vector2 } from "../../math";
 import { Color } from "../color";
+import { Texture } from "../texture";
 
 export class Shader {
     private _id: WebGLProgram;
@@ -356,6 +357,25 @@ export class Shader {
 
         const gl = Aquanore.ctx;
         gl.uniform4f(loc, color.r / 255, color.g / 255, color.b / 255, color.a / 255);
+    }
+
+    /**
+     * Binds a texture, sets it as active and sets a uniform using the texture index. The expected WebGL data type is `int`.
+     * @param {string} name The uniform location name
+     * @param {number} unit The texture index used for setting the active texture
+     * @param {Texture} tex The texture object
+     */
+    utex(name: string, unit: number, tex: Texture) {
+        const loc = this.getUniformLocation(name);
+
+        if (loc === null) {
+            return;
+        }
+
+        const gl = Aquanore.ctx;
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, tex.id);
+        gl.uniform1i(loc, unit);
     }
 
     /* HELPER FUNCTIONS */

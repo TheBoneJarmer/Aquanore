@@ -178,9 +178,7 @@ export class Renderer {
         this._shader.u1b("u_flip_vert", false);
 
         if (texture != null) {
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture.id);
-
+            this._shader.utex("u_texture", 0, texture);
             this._shader.u1b("u_texture_active", true);
             this._shader.u1b("u_flip_hor", flipTextureHor || false);
             this._shader.u1b("u_flip_vert", flipTextureVert || false);
