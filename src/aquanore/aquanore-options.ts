@@ -70,7 +70,7 @@ export class ShadowOptions {
     /**
      * This setting know what it is. It can speak for itself. It ain't not no bitch.
      */
-    enabled: boolean = true;
+    enabled: boolean = false;
 
     /**
      * The shadow frustrum options
