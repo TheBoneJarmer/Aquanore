@@ -83,6 +83,21 @@ export class Vector2 {
         return theta;
     }
 
+    /**
+     * Calculates the linear interpolated value of two vectors and returns it.
+     * @param {Vector2} v1 
+     * @param {Vector2} v2 
+     * @param {number} t 
+     * @returns {Vector2}
+     */
+    static lerp(v1: Vector2, v2: Vector2, t: number): Vector2 {
+        const v = new Vector2();
+        v.x = v1.x + t * (v2.x - v1.x);
+        v.y = v1.y + t * (v2.y - v1.y);
+
+        return v;
+    }
+
     static floor(v: Vector2): Vector2 {
         return new Vector2(Math.floor(v.x), Math.floor(v.y));
     }
