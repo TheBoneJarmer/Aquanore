@@ -5,6 +5,7 @@ import { MathHelper, Vector3 } from "../../aquanore/math";
 import { GltfLoader } from "../../aquanore/loaders";
 import { Cursor, Keyboard } from "../../aquanore/input";
 import { StandardMaterial } from "../../aquanore/graphics/materials";
+import { AquanoreOptions } from "../../aquanore/aquanore-options";
 
 let model: Model;
 let modelFloor: Model;
@@ -17,7 +18,10 @@ let position: Vector3;
 let rotation: Vector3;
 let scale: Vector3;
 
-await Aquanore.init();
+const options = new AquanoreOptions();
+options.shadow.enabled = true;
+
+await Aquanore.init(options);
 Aquanore.onLoad = onLoad;
 Aquanore.onUpdate = onUpdate;
 Aquanore.onRender3D = onRender3D;
